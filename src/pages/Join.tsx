@@ -74,7 +74,7 @@ const Join = () => {
               Stay in the loop
             </h1>
             <p className="text-body-lg text-muted-foreground mb-12">
-              We're all adults. We'll only email you if absolutely necessary.
+              We'll only email you if absolutely necessary.
             </p>
 
             {submitted ? (
