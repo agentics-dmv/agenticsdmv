@@ -20,8 +20,9 @@ const Header = () => {
         <Link 
           to="/" 
           className="text-caption uppercase tracking-widest font-medium text-foreground"
+          aria-label="Home"
         >
-          Agentics DMV
+          &nbsp;
         </Link>
 
         {/* Desktop nav */}
