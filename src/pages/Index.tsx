@@ -19,7 +19,7 @@ const Index = () => {
               className="text-display text-foreground mb-8 opacity-0 animate-fade-in text-balance"
               style={{ animationDelay: "0.2s" }}
             >
-              Building thoughtful AI, together.
+              Agentics DMV
             </h1>
             <p 
               className="text-body-lg text-muted-foreground max-w-xl mb-12 opacity-0 animate-fade-in"
