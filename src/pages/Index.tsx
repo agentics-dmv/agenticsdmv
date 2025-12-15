@@ -66,11 +66,6 @@ const Index = () => {
                 autonomous AI systems. We host monthly meetups, reading groups, 
                 and collaborative projects.
               </p>
-              <p className="text-body text-muted-foreground">
-                This is not a social network or content feed. It's a space for 
-                sustained, thoughtful conversation with people who care about 
-                getting AI right.
-              </p>
               <Link 
                 to="/about" 
                 className="inline-flex items-center gap-2 text-caption text-primary hover:text-primary/80 transition-subtle"
