@@ -6,163 +6,145 @@ const About = () => {
     <PageLayout>
       <section className="py-22">
         <div className="container">
-          <div className="max-w-3xl">
+          <div className="max-w-2xl">
             <p className="text-label uppercase text-primary mb-4">About</p>
-            <h1 className="text-display-sm text-foreground mb-6">
-              Our charter
+            <h1 className="text-display-sm text-foreground mb-8">
+              Why we exist
             </h1>
-            <p className="text-body-lg text-muted-foreground">
-              Agentics VA exists to support a local, thoughtful technical community. 
-              Here's what we believe and how we operate.
-            </p>
+
+            <div className="space-y-8 text-body text-muted-foreground">
+              <p>
+                Agentic AI is developing quickly. Most of what you read online is either 
+                breathless hype or dismissive skepticism. Neither is useful if you actually 
+                want to understand what these systems can do, what they cannot, and where 
+                things are heading.
+              </p>
+              
+              <p>
+                Agentics VA is a place for people in the DC-Virginia area who want to 
+                think carefully about autonomous AI systems. We read papers, build things, 
+                ask hard questions, and share what we learn. No pitches, no thought 
+                leadership, no growth metrics.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="py-16 border-t border-divider">
         <div className="container">
-          <div className="max-w-3xl space-y-16">
-            {/* Mission */}
+          <div className="max-w-2xl space-y-12">
+            
+            {/* Scope */}
             <div>
-              <h2 className="text-heading text-foreground mb-6">Mission</h2>
+              <h2 className="text-heading text-foreground mb-4">What we focus on</h2>
               <div className="space-y-4 text-body text-muted-foreground">
                 <p>
-                  We are the Virginia chapter of the Agentics Foundation, a nonprofit 
-                  dedicated to advancing the science and practice of agentic artificial 
-                  intelligence.
+                  Agentic systems: AI that takes actions, uses tools, makes decisions 
+                  over multiple steps. This includes research on agent architectures, 
+                  practical engineering challenges, and the safety considerations that 
+                  come with giving AI more autonomy.
                 </p>
                 <p>
-                  Our mission is to foster a community of researchers, engineers, and 
-                  learners who explore autonomous AI systems with care, rigor, and a 
-                  commitment to beneficial outcomes.
+                  We cover the spectrum from accessible introductions to deep technical 
+                  discussions, depending on the event. We note the expected level so you 
+                  can choose what fits.
                 </p>
-              </div>
-            </div>
-
-            {/* Values */}
-            <div>
-              <h2 className="text-heading text-foreground mb-6">Values</h2>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-body font-medium text-foreground mb-2">
-                    Intellectual honesty
-                  </h3>
-                  <p className="text-body text-muted-foreground">
-                    We say what we believe and update our views when presented with 
-                    better evidence. We acknowledge uncertainty and avoid hype.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-body font-medium text-foreground mb-2">
-                    Openness
-                  </h3>
-                  <p className="text-body text-muted-foreground">
-                    Our events are free. Our discussions are accessible to newcomers. 
-                    We share what we learn openly with the broader community.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-body font-medium text-foreground mb-2">
-                    Long-term thinking
-                  </h3>
-                  <p className="text-body text-muted-foreground">
-                    We're building something that lasts. We prioritize depth over 
-                    engagement metrics and relationships over transactions.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-body font-medium text-foreground mb-2">
-                    Respect
-                  </h3>
-                  <p className="text-body text-muted-foreground">
-                    We treat everyone with dignity, regardless of their background or 
-                    expertise level. Disagreement is welcome; disrespect is not.
-                  </p>
-                </div>
               </div>
             </div>
 
             {/* What we do */}
             <div>
-              <h2 className="text-heading text-foreground mb-6">What we do</h2>
+              <h2 className="text-heading text-foreground mb-4">How we meet</h2>
+              <ul className="space-y-3 text-body text-muted-foreground">
+                <li>
+                  <span className="text-foreground">Reading groups</span> — We pick a 
+                  paper, everyone reads it beforehand, we discuss.
+                </li>
+                <li>
+                  <span className="text-foreground">Workshops</span> — Hands-on 
+                  sessions where we build something together.
+                </li>
+                <li>
+                  <span className="text-foreground">Talks</span> — Someone presents 
+                  their work or a topic they know well. Q&A follows.
+                </li>
+                <li>
+                  <span className="text-foreground">Informal meetups</span> — Show 
+                  what you are working on, ask questions, connect.
+                </li>
+              </ul>
+              <p className="mt-4 text-body text-muted-foreground">
+                Events are free and open. We record most sessions and post them publicly.
+              </p>
+            </div>
+
+            {/* Expectations */}
+            <div>
+              <h2 className="text-heading text-foreground mb-4">What we expect</h2>
               <div className="space-y-4 text-body text-muted-foreground">
                 <p>
-                  <strong className="text-foreground">Monthly meetups</strong> — 
-                  Informal gatherings where members share what they're working on, 
-                  ask questions, and connect with others in the community.
+                  Treat others with respect. Disagree with ideas, not people. If you 
+                  are new, say so—nobody expects you to know everything. If you are 
+                  experienced, remember that you were once new.
                 </p>
                 <p>
-                  <strong className="text-foreground">Reading groups</strong> — 
-                  Deep dives into important papers and concepts, with structured 
-                  discussion and shared notes.
+                  Come prepared when preparation is expected. For reading groups, 
+                  that means reading the paper. For workshops, that means having 
+                  the prerequisites set up.
                 </p>
                 <p>
-                  <strong className="text-foreground">Workshops</strong> — 
-                  Hands-on sessions where participants learn practical skills, from 
-                  prompt engineering to building multi-agent systems.
-                </p>
-                <p>
-                  <strong className="text-foreground">Talks</strong> — 
-                  Presentations from local researchers, engineers, and visiting 
-                  experts on topics relevant to agentic AI.
+                  Say "I don't know" when you don't know. Speculation is fine if 
+                  you label it as such. Pretending to expertise you lack wastes 
+                  everyone's time.
                 </p>
               </div>
             </div>
 
-            {/* What we're not */}
+            {/* What we are not */}
             <div>
-              <h2 className="text-heading text-foreground mb-6">What we're not</h2>
+              <h2 className="text-heading text-foreground mb-4">What this is not</h2>
               <div className="space-y-4 text-body text-muted-foreground">
                 <p>
-                  We are not a social network, a content feed, or a platform. We 
-                  don't optimize for engagement or growth.
+                  This is not a networking event, a recruiting pipeline, or a place 
+                  to promote your startup. It is not a social media community. We 
+                  have no engagement metrics because we do not measure engagement.
                 </p>
                 <p>
-                  We are not a recruiting pipeline for any company or organization. 
-                  Members are welcome to discuss job opportunities, but that's not 
-                  our purpose.
-                </p>
-                <p>
-                  We are not a hype machine. We try to maintain realistic expectations 
-                  about both the capabilities and limitations of current AI systems.
+                  We are not here to convince anyone that AI is amazing or terrible. 
+                  We are here to understand it better.
                 </p>
               </div>
             </div>
 
             {/* Affiliation */}
             <div>
-              <h2 className="text-heading text-foreground mb-6">Affiliation</h2>
-              <div className="space-y-4 text-body text-muted-foreground">
-                <p>
-                  Agentics VA is an official chapter of the{" "}
-                  <a 
-                    href="https://agentics.org" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:text-primary/80 transition-subtle"
-                  >
-                    Agentics Foundation
-                  </a>
-                  , a 501(c)(3) nonprofit organization dedicated to advancing agentic 
-                  AI research and education.
-                </p>
-                <p>
-                  We operate with significant local autonomy while aligning with the 
-                  Foundation's broader mission and values.
-                </p>
-              </div>
+              <h2 className="text-heading text-foreground mb-4">Affiliation</h2>
+              <p className="text-body text-muted-foreground">
+                Agentics VA is a chapter of the{" "}
+                <a
+                  href="https://agentics.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:text-primary/80 transition-subtle"
+                >
+                  Agentics Foundation
+                </a>
+                , a nonprofit focused on agentic AI research and education. We operate 
+                locally with our own programming, aligned with the Foundation's values.
+              </p>
             </div>
 
             {/* CTA */}
-            <div className="pt-8">
+            <div className="pt-4">
               <p className="text-body text-muted-foreground mb-4">
-                Questions about our chapter? Want to get involved?
+                If this sounds like your kind of thing:
               </p>
-              <Link 
-                to="/join" 
+              <Link
+                to="/join"
                 className="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground text-caption font-medium hover:bg-primary/90 transition-subtle"
               >
-                Join the community
+                Join the mailing list
               </Link>
             </div>
           </div>
