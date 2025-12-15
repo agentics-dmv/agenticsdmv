@@ -1,27 +1,66 @@
 import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
+import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import PageLayout from "@/components/PageLayout";
+import { supabase } from "@/integrations/supabase/client";
+
+const emailSchema = z.object({
+  email: z.string().trim().email({ message: "Please enter a valid email address" }).max(255),
+});
 
 const Join = () => {
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const [consent, setConsent] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
 
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    // Validate email
+    const validation = emailSchema.safeParse({ email });
+    if (!validation.success) {
+      setError(validation.error.errors[0].message);
+      setLoading(false);
+      return;
+    }
+
+    // Check consent
+    if (!consent) {
+      setError("Please confirm you want to receive updates.");
+      setLoading(false);
+      return;
+    }
+
+    // Insert into members table
+    const { error: insertError } = await supabase
+      .from("members")
+      .insert({
+        email: validation.data.email,
+        consent: true,
+      });
+
+    if (insertError) {
+      // Handle duplicate email
+      if (insertError.code === "23505") {
+        setError("This email is already on our list.");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+      setLoading(false);
+      return;
+    }
+
     setSubmitted(true);
     setLoading(false);
     toast({
       title: "You're on the list",
-      description: "We'll be in touch soon with updates.",
+      description: "We'll be in touch when we have something worth sharing.",
     });
   };
 
@@ -35,9 +74,10 @@ const Join = () => {
               Stay in the loop
             </h1>
             <p className="text-body-lg text-muted-foreground mb-12">
-              We send occasional updates about events, reading groups, and 
-              interesting developments in agentic AI. No spam, no algorithms—just 
-              thoughtful content when we have something worth sharing.
+              We send occasional updates about events, reading groups, and
+              interesting developments in agentic AI. No spam, no
+              algorithms—just thoughtful content when we have something worth
+              sharing.
             </p>
 
             {submitted ? (
@@ -51,35 +91,18 @@ const Join = () => {
                   </h2>
                 </div>
                 <p className="text-body text-muted-foreground">
-                  Thanks for joining. We'll be in touch when we have something 
+                  Thanks for joining. We'll be in touch when we have something
                   worth sharing—expect to hear from us before the next event.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label 
-                    htmlFor="name" 
+                  <label
+                    htmlFor="email"
                     className="block text-caption text-muted-foreground mb-2"
                   >
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="w-full px-4 py-3 bg-background border border-border text-body text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-subtle"
-                    placeholder="Your name"
-                  />
-                </div>
-                <div>
-                  <label 
-                    htmlFor="email" 
-                    className="block text-caption text-muted-foreground mb-2"
-                  >
-                    Email
+                    Email address
                   </label>
                   <input
                     type="email"
@@ -91,6 +114,28 @@ const Join = () => {
                     placeholder="you@example.com"
                   />
                 </div>
+
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="consent"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="mt-1 h-4 w-4 border-border text-primary focus:ring-primary"
+                  />
+                  <label
+                    htmlFor="consent"
+                    className="text-caption text-muted-foreground cursor-pointer"
+                  >
+                    I want to receive email updates about Agentics VA events and
+                    announcements. You can unsubscribe at any time.
+                  </label>
+                </div>
+
+                {error && (
+                  <p className="text-caption text-destructive">{error}</p>
+                )}
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -108,7 +153,7 @@ const Join = () => {
               </h2>
               <ul className="space-y-3 text-body text-muted-foreground">
                 <li>
-                  <a 
+                  <a
                     href="mailto:hello@agenticsva.org"
                     className="hover:text-foreground transition-subtle"
                   >
@@ -116,7 +161,7 @@ const Join = () => {
                   </a>
                 </li>
                 <li>
-                  <a 
+                  <a
                     href="https://github.com/agentics"
                     target="_blank"
                     rel="noopener noreferrer"
