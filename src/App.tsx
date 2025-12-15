@@ -9,6 +9,7 @@ import Recordings from "./pages/Recordings";
 import Join from "./pages/Join";
 import About from "./pages/About";
 import CodeOfConduct from "./pages/CodeOfConduct";
+import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/join" element={<Join />} />
           <Route path="/about" element={<About />} />
           <Route path="/code-of-conduct" element={<CodeOfConduct />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

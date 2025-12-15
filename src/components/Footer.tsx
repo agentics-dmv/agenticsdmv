@@ -47,6 +47,12 @@ const Footer = () => {
             >
               Code of Conduct
             </Link>
+            <Link
+              to="/privacy"
+              className="text-caption text-muted-foreground hover:text-foreground transition-subtle"
+            >
+              Privacy
+            </Link>
             <a
               href="https://github.com/agentics"
               target="_blank"
