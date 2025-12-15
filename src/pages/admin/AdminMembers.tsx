@@ -45,10 +45,10 @@ const AdminMembers = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
         <h1 className="text-heading text-foreground">Members</h1>
-        <Button onClick={exportEmails} disabled={!members?.length}>
+        <Button onClick={exportEmails} disabled={!members?.length} size="sm">
           Export CSV
         </Button>
       </div>
@@ -59,16 +59,16 @@ const AdminMembers = () => {
         <p className="text-caption text-muted-foreground">No members</p>
       ) : (
         <div className="space-y-1">
-          <p className="text-caption text-muted-foreground mb-4">
+          <p className="text-caption text-muted-foreground mb-3">
             {members?.length} member{members?.length === 1 ? "" : "s"}
           </p>
           {members?.map((member) => (
             <div
               key={member.id}
-              className="p-3 border border-border rounded bg-card flex items-center justify-between"
+              className="p-3 border border-border rounded bg-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1"
             >
-              <span className="text-body text-foreground font-mono">{member.email}</span>
-              <span className="text-caption text-muted-foreground">
+              <span className="text-body text-foreground font-mono truncate">{member.email}</span>
+              <span className="text-caption text-muted-foreground shrink-0">
                 {format(new Date(member.joined_at), "MMM d, yyyy")}
               </span>
             </div>

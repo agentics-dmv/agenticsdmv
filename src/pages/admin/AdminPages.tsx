@@ -27,7 +27,7 @@ const AdminPages = () => {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <h1 className="text-heading text-foreground">Static Pages</h1>
 
       {isLoading ? (
@@ -79,7 +79,7 @@ function PageRow({
 
   return (
     <div
-      className="p-4 border border-border rounded bg-card hover:bg-muted/50 transition-subtle cursor-pointer"
+      className="p-3 sm:p-4 border border-border rounded bg-card hover:bg-muted/50 transition-subtle cursor-pointer"
       onClick={onEdit}
     >
       <p className="text-body text-foreground">{page.title}</p>
@@ -130,7 +130,7 @@ function PageForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border border-border rounded bg-card space-y-4">
+    <form onSubmit={handleSubmit} className="p-3 sm:p-4 border border-border rounded bg-card space-y-3 sm:space-y-4">
       <p className="text-caption text-muted-foreground">/{page.slug}</p>
       <Input
         placeholder="Title"
@@ -142,14 +142,15 @@ function PageForm({
         placeholder="Body text"
         value={form.body_text}
         onChange={(e) => setForm({ ...form, body_text: e.target.value })}
-        rows={10}
+        rows={8}
         required
+        className="min-h-[150px]"
       />
-      <div className="flex gap-2">
-        <Button type="submit" disabled={mutation.isPending}>
+      <div className="flex gap-2 pt-1">
+        <Button type="submit" disabled={mutation.isPending} size="sm">
           {mutation.isPending ? "Saving..." : "Save"}
         </Button>
-        <Button type="button" variant="ghost" onClick={onClose}>
+        <Button type="button" variant="ghost" size="sm" onClick={onClose}>
           Cancel
         </Button>
       </div>
