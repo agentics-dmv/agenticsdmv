@@ -138,7 +138,7 @@ const Events = () => {
           <div className="max-w-3xl">
             <p className="text-label uppercase text-primary mb-4">Events</p>
             <h1 className="text-display-sm text-foreground mb-6">
-              Gatherings for curious minds
+              Agentics DMV Events
             </h1>
             <p className="text-body-lg text-muted-foreground">
               We meet regularly to discuss papers, share projects, and learn from
