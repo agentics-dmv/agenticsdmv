@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
@@ -6,22 +8,26 @@ const Footer = () => {
       <div className="container">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
           <div>
-            <p className="text-caption font-medium text-foreground mb-2">
+            <Link to="/" className="text-caption font-medium text-foreground mb-2 block">
               Agentics VA
-            </p>
+            </Link>
             <p className="text-caption text-muted-foreground">
               A chapter of the Agentics Foundation
             </p>
           </div>
           <div className="flex flex-wrap gap-6">
-            <a 
-              href="https://agentics.org" 
-              target="_blank" 
-              rel="noopener noreferrer"
+            <Link 
+              to="/about"
               className="text-caption text-muted-foreground hover:text-foreground transition-subtle"
             >
-              Agentics Foundation
-            </a>
+              About
+            </Link>
+            <Link 
+              to="/code-of-conduct"
+              className="text-caption text-muted-foreground hover:text-foreground transition-subtle"
+            >
+              Code of Conduct
+            </Link>
             <a 
               href="https://github.com/agentics" 
               target="_blank" 
