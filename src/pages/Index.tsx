@@ -78,27 +78,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-30 bg-card">
-        <div className="container">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-display-sm text-foreground mb-6">
-              Curious? Come say hello.
-            </h2>
-            <p className="text-body-lg text-muted-foreground mb-10">
-              Whether you're a seasoned researcher or just starting to explore 
-              AI, there's a place for you here.
-            </p>
-            <Link 
-              to="/join" 
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground text-caption font-medium hover:bg-primary/90 transition-subtle"
-            >
-              Join the mailing list
-              <ArrowRight size={16} />
-            </Link>
-          </div>
-        </div>
-      </section>
     </PageLayout>
   );
 };
