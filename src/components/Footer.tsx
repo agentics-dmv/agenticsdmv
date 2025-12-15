@@ -11,10 +11,10 @@ const Footer = () => {
           <div className="space-y-4">
             <div>
               <Link to="/" className="text-caption font-medium text-foreground mb-1 block">
-                Agentics VA
+                Agentics DMV
               </Link>
               <p className="text-caption text-muted-foreground">
-                The Virginia chapter of the{" "}
+                The DC, Maryland, Virginia chapter of the{" "}
                 <a
                   href="https://agentics.org"
                   target="_blank"
@@ -65,7 +65,7 @@ const Footer = () => {
         </div>
         <div className="mt-12 pt-6 border-t border-divider flex flex-col sm:flex-row justify-between gap-4">
           <p className="text-caption text-muted-foreground">
-            © {currentYear} Agentics VA. Open source, open minds.
+            © {currentYear} Agentics DMV. Open source, open minds.
           </p>
           <p className="text-caption text-text-subtle">
             Last updated December 2024

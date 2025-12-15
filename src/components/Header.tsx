@@ -21,7 +21,7 @@ const Header = () => {
           to="/" 
           className="text-caption uppercase tracking-widest font-medium text-foreground"
         >
-          Agentics VA
+          Agentics DMV
         </Link>
 
         {/* Desktop nav */}

@@ -21,10 +21,10 @@ const About = () => {
               </p>
               
               <p>
-                Agentics VA is a place for people in the DC-Virginia area who want to 
-                think carefully about autonomous AI systems. We read papers, build things, 
-                ask hard questions, and share what we learn. No pitches, no thought 
-                leadership, no growth metrics.
+                Agentics DMV is a place for people in DC, Maryland, and Virginia who 
+                want to think carefully about autonomous AI systems. We read papers, 
+                build things, ask hard questions, and share what we learn. No pitches, 
+                no thought leadership, no growth metrics.
               </p>
             </div>
           </div>
@@ -121,7 +121,7 @@ const About = () => {
             <div>
               <h2 className="text-heading text-foreground mb-4">Affiliation</h2>
               <p className="text-body text-muted-foreground">
-                Agentics VA is a chapter of the{" "}
+                Agentics DMV is a chapter of the{" "}
                 <a
                   href="https://agentics.org"
                   target="_blank"
