@@ -32,10 +32,10 @@ const AdminEvents = () => {
   const archivedEvents = events?.filter((e) => e.archived) || [];
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
         <h1 className="text-heading text-foreground">Events</h1>
-        <Button onClick={() => setShowNew(true)} disabled={showNew}>
+        <Button onClick={() => setShowNew(true)} disabled={showNew} size="sm">
           New Event
         </Button>
       </div>
@@ -55,7 +55,7 @@ const AdminEvents = () => {
       ) : (
         <>
           <section>
-            <h2 className="text-body font-medium text-foreground mb-4">Active</h2>
+            <h2 className="text-body font-medium text-foreground mb-3">Active</h2>
             {activeEvents.length === 0 ? (
               <p className="text-caption text-muted-foreground">No active events</p>
             ) : (
@@ -75,7 +75,7 @@ const AdminEvents = () => {
 
           {archivedEvents.length > 0 && (
             <section>
-              <h2 className="text-body font-medium text-muted-foreground mb-4">Archived</h2>
+              <h2 className="text-body font-medium text-muted-foreground mb-3">Archived</h2>
               <div className="space-y-2">
                 {archivedEvents.map((event) => (
                   <EventRow
@@ -123,17 +123,17 @@ function EventRow({
 
   return (
     <div
-      className="p-4 border border-border rounded bg-card hover:bg-muted/50 transition-subtle cursor-pointer"
+      className="p-3 sm:p-4 border border-border rounded bg-card hover:bg-muted/50 transition-subtle cursor-pointer"
       onClick={onEdit}
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-body text-foreground">{event.title}</p>
-          <p className="text-caption text-muted-foreground">
-            {format(new Date(event.date_time), "MMM d, yyyy · h:mm a")} · {event.location_text}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+        <div className="min-w-0">
+          <p className="text-body text-foreground truncate">{event.title}</p>
+          <p className="text-caption text-muted-foreground truncate">
+            {format(new Date(event.date_time), "MMM d, yyyy · h:mm a")}
           </p>
         </div>
-        <span className="text-label text-muted-foreground uppercase">{event.format_type}</span>
+        <span className="text-label text-muted-foreground uppercase shrink-0">{event.format_type}</span>
       </div>
     </div>
   );
@@ -197,7 +197,7 @@ function EventForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border border-border rounded bg-card space-y-4">
+    <form onSubmit={handleSubmit} className="p-3 sm:p-4 border border-border rounded bg-card space-y-3 sm:space-y-4">
       <Input
         placeholder="Title"
         value={form.title}
@@ -209,8 +209,9 @@ function EventForm({
         value={form.description}
         onChange={(e) => setForm({ ...form, description: e.target.value })}
         required
+        rows={3}
       />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input
           type="datetime-local"
           value={form.date_time}
@@ -224,7 +225,7 @@ function EventForm({
           required
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input
           placeholder="Map link (optional)"
           value={form.location_map_link}
@@ -241,7 +242,7 @@ function EventForm({
         value={form.recording_url}
         onChange={(e) => setForm({ ...form, recording_url: e.target.value })}
       />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <select
           className="h-10 px-3 border border-input rounded bg-background text-foreground text-body"
           value={form.format_type}
@@ -260,7 +261,7 @@ function EventForm({
           <option value="technical">Technical</option>
           <option value="research">Research</option>
         </select>
-        <label className="flex items-center gap-2 text-body text-foreground">
+        <label className="flex items-center gap-2 text-body text-foreground col-span-2 sm:col-span-1">
           <input
             type="checkbox"
             checked={form.archived}
@@ -269,11 +270,11 @@ function EventForm({
           Archived
         </label>
       </div>
-      <div className="flex gap-2">
-        <Button type="submit" disabled={mutation.isPending}>
+      <div className="flex gap-2 pt-1">
+        <Button type="submit" disabled={mutation.isPending} size="sm">
           {mutation.isPending ? "Saving..." : "Save"}
         </Button>
-        <Button type="button" variant="ghost" onClick={onClose}>
+        <Button type="button" variant="ghost" size="sm" onClick={onClose}>
           Cancel
         </Button>
       </div>

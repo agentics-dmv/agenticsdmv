@@ -29,10 +29,10 @@ const AdminRecordings = () => {
   });
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4">
         <h1 className="text-heading text-foreground">Recordings</h1>
-        <Button onClick={() => setShowNew(true)} disabled={showNew}>
+        <Button onClick={() => setShowNew(true)} disabled={showNew} size="sm">
           New Recording
         </Button>
       </div>
@@ -96,11 +96,11 @@ function RecordingRow({
 
   return (
     <div
-      className="p-4 border border-border rounded bg-card hover:bg-muted/50 transition-subtle cursor-pointer"
+      className="p-3 sm:p-4 border border-border rounded bg-card hover:bg-muted/50 transition-subtle cursor-pointer"
       onClick={onEdit}
     >
-      <p className="text-body text-foreground">{recording.title}</p>
-      <p className="text-caption text-muted-foreground">
+      <p className="text-body text-foreground truncate">{recording.title}</p>
+      <p className="text-caption text-muted-foreground truncate">
         {format(new Date(recording.published_at), "MMM d, yyyy")}
         {recording.speaker_names?.length ? ` · ${recording.speaker_names.join(", ")}` : ""}
       </p>
@@ -165,7 +165,7 @@ function RecordingForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border border-border rounded bg-card space-y-4">
+    <form onSubmit={handleSubmit} className="p-3 sm:p-4 border border-border rounded bg-card space-y-3 sm:space-y-4">
       <Input
         placeholder="Title"
         value={form.title}
@@ -182,10 +182,11 @@ function RecordingForm({
         placeholder="Summary (optional)"
         value={form.summary}
         onChange={(e) => setForm({ ...form, summary: e.target.value })}
+        rows={3}
       />
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input
-          placeholder="Speaker names (comma separated)"
+          placeholder="Speakers (comma separated)"
           value={form.speaker_names}
           onChange={(e) => setForm({ ...form, speaker_names: e.target.value })}
         />
@@ -195,11 +196,11 @@ function RecordingForm({
           onChange={(e) => setForm({ ...form, published_at: e.target.value })}
         />
       </div>
-      <div className="flex gap-2">
-        <Button type="submit" disabled={mutation.isPending}>
+      <div className="flex gap-2 pt-1">
+        <Button type="submit" disabled={mutation.isPending} size="sm">
           {mutation.isPending ? "Saving..." : "Save"}
         </Button>
-        <Button type="button" variant="ghost" onClick={onClose}>
+        <Button type="button" variant="ghost" size="sm" onClick={onClose}>
           Cancel
         </Button>
       </div>
