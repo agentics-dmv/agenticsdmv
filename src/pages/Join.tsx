@@ -74,10 +74,7 @@ const Join = () => {
               Stay in the loop
             </h1>
             <p className="text-body-lg text-muted-foreground mb-12">
-              We send occasional updates about events, reading groups, and
-              interesting developments in agentic AI. No spam, no
-              algorithms—just thoughtful content when we have something worth
-              sharing.
+              We're all adults. We'll only email you if absolutely necessary.
             </p>
 
             {submitted ? (
@@ -147,34 +144,6 @@ const Join = () => {
               </form>
             )}
 
-            <div className="mt-16 pt-16 border-t border-divider">
-              <h2 className="text-body font-medium text-foreground mb-4">
-                Other ways to connect
-              </h2>
-              <ul className="space-y-3 text-body text-muted-foreground">
-                <li>
-                  <a
-                    href="mailto:hello@agenticsva.org"
-                    className="hover:text-foreground transition-subtle"
-                  >
-                    Email us directly at hello@agenticsva.org
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/agentics"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-foreground transition-subtle"
-                  >
-                    Contribute on GitHub
-                  </a>
-                </li>
-                <li>
-                  <span>Drop by one of our events—no signup required</span>
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
       </section>
