@@ -65,7 +65,7 @@ const Footer = () => {
         </div>
         <div className="mt-12 pt-6 border-t border-divider flex flex-col sm:flex-row justify-between gap-4">
           <p className="text-caption text-muted-foreground">
-            © {currentYear} Agentics DMV. Open source, open minds.
+            © {currentYear} Agentics DMV.
           </p>
           <p className="text-caption text-text-subtle">
             Last updated December 2024
