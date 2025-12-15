@@ -67,9 +67,6 @@ const Footer = () => {
           <p className="text-caption text-muted-foreground">
             © {currentYear} Agentics DMV.
           </p>
-          <p className="text-caption text-text-subtle">
-            Last updated December 2024
-          </p>
         </div>
       </div>
     </footer>
