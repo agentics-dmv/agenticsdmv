@@ -127,7 +127,7 @@ const Join = () => {
                     htmlFor="consent"
                     className="text-caption text-muted-foreground cursor-pointer"
                   >
-                    I want to receive email updates about Agentics VA events and
+                    I want to receive email updates about Agentics DMV events and
                     announcements. You can unsubscribe at any time.
                   </label>
                 </div>

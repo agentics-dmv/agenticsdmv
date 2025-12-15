@@ -13,7 +13,7 @@ const Index = () => {
               className="text-label uppercase text-primary mb-6 opacity-0 animate-fade-in"
               style={{ animationDelay: "0.1s" }}
             >
-              Virginia Chapter
+              DC · Maryland · Virginia
             </p>
             <h1 
               className="text-display text-foreground mb-8 opacity-0 animate-fade-in text-balance"
@@ -61,9 +61,10 @@ const Index = () => {
             </div>
             <div className="space-y-6">
               <p className="text-body text-muted-foreground">
-                Agentics VA connects Virginia-based practitioners, researchers, and 
-                learners who share an interest in autonomous AI systems. We host 
-                monthly meetups, reading groups, and collaborative projects.
+                Agentics DMV connects practitioners, researchers, and learners 
+                across DC, Maryland, and Virginia who share an interest in 
+                autonomous AI systems. We host monthly meetups, reading groups, 
+                and collaborative projects.
               </p>
               <p className="text-body text-muted-foreground">
                 This is not a social network or content feed. It's a space for 
