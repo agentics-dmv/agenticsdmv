@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, MapPin, Clock, ExternalLink, CalendarPlus, Archive } from "lucide-react";
+import { Calendar, MapPin, Clock, ExternalLink, CalendarPlus, Archive, FolderGit2 } from "lucide-react";
 import { format } from "date-fns";
 import PageLayout from "@/components/PageLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,14 @@ import { Label } from "@/components/ui/label";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Event = Tables<"events">;
+
+const formatLabels: Record<string, string> = {
+  talk: "Talk",
+  panel: "Panel",
+  workshop: "Workshop",
+  clinic: "Agent Clinic",
+  "reverse-pitch": "Reverse Pitch",
+};
 
 const EventCard = ({ event, isUpcoming }: { event: Event; isUpcoming: boolean }) => {
   const eventDate = new Date(event.date_time);
@@ -33,7 +41,7 @@ const EventCard = ({ event, isUpcoming }: { event: Event; isUpcoming: boolean })
             {format(eventDate, "MMMM d, yyyy")}
           </p>
           <span className="inline-block mt-2 px-2 py-0.5 text-xs uppercase tracking-wide bg-accent text-accent-foreground rounded">
-            {event.format_type}
+            {formatLabels[event.format_type] || event.format_type}
           </span>
         </div>
         <div className="flex-1">
@@ -64,39 +72,52 @@ const EventCard = ({ event, isUpcoming }: { event: Event; isUpcoming: boolean })
               )}
             </span>
           </div>
-          {isUpcoming && (
-            <div className="flex flex-wrap items-center gap-4 mt-4">
-              {event.rsvp_link && (
-                <a
-                  href={event.rsvp_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-caption text-primary hover:text-primary/80 transition-subtle"
+          <div className="flex flex-wrap items-center gap-4 mt-4">
+            {isUpcoming && (
+              <>
+                {event.rsvp_link && (
+                  <a
+                    href={event.rsvp_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-caption text-primary hover:text-primary/80 transition-subtle"
+                  >
+                    RSVP
+                    <ExternalLink size={12} />
+                  </a>
+                )}
+                <button
+                  onClick={handleAddToCalendar}
+                  className="inline-flex items-center gap-1.5 text-caption text-muted-foreground hover:text-foreground transition-subtle"
                 >
-                  RSVP
-                  <ExternalLink size={12} />
-                </a>
-              )}
-              <button
-                onClick={handleAddToCalendar}
-                className="inline-flex items-center gap-1.5 text-caption text-muted-foreground hover:text-foreground transition-subtle"
+                  <CalendarPlus size={14} />
+                  Add to Calendar
+                </button>
+              </>
+            )}
+            {!isUpcoming && event.recording_url && (
+              <a
+                href={event.recording_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-caption text-primary hover:text-primary/80 transition-subtle"
               >
-                <CalendarPlus size={14} />
-                Add to Calendar
-              </button>
-            </div>
-          )}
-          {!isUpcoming && event.recording_url && (
-            <a
-              href={event.recording_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 mt-4 text-caption text-primary hover:text-primary/80 transition-subtle"
-            >
-              Watch Recording
-              <ExternalLink size={12} />
-            </a>
-          )}
+                Watch Recording
+                <ExternalLink size={12} />
+              </a>
+            )}
+            {event.artifact_url && (
+              <a
+                href={event.artifact_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-caption text-primary hover:text-primary/80 transition-subtle"
+              >
+                <FolderGit2 size={14} />
+                View Artifact
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </article>
@@ -141,8 +162,8 @@ const Events = () => {
               Agentics DMV Events
             </h1>
             <p className="text-body-lg text-muted-foreground">
-              We meet regularly to discuss papers, share projects, and learn from
-              each other. All events are free and open to the community.
+              Agent Clinics, Reverse Pitches, and hands-on workshops. 
+              All events are free and open to builders.
             </p>
           </div>
         </div>
