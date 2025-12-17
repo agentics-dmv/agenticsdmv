@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import PageLayout from "@/components/PageLayout";
 
 const About = () => {
@@ -32,14 +31,6 @@ const About = () => {
                 .
               </p>
 
-              <div className="pt-4">
-                <Link
-                  to="/join"
-                  className="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground text-caption font-medium hover:bg-primary/90 transition-subtle"
-                >
-                  Join the mailing list
-                </Link>
-              </div>
             </div>
           </div>
         </div>
