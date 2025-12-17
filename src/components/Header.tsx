@@ -32,7 +32,6 @@ const Header = () => {
               {link.label}
             </Link>
           ))}
-          <ThemeToggle />
           <Link 
             to="/" 
             className="text-muted-foreground hover:text-foreground transition-subtle"
@@ -40,11 +39,11 @@ const Header = () => {
           >
             <Home size={18} />
           </Link>
+          <ThemeToggle />
         </nav>
 
         {/* Mobile menu button */}
         <div className="flex items-center gap-2 md:hidden">
-          <ThemeToggle />
           <Link 
             to="/" 
             className="text-muted-foreground hover:text-foreground transition-subtle"
@@ -52,6 +51,7 @@ const Header = () => {
           >
             <Home size={18} />
           </Link>
+          <ThemeToggle />
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-muted-foreground hover:text-foreground transition-subtle"
