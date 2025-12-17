@@ -17,6 +17,7 @@ export type Database = {
       events: {
         Row: {
           archived: boolean
+          artifact_url: string | null
           audience_level: Database["public"]["Enums"]["audience_level"]
           created_at: string
           date_time: string
@@ -31,6 +32,7 @@ export type Database = {
         }
         Insert: {
           archived?: boolean
+          artifact_url?: string | null
           audience_level?: Database["public"]["Enums"]["audience_level"]
           created_at?: string
           date_time: string
@@ -45,6 +47,7 @@ export type Database = {
         }
         Update: {
           archived?: boolean
+          artifact_url?: string | null
           audience_level?: Database["public"]["Enums"]["audience_level"]
           created_at?: string
           date_time?: string
@@ -151,7 +154,7 @@ export type Database = {
     }
     Enums: {
       audience_level: "general" | "technical" | "research"
-      event_format: "talk" | "panel" | "workshop"
+      event_format: "talk" | "panel" | "workshop" | "clinic" | "reverse-pitch"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -280,7 +283,7 @@ export const Constants = {
   public: {
     Enums: {
       audience_level: ["general", "technical", "research"],
-      event_format: ["talk", "panel", "workshop"],
+      event_format: ["talk", "panel", "workshop", "clinic", "reverse-pitch"],
     },
   },
 } as const

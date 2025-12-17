@@ -21,11 +21,16 @@ const Index = () => {
               Agentics DMV
             </h1>
             <p 
-              className="text-body-lg text-muted-foreground max-w-xl mb-12 opacity-0 animate-fade-in"
+              className="text-body-lg text-muted-foreground max-w-xl mb-6 opacity-0 animate-fade-in"
               style={{ animationDelay: "0.3s" }}
             >
-              We're a community of researchers, builders, and curious minds exploring 
-              agentic systems with care, rigor, and a commitment to beneficial outcomes.
+              Engineers building autonomous systems in high-compliance environments.
+            </p>
+            <p 
+              className="text-caption text-muted-foreground/70 max-w-xl mb-12 opacity-0 animate-fade-in"
+              style={{ animationDelay: "0.35s" }}
+            >
+              No suits. No sales. Just code.
             </p>
             <div 
               className="flex flex-wrap gap-4 opacity-0 animate-fade-in"

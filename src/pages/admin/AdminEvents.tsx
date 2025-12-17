@@ -159,6 +159,7 @@ function EventForm({
     location_map_link: event?.location_map_link || "",
     rsvp_link: event?.rsvp_link || "",
     recording_url: event?.recording_url || "",
+    artifact_url: event?.artifact_url || "",
     format_type: event?.format_type || "talk",
     audience_level: event?.audience_level || "general",
     archived: event?.archived || false,
@@ -172,6 +173,7 @@ function EventForm({
         location_map_link: form.location_map_link || null,
         rsvp_link: form.rsvp_link || null,
         recording_url: form.recording_url || null,
+        artifact_url: form.artifact_url || null,
       };
 
       if (isNew) {
@@ -237,11 +239,18 @@ function EventForm({
           onChange={(e) => setForm({ ...form, rsvp_link: e.target.value })}
         />
       </div>
-      <Input
-        placeholder="Recording URL (optional)"
-        value={form.recording_url}
-        onChange={(e) => setForm({ ...form, recording_url: e.target.value })}
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Input
+          placeholder="Recording URL (optional)"
+          value={form.recording_url}
+          onChange={(e) => setForm({ ...form, recording_url: e.target.value })}
+        />
+        <Input
+          placeholder="Artifact URL (GitHub, etc.)"
+          value={form.artifact_url}
+          onChange={(e) => setForm({ ...form, artifact_url: e.target.value })}
+        />
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <select
           className="h-10 px-3 border border-input rounded bg-background text-foreground text-body"
@@ -251,6 +260,8 @@ function EventForm({
           <option value="talk">Talk</option>
           <option value="panel">Panel</option>
           <option value="workshop">Workshop</option>
+          <option value="clinic">Agent Clinic</option>
+          <option value="reverse-pitch">Reverse Pitch</option>
         </select>
         <select
           className="h-10 px-3 border border-input rounded bg-background text-foreground text-body"

@@ -1,16 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
-import { Menu, X, Home, Calendar, HelpCircle } from "lucide-react";
+import { Home, Calendar, HelpCircle, FolderGit2 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
   { href: "/events", label: "Events", Icon: Calendar },
+  { href: "/resources", label: "Resources", Icon: FolderGit2 },
   { href: "/about", label: "About", Icon: HelpCircle },
 ];
 
 const Header = () => {
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-divider">
@@ -43,7 +42,7 @@ const Header = () => {
           <ThemeToggle />
         </nav>
 
-        {/* Mobile menu button */}
+        {/* Mobile nav */}
         <div className="flex items-center gap-4 md:hidden">
           {navLinks.map((link) => (
             <Link
