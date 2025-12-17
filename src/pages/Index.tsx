@@ -33,14 +33,8 @@ const Index = () => {
               style={{ animationDelay: "0.4s" }}
             >
               <Link 
-                to="/join" 
-                className="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground text-caption font-medium hover:bg-primary/90 transition-subtle"
-              >
-                Join the community
-              </Link>
-              <Link 
                 to="/events" 
-                className="inline-flex items-center px-5 py-2.5 border border-border text-foreground text-caption font-medium hover:bg-secondary transition-subtle"
+                className="inline-flex items-center px-5 py-2.5 bg-primary text-primary-foreground text-caption font-medium hover:bg-primary/90 transition-subtle"
               >
                 View events
               </Link>

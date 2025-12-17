@@ -165,7 +165,7 @@ const Events = () => {
             </div>
           ) : (
             <p className="text-body text-muted-foreground">
-              No upcoming events scheduled. Check back soon or join our mailing list.
+              No upcoming events scheduled. Check back soon.
             </p>
           )}
         </div>
