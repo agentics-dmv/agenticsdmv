@@ -1,11 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X, Home } from "lucide-react";
+import { Menu, X, Home, Calendar, HelpCircle } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
-  { href: "/events", label: "Events" },
-  { href: "/about", label: "About" },
+  { href: "/events", label: "Events", Icon: Calendar },
+  { href: "/about", label: "About", Icon: HelpCircle },
 ];
 
 const Header = () => {
@@ -18,18 +18,19 @@ const Header = () => {
         <div className="w-8" />
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               to={link.href}
-              className={`text-caption transition-subtle link-underline ${
+              className={`transition-subtle ${
                 location.pathname === link.href
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               }`}
+              aria-label={link.label}
             >
-              {link.label}
+              <link.Icon size={18} />
             </Link>
           ))}
           <Link 
@@ -43,7 +44,21 @@ const Header = () => {
         </nav>
 
         {/* Mobile menu button */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-4 md:hidden">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className={`transition-subtle ${
+                location.pathname === link.href
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              aria-label={link.label}
+            >
+              <link.Icon size={18} />
+            </Link>
+          ))}
           <Link 
             to="/" 
             className="text-muted-foreground hover:text-foreground transition-subtle"
@@ -52,37 +67,8 @@ const Header = () => {
             <Home size={18} />
           </Link>
           <ThemeToggle />
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-muted-foreground hover:text-foreground transition-subtle"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
         </div>
       </div>
-
-      {/* Mobile nav */}
-      {mobileMenuOpen && (
-        <nav className="md:hidden border-t border-divider bg-background">
-          <div className="container py-4 flex flex-col gap-4">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                to={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`text-caption py-2 transition-subtle ${
-                  location.pathname === link.href
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-        </nav>
-      )}
     </header>
   );
 };
