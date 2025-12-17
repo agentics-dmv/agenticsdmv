@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import PageLayout from "@/components/PageLayout";
 
 const Index = () => {
@@ -42,36 +41,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* Brief intro */}
-      <section className="py-30 border-t border-divider">
-        <div className="container">
-          <div className="grid md:grid-cols-2 gap-16 md:gap-24">
-            <div>
-              <p className="text-label uppercase text-primary mb-4">What we do</p>
-              <h2 className="text-heading text-foreground">
-                A local home for agentic AI research
-              </h2>
-            </div>
-            <div className="space-y-6">
-              <p className="text-body text-muted-foreground">
-                Agentics DMV connects practitioners, researchers, and learners 
-                across DC, Maryland, and Virginia who share an interest in 
-                autonomous AI systems. We host monthly meetups, reading groups, 
-                and collaborative projects.
-              </p>
-              <Link 
-                to="/about" 
-                className="inline-flex items-center gap-2 text-caption text-primary hover:text-primary/80 transition-subtle"
-              >
-                Read our charter
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
     </PageLayout>
   );
 };
