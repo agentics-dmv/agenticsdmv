@@ -15,13 +15,7 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-divider">
       <div className="container flex items-center justify-between h-14">
-        <Link 
-          to="/" 
-          className="text-muted-foreground hover:text-foreground transition-subtle"
-          aria-label="Home"
-        >
-          <Home size={18} />
-        </Link>
+        <div className="w-8" />
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-8">
@@ -39,11 +33,25 @@ const Header = () => {
             </Link>
           ))}
           <ThemeToggle />
+          <Link 
+            to="/" 
+            className="text-muted-foreground hover:text-foreground transition-subtle"
+            aria-label="Home"
+          >
+            <Home size={18} />
+          </Link>
         </nav>
 
         {/* Mobile menu button */}
         <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
+          <Link 
+            to="/" 
+            className="text-muted-foreground hover:text-foreground transition-subtle"
+            aria-label="Home"
+          >
+            <Home size={18} />
+          </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 text-muted-foreground hover:text-foreground transition-subtle"
