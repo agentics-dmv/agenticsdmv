@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Home } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
@@ -18,10 +18,10 @@ const Header = () => {
       <div className="container flex items-center justify-between h-14">
         <Link 
           to="/" 
-          className="text-caption uppercase tracking-widest font-medium text-foreground"
+          className="text-muted-foreground hover:text-foreground transition-subtle"
           aria-label="Home"
         >
-          &nbsp;
+          <Home size={18} />
         </Link>
 
         {/* Desktop nav */}
