@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import PageLayout from "@/components/PageLayout";
+import logoTransparent from "@/assets/logo-transparent.png";
 
 const Index = () => {
   return (
@@ -14,7 +15,13 @@ const Index = () => {
             >
               DC · Maryland · Virginia
             </p>
-            <h1 
+            <img 
+              src={logoTransparent} 
+              alt="Agentics DMV logo" 
+              className="w-48 md:w-64 h-auto mb-8 opacity-0 animate-fade-in"
+              style={{ animationDelay: "0.15s" }}
+            />
+            <h1
               className="text-display text-foreground mb-8 opacity-0 animate-fade-in text-balance"
               style={{ animationDelay: "0.2s" }}
             >
