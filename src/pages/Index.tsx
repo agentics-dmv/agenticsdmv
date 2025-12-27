@@ -17,7 +17,7 @@ const Index = () => {
             </p>
             <img 
               src={logoTransparent} 
-              alt="Agentics DMV logo" 
+              alt="DMV Agentics logo" 
               className="w-48 md:w-64 h-auto mb-8 opacity-0 animate-fade-in"
               style={{ animationDelay: "0.15s" }}
             />
@@ -25,7 +25,7 @@ const Index = () => {
               className="text-display text-foreground mb-8 opacity-0 animate-fade-in text-balance"
               style={{ animationDelay: "0.2s" }}
             >
-              Agentics DMV
+              DMV Agentics
             </h1>
             <p 
               className="text-body-lg text-muted-foreground max-w-xl mb-6 opacity-0 animate-fade-in"

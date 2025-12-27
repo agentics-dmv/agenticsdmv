@@ -36,7 +36,7 @@ const Footer = () => {
         </div>
         <div className="pt-6 border-t border-divider">
           <p className="text-caption text-muted-foreground">
-            © {currentYear} Agentics DMV.
+            © {currentYear} DMV Agentics.
           </p>
         </div>
       </div>

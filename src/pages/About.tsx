@@ -15,7 +15,7 @@ const About = () => {
 
             <div className="space-y-6 text-body text-muted-foreground">
               <p>
-                Agentics DMV connects engineers across DC, Maryland, and Virginia 
+                DMV Agentics connects engineers across DC, Maryland, and Virginia
                 who build autonomous AI systems—specifically within high-compliance 
                 and regulated environments.
               </p>
@@ -72,7 +72,7 @@ const About = () => {
         <div className="container">
           <div className="max-w-2xl">
             <p className="text-body text-muted-foreground mb-4">
-              Agentics DMV is a chapter of the{" "}
+              DMV Agentics is a chapter of the{" "}
               <a
                 href="https://agentics.org"
                 target="_blank"
