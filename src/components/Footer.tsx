@@ -25,18 +25,10 @@ const Footer = () => {
           >
             Privacy
           </Link>
-          <a
-            href="https://github.com/agentics-dmv"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-caption text-muted-foreground hover:text-foreground transition-subtle"
-          >
-            GitHub
-          </a>
         </div>
         <div className="pt-6 border-t border-divider">
           <p className="text-caption text-muted-foreground">
-            © {currentYear} DMV Agentics.
+            © {currentYear} DMV Applied AI · A program of AI Ready RVA
           </p>
         </div>
       </div>

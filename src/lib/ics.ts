@@ -20,12 +20,12 @@ export const generateICSContent = ({
     return text.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
   };
 
-  const uid = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@agenticsva.org`;
+  const uid = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@dmvappliedai.org`;
 
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Agentics VA//Events//EN',
+    'PRODID:-//DMV Applied AI//Sessions//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
