@@ -10,76 +10,82 @@ const About = () => {
           <div className="max-w-2xl">
             <p className="text-label uppercase text-primary mb-4">What we do</p>
             <h1 className="text-display-sm text-foreground mb-8">
-              The Applied Agentic Guild
+              Applied AI Systems Cohort
             </h1>
 
             <div className="space-y-6 text-body text-muted-foreground">
               <p>
-                DMV Agentics connects engineers across DC, Maryland, and Virginia
-                who build autonomous AI systems—specifically within high-compliance 
-                and regulated environments.
+                DMV Applied AI is a small, senior-level group under AI Ready RVA 
+                focused on how modern AI systems actually work in practice—technically, 
+                organizationally, and operationally.
               </p>
 
               <p>
-                We're the "anti-conference"—no suits, no sales decks, just builders 
-                sharing code and solving real problems.
+                Each quarter, we gather experienced practitioners for structured 
+                discussion. No slides. No sales. Just candid conversation among peers.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Focus Areas */}
+      {/* How Sessions Work */}
       <section className="py-16 border-t border-divider">
         <div className="container">
           <div className="max-w-2xl">
-            <h2 className="text-heading text-foreground mb-8">Focus Areas</h2>
+            <h2 className="text-heading text-foreground mb-8">How Sessions Work</h2>
             <div className="space-y-6 text-body text-muted-foreground">
-              <div>
-                <h3 className="text-body font-medium text-foreground mb-2">Local & Private AI</h3>
-                <p>Air-gapped deployment, local LLMs, avoiding API calls due to data leakage concerns.</p>
+              <p>
+                Each session is led by a <strong className="text-foreground">Paper Sponsor</strong>—someone 
+                who picks a public paper or white paper they find interesting or important.
+              </p>
+              <div className="space-y-4 pl-4 border-l-2 border-divider">
+                <p>
+                  <span className="text-foreground font-medium">10–15 minutes:</span> The sponsor 
+                  frames why the paper matters
+                </p>
+                <p>
+                  <span className="text-foreground font-medium">Remainder:</span> Structured 
+                  discussion with the group
+                </p>
               </div>
-              <div>
-                <h3 className="text-body font-medium text-foreground mb-2">Compliance-First Agents</h3>
-                <p>Agent workflows in regulated environments—government, healthcare, finance.</p>
-              </div>
-              <div>
-                <h3 className="text-body font-medium text-foreground mb-2">Model Governance</h3>
-                <p>Securing agentic workflows, audit trails, and responsible deployment patterns.</p>
-              </div>
+              <p>
+                No slides required. No employer approval needed. You're not representing 
+                an organization—just your own thinking.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* What We Don't Do */}
+      {/* What We're Looking For */}
       <section className="py-16 border-t border-divider bg-card">
         <div className="container">
           <div className="max-w-2xl">
-            <h2 className="text-heading text-foreground mb-6">What We Don't Do</h2>
+            <h2 className="text-heading text-foreground mb-6">The Audience</h2>
             <ul className="space-y-3 text-body text-muted-foreground">
-              <li>• Sales pitches or vendor demos</li>
-              <li>• Generic "AI policy" panels</li>
-              <li>• Consultant networking events</li>
-              <li>• Hype without code</li>
+              <li>• Small—typically 10–15 people per session</li>
+              <li>• Senior—experienced practitioners only</li>
+              <li>• Thoughtful—here for depth, not networking</li>
+              <li>• Candid—real discussion, not polish</li>
             </ul>
           </div>
         </div>
       </section>
 
-      {/* Charter Link */}
+      {/* AI Ready RVA Link */}
       <section className="py-16 border-t border-divider">
         <div className="container">
           <div className="max-w-2xl">
             <p className="text-body text-muted-foreground mb-4">
-              DMV Agentics is a chapter of the{" "}
+              DMV Applied AI is a program of{" "}
               <a
-                href="https://agentics.org"
+                href="https://aireadyrva.org"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:text-primary/80 transition-subtle"
               >
-                Agentics Foundation
+                AI Ready RVA
               </a>
               .
             </p>
@@ -87,7 +93,7 @@ const About = () => {
               to="/code-of-conduct" 
               className="inline-flex items-center gap-2 text-caption text-primary hover:text-primary/80 transition-subtle"
             >
-              Read our charter
+              Read our code of conduct
               <ArrowRight size={14} />
             </Link>
           </div>

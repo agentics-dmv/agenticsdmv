@@ -85,24 +85,24 @@ const CodeOfConduct = () => {
                 If something feels off, say something. Talk to an organizer or 
                 email{" "}
                 <a
-                  href="mailto:conduct@agenticsva.org"
+                  href="mailto:conduct@dmvappliedai.org"
                   className="text-primary hover:text-primary/80 transition-subtle"
                 >
-                  conduct@agenticsva.org
+                  conduct@dmvappliedai.org
                 </a>
                 . We will listen.
               </p>
             </div>
 
-            {/* Foundation link */}
+            {/* AI Ready RVA link */}
             <div className="pt-2">
               <a
-                href="https://agentics.org/code-of-conduct"
+                href="https://aireadyrva.org"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-caption text-muted-foreground hover:text-foreground transition-subtle"
               >
-                Agentics Foundation full policy
+                AI Ready RVA
                 <ExternalLink size={12} />
               </a>
             </div>

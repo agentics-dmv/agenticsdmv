@@ -27,7 +27,7 @@ const Privacy = () => {
                   How we use it
                 </h2>
                 <p>
-                  We use your email to send you updates about Agentics VA events 
+                  We use your email to send you updates about DMV Applied AI sessions 
                   and announcements. We do not sell, share, or give your email to 
                   anyone else. We do not use tracking pixels or analytics on our 
                   emails.
@@ -41,10 +41,10 @@ const Privacy = () => {
                 <p>
                   Email{" "}
                   <a
-                    href="mailto:hello@agenticsva.org?subject=Remove%20me%20from%20mailing%20list"
+                    href="mailto:hello@dmvappliedai.org?subject=Remove%20me%20from%20mailing%20list"
                     className="text-primary hover:text-primary/80 transition-subtle"
                   >
-                    hello@agenticsva.org
+                    hello@dmvappliedai.org
                   </a>{" "}
                   and ask to be removed. We will delete your email from our list 
                   within a few days.
@@ -65,10 +65,10 @@ const Privacy = () => {
                 <p className="text-caption text-text-subtle">
                   Questions? Email{" "}
                   <a
-                    href="mailto:hello@agenticsva.org"
+                    href="mailto:hello@dmvappliedai.org"
                     className="text-primary hover:text-primary/80 transition-subtle"
                   >
-                    hello@agenticsva.org
+                    hello@dmvappliedai.org
                   </a>
                 </p>
               </div>

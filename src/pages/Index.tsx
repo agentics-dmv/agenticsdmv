@@ -17,7 +17,7 @@ const Index = () => {
             </p>
             <img 
               src={logoTransparent} 
-              alt="DMV Agentics logo" 
+              alt="DMV Applied AI logo" 
               className="w-48 md:w-64 h-auto mb-8 opacity-0 animate-fade-in"
               style={{ animationDelay: "0.15s" }}
             />
@@ -25,19 +25,19 @@ const Index = () => {
               className="text-display text-foreground mb-8 opacity-0 animate-fade-in text-balance"
               style={{ animationDelay: "0.2s" }}
             >
-              DMV Agentics
+              DMV Applied AI
             </h1>
             <p 
               className="text-body-lg text-muted-foreground max-w-xl mb-6 opacity-0 animate-fade-in"
               style={{ animationDelay: "0.3s" }}
             >
-              Engineers building autonomous systems in high-compliance environments.
+              A senior-level cohort discussing how modern AI systems actually work in practice.
             </p>
             <p 
               className="text-caption text-muted-foreground/70 max-w-xl mb-12 opacity-0 animate-fade-in"
               style={{ animationDelay: "0.35s" }}
             >
-              No suits. No sales. Just code.
+              Small. Senior. Thoughtful.
             </p>
             <div 
               className="flex flex-wrap gap-4 opacity-0 animate-fade-in"

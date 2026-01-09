@@ -159,11 +159,11 @@ const Events = () => {
           <div className="max-w-3xl">
             <p className="text-label uppercase text-primary mb-4">Events</p>
             <h1 className="text-display-sm text-foreground mb-6">
-              DMV Agentics Events
+              Sessions
             </h1>
             <p className="text-body-lg text-muted-foreground">
-              Agent Clinics, Reverse Pitches, and hands-on workshops. 
-              All events are free and open to builders.
+              Quarterly gatherings with paper discussions and structured conversation.
+              Small, senior, and candid.
             </p>
           </div>
         </div>
