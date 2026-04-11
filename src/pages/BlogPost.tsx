@@ -7,8 +7,6 @@ import { blogPosts } from "@/data/blog-posts";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useAsciiHero } from "@/hooks/useAsciiHero";
-import { TypewriterCode } from "@/components/TypewriterCode";
-import { FootnoteTooltip } from "@/components/FootnoteTooltip";
 
 /** Parse footnotes: text like [^1: some note] becomes a FootnoteTooltip */
 function parseFootnotes(text: string) {
@@ -109,13 +107,6 @@ const BlogPost = () => {
                 blockquote: ({ children, ...props }) => (
                   <BlockquoteReveal {...props}>{children}</BlockquoteReveal>
                 ),
-                code: ({ children, className, ...props }) => {
-                  // Only apply typewriter to inline code (no className = no language)
-                  if (className) {
-                    return <code className={className} {...props}>{children}</code>;
-                  }
-                  return <TypewriterCode>{children}</TypewriterCode>;
-                },
               }}
             >
               {post.content}
