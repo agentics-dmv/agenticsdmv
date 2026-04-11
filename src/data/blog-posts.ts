@@ -29,7 +29,7 @@ If you want the clean version: there isn't one yet. This is version 1.
 
 ---
 
-AWS credits from a hackathon, expiring. OpenClaw at 265,000 stars. The local AWS meetup needed a demo.
+AWS credits from a hackathon, expiring. [OpenClaw](https://github.com/openclaw/openclaw) at 265,000 stars. The local AWS meetup needed a demo.
 
 The harder version: I didn't understand OpenClaw yet. Not the paradigm — what's the gateway doing on each message, what are workspace files, why does the agent behave differently depending on what's in them? I'd been circling it for weeks without touching it.
 
@@ -43,7 +43,7 @@ Opened Cursor, loaded $20 in credits, cloned the repo, told the AI to help me de
 
 Stack came up in 8 minutes. The template handled everything: IAM role, security groups, user-data script that installed OpenClaw from npm and started the gateway as a systemd user service. Port 18789 on localhost. Nine plugins loaded. Bedrock connected.
 
-One friction point: the SSM Session Manager plugin wouldn't install on the Mac through any normal path. Homebrew failed. \`sudo installer\` failed without an interactive session. Had to extract the \`.pkg\` manually — \`xar -xf\` to unpack, \`cpio\` to pull out the binary, copy to \`/usr/local/bin\`. First attempt was the ARM64 build. Mac needed x86_64.
+One friction point: the [SSM Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/install-plugin-macos-overview.html) wouldn't install on the Mac through any normal path. [Homebrew](https://brew.sh) failed. \`sudo installer\` failed without an interactive session. Had to extract the \`.pkg\` manually — \`xar -xf\` to unpack, \`cpio\` to pull out the binary, copy to \`/usr/local/bin\`. First attempt was the ARM64 build. Mac needed x86_64.
 
 As I went: Makefile targets for everything I'd need again. \`make deploy-setup\` (one-time repo clone on the instance), \`make deploy\` (sync workspace + tools files), \`make ssh\` (SSM tunnel), \`make logs\` (tail gateway output). Every manual step I skip encoding is a step I'll forget.
 
@@ -56,9 +56,9 @@ The Control UI had a QR code for WhatsApp pairing. Three hours later it had a ra
 
 **Problem 1: SSM port forwarding drops WebSocket connections.** The Control UI depends on WebSockets for QR generation, status updates, the pairing flow. SSM's forwarding layer is asynchronous and flaky. Every drop was a reset. Five clicks on the QR generator. Zero scans.
 
-**Problem 2: Cloudflare tunnel introduced config corruption.** Tried to bypass SSM flakiness with \`cloudflared\`. That required editing \`openclaw.json\`. Set \`gateway.controlUi.pairingRequired = false\` — invalid key, service crashed on every start, error buried seven lines into the log. Then \`gateway.mode = "remote"\` — service refused: "set gateway.mode=local or pass --allow-unconfigured." Each wrong key left the config slightly more broken. OpenClaw auto-creates \`.bak\` files — ended up restoring from backup twice.
+**Problem 2: Cloudflare tunnel introduced config corruption.** Tried to bypass SSM flakiness with [\`cloudflared\`](https://developers.cloudflare.com/tunnel/). That required editing \`openclaw.json\`. Set \`gateway.controlUi.pairingRequired = false\` — invalid key, service crashed on every start, error buried seven lines into the log. Then \`gateway.mode = "remote"\` — service refused: "set gateway.mode=local or pass --allow-unconfigured." Each wrong key left the config slightly more broken. OpenClaw auto-creates \`.bak\` files — ended up restoring from backup twice.
 
-**Problem 3: Health monitor death spiral.** Every restart triggered automatic WhatsApp reconnect. Baileys (the library OpenClaw uses for WhatsApp's unofficial web protocol) retried on 401: 5s, 11s, 21s, 43s, 88s, 171s. Twenty-plus restarts in one afternoon. Hundreds of failed auth attempts.
+**Problem 3: Health monitor death spiral.** Every restart triggered automatic WhatsApp reconnect. [Baileys](https://github.com/WhiskeySockets/Baileys) (the library OpenClaw uses for WhatsApp's unofficial web protocol) retried on 401: 5s, 11s, 21s, 43s, 88s, 171s. Twenty-plus restarts in one afternoon. Hundreds of failed auth attempts.
 
 The phone: *Can't link new devices at this time.*
 
@@ -79,7 +79,7 @@ The Telegram plugin was already installed in the CloudFormation config — just 
 
 Schema validator: \`must NOT have additional properties\`.
 
-Correct key: \`botToken\`. Changed it. Added the value from \`@BotFather\`. Restarted.
+Correct key: \`botToken\`. Changed it. Added the value from [\`@BotFather\`](https://t.me/BotFather). Restarted.
 
 \`\`\`
 [telegram] [default] starting provider (@ford_clawbot)
@@ -109,11 +109,11 @@ The hypothesis: build a proper research corpus. Give the agent a way to publish 
 
 The architecture was written before any code. Key decisions:
 
-**Flat JSON index, not a vector database.** At 500 research files, the index is ~15k tokens. Sonnet 4.6 has a 200,000-token window. Fetch the whole index on demand, let the model reason over it, return matching entries. No embeddings, no managed vector store, no new infrastructure. The spec named the alternative the "Token Crusher" — auto-loading the full corpus would consume the entire context window with nothing left for conversation.
+**Flat JSON index, not a vector database.** At 500 research files, the index is ~15k tokens. [Sonnet 4.6 has a 200,000-token window](https://platform.claude.com/docs/en/about-claude/models/overview). Fetch the whole index on demand, let the model reason over it, return matching entries. No embeddings, no managed vector store, no new infrastructure. The spec named the alternative the "Token Crusher" — auto-loading the full corpus would consume the entire context window with nothing left for conversation.
 
 **Async callback, not blocking.** Research takes minutes. The gateway can't hold a connection open for 10 minutes. Acknowledge immediately, run in background, notify on completion.
 
-**OIDC-authenticated GitHub Actions for the notification loop.** A research file lands in the repo, GitHub Actions rebuilds the index on every push, then calls SSM to notify the gateway. No static credentials, no open ports. The EC2 instance role gets the notification through the active chat session.
+**[OIDC-authenticated GitHub Actions](https://docs.github.com/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) for the notification loop.** A research file lands in the repo, GitHub Actions rebuilds the index on every push, then calls SSM to notify the gateway. No static credentials, no open ports. The EC2 instance role gets the notification through the active chat session.
 
 What got built:
 
@@ -134,7 +134,7 @@ First research run. Script called Parallel AI. Got nothing back.
 
 The \`.env\` file on the instance: \`PARALLEL_API_KEY=\` — empty string. The key had been stored in SSM Parameter Store. Nothing had ever pulled it into the instance's environment. The gateway had been running without it since day one.
 
-Consolidated to Secrets Manager: one secret at \`openclaw/env\`, JSON blob with three keys, one API call. Cleaner than SSM Parameter Store's per-key model.
+Consolidated to [Secrets Manager](https://aws.amazon.com/secrets-manager/): one secret at \`openclaw/env\`, JSON blob with three keys, one API call. Cleaner than SSM Parameter Store's per-key model.
 
 Then the actual gap.
 
@@ -157,7 +157,7 @@ Daemon reload. Restart. Verified from \`/proc/<pid>/environ\` — all three keys
 
 Voice memos are how you capture things without stopping — the thought at the moment it occurs.
 
-Six months earlier I'd built a local version of this: Whisper running on a MacBook Air, an Automator Folder Action watching the iCloud sync directory, transcripts uploading to S3. [That writeup is here](https://fordprior672326990.wordpress.com/2025/06/02/automating-voice-memo-transcription/). It worked but required the laptop to be awake. The EC2 version would run 24/7 using AWS Transcribe instead of local Whisper — same idea, different runtime.
+Six months earlier I'd built a local version of this: Whisper running on a MacBook Air, an Automator Folder Action watching the iCloud sync directory, transcripts uploading to S3. [That writeup is here](https://fordprior672326990.wordpress.com/2025/06/02/automating-voice-memo-transcription/). It worked but required the laptop to be awake. The EC2 version would run 24/7 using [AWS Transcribe](https://aws.amazon.com/transcribe/) instead of local Whisper — same idea, different runtime.
 
 Before writing anything, checked: what does OpenClaw actually do when a voice memo arrives?
 
@@ -178,7 +178,7 @@ The pipeline to fix it:
 
 1. Detect \`[media attached:\` with \`(audio/\` in MIME type → immediate ack: *"got it, transcribing..."*
 2. Upload \`.oga\` to S3 staging bucket
-3. Start AWS Transcribe job (standard English, \`us-east-1\`, $0.024/min)
+3. Start AWS Transcribe job (standard English, \`us-east-1\`, [$0.024/min](https://aws.amazon.com/transcribe/pricing/))
 4. Poll every 10 seconds until complete (~60–120s)
 5. Download transcript from presigned URL
 6. Format as structured markdown with YAML frontmatter
@@ -210,7 +210,7 @@ Checked the logs:
 
 Nova 2 Lite. Not Sonnet 4.6. The model upgrade from Phase 2 had never been saved into the running config. Every session since deployment had been Nova 2 Lite — the personality, the tool descriptions, the capability corrections, all of it answered from base training.
 
-AWS's documentation on Nova 2 Lite: system prompt adherence and tool use "can decline slightly as context size increases." With 6,650 tokens of workspace files on every turn, "slightly" isn't the word. Nova 2 Lite is optimized for speed. Sonnet 4.6 is designed for high-fidelity instruction following at long context — not a tier difference but a model-class difference, and no amount of prompting closes it.
+[AWS's documentation on Nova 2 Lite](https://docs.aws.amazon.com/nova/latest/nova2-userguide/advanced-prompting-techniques.html): system prompt adherence and tool use "can decline slightly as context size increases." With 6,650 tokens of workspace files on every turn, "slightly" isn't the word. Nova 2 Lite is optimized for speed. Sonnet 4.6 is designed for high-fidelity instruction following at long context — not a tier difference but a model-class difference, and no amount of prompting closes it.
 
 One \`sed\` replacement:
 
@@ -234,7 +234,7 @@ When the agent ignores its workspace, check the model before touching the instru
 
 With Sonnet 4.6 running, I looked at what it had actually written. The tool scripts were choppy — functions that did three things, variable names that didn't travel, logic that only made sense if you'd written it. The tests were inconsistent too: some scripts had coverage, most didn't, and the ones that did were testing different things in different ways.
 
-The right move was to stop and fix it before going further. That took most of a half day — dozens of commits, full modularization, and 196 Bats tests (unit + integration) before it felt stable. ~$30 in Cursor tokens.
+The right move was to stop and fix it before going further. That took most of a half day — dozens of commits, full modularization, and [196 Bats tests](https://github.com/bats-core/bats-core) (unit + integration) before it felt stable. ~$30 in Cursor tokens (mostly Opus 4.6 Thinking).
 
 The deeper reason to do it was model economics. Sonnet handles most tasks well, but only if each change fits in its effective context window. Choppy, tangled scripts meant every edit required holding too much context at once. Modular and decomposed, each change stayed small enough for Sonnet to handle cleanly — with Opus as the escalation path when genuinely stuck, which happened five or six times.
 
@@ -302,7 +302,7 @@ This isn't a prompting problem. Speech-to-text has error rates. LLM passes ampli
 
 *Bug 1 — IAM prefix mismatch.* \`ingest-voice.sh\` submitted Transcribe jobs with prefix \`openclaw-wiki-*\`. IAM policy allowed \`openclaw-voice-*\`. Never tested together. Fix: align script to the working prefix.
 
-*Bug 2 — Non-ASCII in Bedrock request.* \`wiki-integrate.sh\` built a JSON request body with em-dashes from the prompt template. AWS CLI's \`--body file://\` rejects non-ASCII. Fix: \`fileb://\`. One character.
+*Bug 2 — Non-ASCII in Bedrock request.* \`wiki-integrate.sh\` built a JSON request body with em-dashes from the prompt template. AWS CLI's \`--body file://\` rejects non-ASCII. Fix: [\`fileb://\`](https://docs.aws.amazon.com/cli/v1/userguide/cli-usage-parameters-file.html). One character.
 
 *Bug 3 — GitHub Actions metadata.* Workflow used \`grep -m1 '^(title|query):'\` to extract frontmatter fields. Pattern matched body content. Summary extraction piped multi-line JSON into \`echo "summary=..." >> \$GITHUB_OUTPUT\`, which Actions can't parse. Fix: Python frontmatter parser, heredoc delimiters on all \`\$GITHUB_OUTPUT\` writes.
 
@@ -338,7 +338,7 @@ To change the personality: edit \`SOUL.md\`, \`make ship\`, send a message. Next
 
 ![OpenClaw: Personal AI Assistant on AWS](/blog/openclaw-system-architecture.png)
 
-Actual cost: ~$125/mo at current usage (391 Bedrock invocations in seven days, 1–3 research tasks a day). Lower than the $189 estimate because prompt caching works — Bedrock caches the workspace files, most input hits at $0.30/M instead of $3.00/M. Observed Bedrock cost: $28/week vs. $44 estimated.
+Actual cost: ~$125/mo at current usage (391 Bedrock invocations in seven days, 1–3 research tasks a day). Lower than the $189 estimate because [prompt caching](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html) works — Bedrock caches the workspace files, most input hits at [$0.30/M instead of $3.00/M](https://aws.amazon.com/bedrock/pricing/). Observed Bedrock cost: $28/week vs. $44 estimated.
 
 At light use: ~$40/mo.
 
