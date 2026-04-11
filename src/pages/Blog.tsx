@@ -9,8 +9,18 @@ const Blog = () => {
         <div className="container max-w-2xl">
           <p className="text-label uppercase tracking-widest text-muted-foreground mb-4">Writing</p>
           <h1 className="text-display-sm mb-4">Building a Personal AI Assistant on AWS</h1>
-          <p className="text-body-lg text-muted-foreground mb-16">
+          <p className="text-body-lg text-muted-foreground mb-6">
             A three-part series on running OpenClaw on EC2 with Bedrock — what worked, what failed, and what the system became.
+          </p>
+          <p className="text-label uppercase tracking-widest text-muted-foreground mb-16">
+            <a
+              href="/presentation/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-subtle"
+            >
+              AWS Meetup Slides →
+            </a>
           </p>
 
           <div className="space-y-0">
