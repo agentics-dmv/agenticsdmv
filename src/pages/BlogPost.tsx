@@ -3,11 +3,15 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import PageLayout from "@/components/PageLayout";
 import { blogPosts } from "@/data/blog-posts";
+import { useReadingProgress } from "@/hooks/useReadingProgress";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
   const postIndex = blogPosts.findIndex((p) => p.slug === slug);
   const post = blogPosts[postIndex];
+  const progress = useReadingProgress();
+  const revealRef = useScrollReveal();
 
   if (!post) {
     return <Navigate to="/blog" replace />;
@@ -18,6 +22,12 @@ const BlogPost = () => {
 
   return (
     <PageLayout>
+      {/* Reading progress bar */}
+      <div
+        className="fixed top-0 left-0 h-0.5 bg-primary z-50 transition-[width] duration-150 ease-out"
+        style={{ width: `${progress}%` }}
+      />
+
       <article className="py-16">
         <div className="container max-w-2xl">
           {/* Back link */}
@@ -33,8 +43,9 @@ const BlogPost = () => {
             Part {post.part} of {blogPosts.length}
           </p>
 
-          {/* Prose content */}
+          {/* Prose content with scroll reveal */}
           <div
+            ref={revealRef}
             className="
               prose dark:prose-invert max-w-none
               prose-headings:font-mono prose-headings:tracking-tight
@@ -44,11 +55,15 @@ const BlogPost = () => {
               prose-a:text-primary prose-a:no-underline hover:prose-a:underline
               prose-code:text-sm prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
               prose-pre:bg-card prose-pre:border prose-pre:border-divider prose-pre:rounded prose-pre:text-sm
-              prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground prose-blockquote:not-italic
               prose-img:rounded prose-img:mx-auto prose-img:w-full
               prose-em:text-muted-foreground
               prose-table:text-body prose-th:font-mono prose-th:text-label prose-th:uppercase prose-th:tracking-widest
               prose-hr:border-divider
+              [&_blockquote]:border-l-0 [&_blockquote]:pl-6 [&_blockquote]:relative
+              [&_blockquote]:before:content-[''] [&_blockquote]:before:absolute [&_blockquote]:before:left-0 [&_blockquote]:before:top-0
+              [&_blockquote]:before:w-[2px] [&_blockquote]:before:bg-primary
+              [&_blockquote]:before:h-0 [&_blockquote]:before:transition-[height] [&_blockquote]:before:duration-700 [&_blockquote]:before:ease-out
+              [&_blockquote.revealed]:before:h-full
             "
           >
             <ReactMarkdown
@@ -63,6 +78,9 @@ const BlogPost = () => {
                       </figcaption>
                     )}
                   </figure>
+                ),
+                blockquote: ({ children, ...props }) => (
+                  <BlockquoteReveal {...props}>{children}</BlockquoteReveal>
                 ),
               }}
             >
@@ -105,5 +123,36 @@ const BlogPost = () => {
     </PageLayout>
   );
 };
+
+/** Blockquote with animated border draw on scroll */
+import { useEffect, useRef } from "react";
+
+function BlockquoteReveal({ children, ...props }: React.HTMLAttributes<HTMLQuoteElement> & { children?: React.ReactNode }) {
+  const ref = useRef<HTMLQuoteElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("revealed");
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <blockquote ref={ref} {...props}>
+      {children}
+    </blockquote>
+  );
+}
 
 export default BlogPost;
