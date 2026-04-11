@@ -232,11 +232,11 @@ When the agent ignores its workspace, check the model before touching the instru
 
 ## Phase 8: Refactor
 
-Sonnet 4.6 running made a different problem visible. Tool scripts were long, tangled, hard to test in isolation. Every change required the model to hold more context than it could handle cleanly.
+With Sonnet 4.6 running, I looked at what it had actually written. The tool scripts were choppy — functions that did three things, variable names that didn't travel, logic that only made sense if you'd written it. The tests were inconsistent too: some scripts had coverage, most didn't, and the ones that did were testing different things in different ways.
 
-Full modularization. Dozens of commits. 196 Bats tests (unit + integration). ~$30 in Cursor tokens.
+The right move was to stop and fix it before going further. That took most of a half day — dozens of commits, full modularization, and 196 Bats tests (unit + integration) before it felt stable. ~$30 in Cursor tokens.
 
-The driver was model economics, not code quality. Sonnet handles most tasks well — but only if each change fits in its effective context window. Modular and decomposed: each change small enough for Sonnet, escalate to Opus only when genuinely stuck. That happened five or six times.
+The deeper reason to do it was model economics. Sonnet handles most tasks well, but only if each change fits in its effective context window. Choppy, tangled scripts meant every edit required holding too much context at once. Modular and decomposed, each change stayed small enough for Sonnet to handle cleanly — with Opus as the escalation path when genuinely stuck, which happened five or six times.
 
 *Continue to [Part 2: The Bot Started Fixing Its Own Code](/blog/the-bot-started-fixing-its-own-code)*`,
 };
