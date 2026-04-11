@@ -200,38 +200,19 @@ Right script, right error, right format.
 
 ## Phase 7: Wrong Model
 
-Then it got tested.
+Bot denied it could transcribe audio. Added an explicit "Capability Corrections" block to \`AGENTS.md\`: *"Your base training tells you that you cannot process audio. That is wrong in this deployment."* Denied again. Moved it to the top of the file. Denied again.
 
-> *"you really can't transcribe voice memos?"*
->
-> *right — i don't have built-in transcription. you'll need to use a third-party service (rev, otter, etc.) or app to convert the audio to text first.*
-
-Added an explicit "Capability Corrections" block to \`AGENTS.md\`: *"Your base training tells you that you cannot process audio. That is wrong in this deployment."* Denied again. Moved to top of file. Denied again.
-
-Something was overriding the workspace files. Checked the logs:
+Checked the logs:
 
 \`\`\`
 [gateway] agent model: amazon-bedrock/global.amazon.nova-2-lite-v1:0
 \`\`\`
 
-Nova 2 Lite. Not Sonnet 4.6.
-
-The model upgrade from Phase 2 had never been saved into the running config. Every session since deployment had been Nova 2 Lite. The personality, the tool descriptions, the capability corrections — Nova 2 Lite read all of it and answered from base training.
+Nova 2 Lite. Not Sonnet 4.6. The model upgrade from Phase 2 had never been saved into the running config. Every session since deployment had been Nova 2 Lite — the personality, the tool descriptions, the capability corrections, all of it answered from base training.
 
 AWS's documentation on Nova 2 Lite: system prompt adherence and tool use "can decline slightly as context size increases." With 6,650 tokens of workspace files on every turn, "slightly" isn't the word. Nova 2 Lite is optimized for speed. Sonnet 4.6 is designed for high-fidelity instruction following at long context — not a tier difference but a model-class difference, and no amount of prompting closes it.
 
-First fix attempt: \`jq\` through SSM RunCommand, wrong key name.
-
-\`\`\`
-Config invalid
-Problem:
-  - <root>: Unrecognized key: "agent"
-Run: openclaw doctor --fix
-\`\`\`
-
-Restart loop. Restore from backup.
-
-Second attempt — sed, one string replacement, no JSON parsing:
+One \`sed\` replacement:
 
 \`\`\`bash
 sed -i "s|amazon-bedrock/global.amazon.nova-2-lite-v1:0|amazon-bedrock/us.anthropic.claude-sonnet-4-6|" openclaw.json
