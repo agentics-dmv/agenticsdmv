@@ -19,6 +19,16 @@ const part1: BlogPost = {
 
 ---
 
+A note before you start: this is an engineering diary, not a tutorial.
+
+I'm sharing it because I think the messy middle — the wrong config key, the model that silently ignored instructions, the pipeline that ran but produced wrong data — is more useful than a cleaned-up retrospective. Other engineers solving similar problems deserve to see the actual sequence of events, including the dead ends.
+
+It's sloppy in places. Some decisions were hacky. I'm writing it anyway because the thought process is the thing, and polishing it into a case study would kill that.
+
+If you want the clean version: there isn't one yet. This is version 1.
+
+---
+
 AWS credits from a hackathon, expiring. OpenClaw at 265,000 stars. The local AWS meetup needed a demo.
 
 The harder version: I didn't understand OpenClaw yet. Not the paradigm — what's the gateway doing on each message, what are workspace files, why does the agent behave differently depending on what's in them? I'd been circling it for weeks without touching it.
@@ -259,6 +269,10 @@ const part2: BlogPost = {
   content: `# The Bot Started Fixing Its Own Code.
 
 *Part 2 of 2. Data quality, governance, agent self-maintenance.*
+
+---
+
+Same caveat as Part 1: this is a thought process, not a polished writeup. The mistakes are in here because leaving them out would make it look easier than it was. That's not useful to anyone trying to build something similar.
 
 ---
 
