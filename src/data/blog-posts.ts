@@ -10,10 +10,10 @@ export interface BlogPost {
 const part1: BlogPost = {
   slug: "you-wanted-a-24-7-ai-assistant",
   part: 1,
-  title: "You Wanted a 24/7 AI Assistant. Here's What Broke First.",
+  title: "The Stack Took Eight Minutes. WhatsApp Took Three Hours.",
   subtitle: "CloudFormation template, WhatsApp ban, 10 minutes of Telegram.",
   date: "2026-04-11",
-  content: `# You Wanted a 24/7 AI Assistant. Here's What Broke First.
+  content: `# The Stack Took Eight Minutes. WhatsApp Took Three Hours.
 
 *Part 1 of 3. CloudFormation template, WhatsApp ban, 10 minutes of Telegram.*
 
@@ -101,16 +101,16 @@ Not a technical innovation. An ergonomic one. For the amount of time I was about
 
 The bot was online. It answered questions, held conversations, and remembered absolutely nothing. Memory was the next problem.
 
-*Continue to [Part 2: It Was Online. It Was Useless.](/blog/it-was-online-it-was-useless)*`,
+*Continue to [Part 2: Nova 2 Lite Was Running the Whole Time.](/blog/it-was-online-it-was-useless)*`,
 };
 
 const part2: BlogPost = {
   slug: "it-was-online-it-was-useless",
   part: 2,
-  title: "It Was Online. It Was Useless.",
+  title: "Nova 2 Lite Was Running the Whole Time.",
   subtitle: "Memory system, voice pipeline, wrong model.",
   date: "2026-04-11",
-  content: `# It Was Online. It Was Useless.
+  content: `# Nova 2 Lite Was Running the Whole Time.
 
 *Part 2 of 3. Memory system, voice pipeline, wrong model.*
 
@@ -286,18 +286,18 @@ The driver was model economics, not code quality. Sonnet handles most tasks well
 
 The pipeline was deployed. The data coming out of it was wrong.
 
-*Continue to [Part 3: The Pipeline Worked. The Data Was Wrong.](/blog/the-pipeline-worked-the-data-was-wrong)*
+*Continue to [Part 3: My Son Was Born in Lagos, Nigeria.](/blog/the-pipeline-worked-the-data-was-wrong)*
 
-*[← Part 1: You Wanted a 24/7 AI Assistant. Here's What Broke First.](/blog/you-wanted-a-24-7-ai-assistant)*`,
+*[← Part 1: The Stack Took Eight Minutes. WhatsApp Took Three Hours.](/blog/you-wanted-a-24-7-ai-assistant)*`,
 };
 
 const part3: BlogPost = {
   slug: "the-pipeline-worked-the-data-was-wrong",
   part: 3,
-  title: "The Pipeline Worked. The Data Was Wrong.",
+  title: "My Son Was Born in Lagos, Nigeria.",
   subtitle: "Data quality, governance, the bot fixing its own code.",
   date: "2026-04-11",
-  content: `# The Pipeline Worked. The Data Was Wrong.
+  content: `# My Son Was Born in Lagos, Nigeria.
 
 *Part 3 of 3. Data quality, governance, the bot fixing its own code.*
 
@@ -434,8 +434,8 @@ That's version N. We're on version 1.
 
 ---
 
-*[← Part 1: You Wanted a 24/7 AI Assistant. Here's What Broke First.](/blog/you-wanted-a-24-7-ai-assistant)*
-*[← Part 2: It Was Online. It Was Useless.](/blog/it-was-online-it-was-useless)*`,
+*[← Part 1: The Stack Took Eight Minutes. WhatsApp Took Three Hours.](/blog/you-wanted-a-24-7-ai-assistant)*
+*[← Part 2: Nova 2 Lite Was Running the Whole Time.](/blog/it-was-online-it-was-useless)*`,
 };
 
 export const blogPosts: BlogPost[] = [part1, part2, part3];
