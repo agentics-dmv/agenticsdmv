@@ -1,10 +1,29 @@
 import { useParams, Link, Navigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import PageLayout from "@/components/PageLayout";
 import { blogPosts } from "@/data/blog-posts";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { useAsciiHero } from "@/hooks/useAsciiHero";
+import { TypewriterCode } from "@/components/TypewriterCode";
+import { FootnoteTooltip } from "@/components/FootnoteTooltip";
+
+/** Parse footnotes: text like [^1: some note] becomes a FootnoteTooltip */
+function parseFootnotes(text: string) {
+  const regex = /\[\^(\d+):\s*([^\]]+)\]/g;
+  const parts: (string | { index: number; note: string })[] = [];
+  let last = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push(text.slice(last, match.index));
+    parts.push({ index: parseInt(match[1]), note: match[2] });
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -12,6 +31,7 @@ const BlogPost = () => {
   const post = blogPosts[postIndex];
   const progress = useReadingProgress();
   const revealRef = useScrollReveal();
+  const asciiArt = useAsciiHero(slug ?? "");
 
   if (!post) {
     return <Navigate to="/blog" replace />;
@@ -37,6 +57,13 @@ const BlogPost = () => {
           >
             ← Writing
           </Link>
+
+          {/* Generative ASCII hero */}
+          <div className="my-8 overflow-hidden rounded border border-divider bg-card p-4">
+            <pre className="text-[10px] leading-[1.4] font-mono text-primary/60 select-none whitespace-pre text-center">
+              {asciiArt}
+            </pre>
+          </div>
 
           {/* Part label */}
           <p className="text-label uppercase tracking-widest text-muted-foreground mb-4 mt-6">
@@ -82,6 +109,13 @@ const BlogPost = () => {
                 blockquote: ({ children, ...props }) => (
                   <BlockquoteReveal {...props}>{children}</BlockquoteReveal>
                 ),
+                code: ({ children, className, ...props }) => {
+                  // Only apply typewriter to inline code (no className = no language)
+                  if (className) {
+                    return <code className={className} {...props}>{children}</code>;
+                  }
+                  return <TypewriterCode>{children}</TypewriterCode>;
+                },
               }}
             >
               {post.content}
@@ -125,8 +159,6 @@ const BlogPost = () => {
 };
 
 /** Blockquote with animated border draw on scroll */
-import { useEffect, useRef } from "react";
-
 function BlockquoteReveal({ children, ...props }: React.HTMLAttributes<HTMLQuoteElement> & { children?: React.ReactNode }) {
   const ref = useRef<HTMLQuoteElement>(null);
 
