@@ -252,6 +252,9 @@ The fix was a pipeline: upload to S3, start an AWS Transcribe job, poll until do
 
 The pipeline runs in the background. The bot acknowledges immediately — *got it, transcribing...* — because Transcribe takes 60 to 120 seconds and two minutes of silence reads as failure. The acknowledgment is free and costs nothing to include.
 
+![Voice to Knowledge: How a Voice Memo Becomes a Wiki Page](/blog/voice-pipeline-horizontal-draft.png)
+*Voice input to GitHub markdown — the full path, end to end.*
+
 The workspace files got new sections: \`TOOLS.md\` with the command signature and output schema, \`AGENTS.md\` with the trigger condition and the four-step protocol. The trigger is specific: any message containing \`[media attached:\` with \`(audio/\` in the MIME type. Everything else passes through unchanged.
 
 The deploy script ran. \`WORKSPACE_SYNCED\`. \`TOOLS_SYNCED\`. \`DEPLOY_DONE\`.
@@ -373,8 +376,11 @@ Even though the bot was good at fixing things, it still needed operational scaff
 
 The pattern was powerful, but it still needed guardrails.
 
-![The research pipeline working](/blog/telegram-desktop.png)
-*11:11 PM: voice memo arrives, transcribed in seconds. 11:12 PM: "running deep research now." 11:15 PM: report published, link delivered, brief on what it covers.*
+![The research pipeline on mobile](/blog/deep-research-telegram.png)
+*From the phone: voice memo sent, transcribed, deep research kicked off, report published to GitHub — under four minutes.*
+
+![The research pipeline on desktop](/blog/telegram-desktop.png)
+*The same thread from the laptop. The full conversation context makes the pipeline legible: voice in, transcript out, research running, report linked.*
 
 ---
 
