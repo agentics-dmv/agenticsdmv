@@ -288,7 +288,7 @@ The driver was model economics, not code quality. Sonnet handles most tasks well
 
 The pipeline was deployed. The data coming out of it was wrong.
 
-*Continue to [Part 3: My Son Was Born in Lagos, Nigeria.](/blog/the-pipeline-worked-the-data-was-wrong)*
+*Continue to [Part 3: The Pipeline Worked. The Data Was Wrong.](/blog/the-pipeline-worked-the-data-was-wrong)*
 
 *[← Part 1: The Stack Took Eight Minutes. WhatsApp Took Three Hours.](/blog/you-wanted-a-24-7-ai-assistant)*`,
 };
@@ -296,10 +296,10 @@ The pipeline was deployed. The data coming out of it was wrong.
 const part3: BlogPost = {
   slug: "the-pipeline-worked-the-data-was-wrong",
   part: 3,
-  title: "My Son Was Born in Lagos, Nigeria.",
+  title: "The Pipeline Worked. The Data Was Wrong.",
   subtitle: "Data quality, governance, the bot fixing its own code.",
   date: "2026-04-11",
-  content: `# My Son Was Born in Lagos, Nigeria.
+  content: `# The Pipeline Worked. The Data Was Wrong.
 
 *Part 3 of 3. Data quality, governance, the bot fixing its own code.*
 
