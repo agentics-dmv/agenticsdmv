@@ -124,6 +124,8 @@ A 24/7 assistant that forgets everything by 4 AM is a very expensive search engi
 
 The hypothesis: build a proper research corpus. Give the agent a way to publish findings, index them, and retrieve them on demand without loading the full corpus into context on every turn.
 
+This wasn't a new idea. Six months earlier I'd built the same pattern at GEICO — 147 unread meeting notes, voice memos, Perplexity research dumps, all fed into a private GitHub repo and maintained incrementally by an LLM via \`AGENTS.md\`. That writeup is [here](https://www.linkedin.com/pulse/building-knowledge-bases-dont-suck-using-cursor-ide-ford-prior-ewwke/). While this phase was being built, Karpathy published [his own formalization of the same pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) — persistent wiki, LLM does the maintenance, raw sources stay immutable, index for navigation. The difference: his runs in a Cursor session. This one runs 24/7 on EC2, fed by voice memos from a phone.
+
 ## Phase 4: The Research System
 
 The architecture was written before any code. Key decisions:
