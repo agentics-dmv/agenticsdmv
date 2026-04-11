@@ -255,23 +255,36 @@
   </aside>
 </section>
 
-<!-- Slide 7: Cursor + $20 + CloudFormation -->
+<!-- Slide 7: How I deployed it -->
 <section>
-  <h2>Cursor + $20 + CloudFormation</h2>
+  <h2>How I Deployed It</h2>
   <ul>
     <li>Opened Cursor, loaded $20 credits, cloned the sample repo</li>
     <li>AI-assisted deploy — not reverse-engineering the YAML cold</li>
     <li><code>make deploy-setup</code> · <code>make deploy</code> · <code>make ssh</code></li>
-    <li>Repeatability layered in as I learned</li>
-    <li>Stack up in <span class="accent">8 minutes</span>, 9 plugins, zero config changes</li>
+    <li>Repeatability layered in as I learned — Makefile targets as I went</li>
   </ul>
-  <p class="cost-line">Actual cost: ~$40/mo light use · ~$125/mo at series usage levels</p>
   <aside class="notes">
-    That's the honest version. I didn't sit down with the CloudFormation template and reverse-engineer every resource definition before touching a terminal. I used AI from the first minute. The repo had a one-click deploy available, but I took the more old-school route — running the CloudFormation commands myself, but with the AI reading the template, answering my questions, and catching mistakes in real time. As I went, I wrote make targets so the steps wouldn't live in my bash history. Repeatability layered in as I learned. The stack stood up in eight minutes, the gateway started itself, and nine plugins loaded without a single config change. That part was easy.
+    That's the honest version. I didn't sit down with the CloudFormation template and reverse-engineer every resource definition before touching a terminal. I used AI from the first minute. The repo had a one-click deploy available, but I took the more old-school route — running the CloudFormation commands myself, but with the AI reading the template, answering my questions, and catching mistakes in real time. As I went, I wrote make targets so the steps wouldn't live in my bash history. Repeatability layered in as I learned.
   </aside>
 </section>
 
-<!-- Slide 8: First contact -->
+<!-- Slide 8: What that got me -->
+<section>
+  <h2>What That Got Me</h2>
+  <ul>
+    <li>Stack up in <span class="accent">8 minutes</span></li>
+    <li>9 plugins loaded without a single config change</li>
+    <li>Gateway started itself as a systemd service</li>
+    <li class="ok">Zero manual intervention post-deploy</li>
+  </ul>
+  <p class="cost-line" style="margin-top:1.2em;">Actual cost: ~$40/mo light use · ~$125/mo at series usage levels</p>
+  <aside class="notes">
+    The stack stood up in eight minutes, the gateway started itself, and nine plugins loaded without a single config change. That part was easy. The difficulty came later — not infrastructure, but integrations. The cost works out to about $40 a month at light use — EC2, Bedrock, Transcribe, SSM. At the usage levels in this series, about $125.
+  </aside>
+</section>
+
+<!-- Slide 9: First contact -->
 <section>
   <h2>First Contact</h2>
   <ul>
@@ -287,7 +300,7 @@
   </aside>
 </section>
 
-<!-- Slide 9: The WhatsApp death spiral -->
+<!-- Slide 10: The WhatsApp death spiral -->
 <section>
   <h2>The WhatsApp Death Spiral</h2>
   <img src="./whatsapp-death-spiral.png" alt="WhatsApp Death Spiral" class="diagram" />
@@ -297,7 +310,7 @@
   </aside>
 </section>
 
-<!-- Slide 10: The lesson -->
+<!-- Slide 11: The lesson -->
 <section>
   <h2>The Lesson</h2>
   <blockquote>
@@ -316,7 +329,7 @@
   </aside>
 </section>
 
-<!-- Slide 11: Telegram in 10 minutes -->
+<!-- Slide 12: Telegram in 10 minutes -->
 <section>
   <h2>Telegram in 10 Minutes</h2>
   <div class="cols">
@@ -344,7 +357,7 @@
   </aside>
 </section>
 
-<!-- Slide 12: The personality -->
+<!-- Slide 13: The personality -->
 <section>
   <h2>The Personality</h2>
   <p style="font-size:0.75em; color:#aaa;"><code>SOUL.md</code> — injected into the prompt on every turn</p>
@@ -367,7 +380,7 @@
      ACT 2: Teaching It to Think
      =================================================================== -->
 
-<!-- Slide 13: Act header -->
+<!-- Slide 14: Act header -->
 <section class="act-header">
   <h2>Act 2</h2>
   <h1>Teaching It to Think</h1>
@@ -376,7 +389,7 @@
   </aside>
 </section>
 
-<!-- Slide 14: No memory -->
+<!-- Slide 15: No memory -->
 <section>
   <h2>"It Was Online. It Was Useless."</h2>
   <ul>
@@ -393,7 +406,7 @@
   </aside>
 </section>
 
-<!-- Slide 15: MEMORY.md -->
+<!-- Slide 16: MEMORY.md -->
 <section>
   <h2>MEMORY.md</h2>
   <ul>
@@ -413,7 +426,7 @@
   </aside>
 </section>
 
-<!-- Slide 16: The index -->
+<!-- Slide 17: The index -->
 <section>
   <h2>The Index, Not a Vector DB</h2>
   <img src="./knowledge-layers-conceptual.png" alt="Knowledge Layers" class="diagram" />
@@ -423,7 +436,17 @@
   </aside>
 </section>
 
-<!-- Slide 17: GitHub Actions wiring -->
+<!-- Slide 18: Knowledge base in Telegram -->
+<section>
+  <h2>Querying the Knowledge Base</h2>
+  <img src="./screenshot-telegram-knowledge-base.png" alt="Knowledge Base Query in Telegram" class="screenshot" />
+  <p class="caption">The index returns the matching entry. The agent fetches the document. The answer is grounded in the source.</p>
+  <aside class="notes">
+    Here's what the architecture looks like from the phone. You ask a question, the agent checks the index, finds the matching research entry, pulls the full document, and answers from it. The response is grounded — not synthesized from training data, but read from something you published. This is what the flat JSON index enables: cheap lookup at scale, deep reads on demand, no embeddings infrastructure to maintain.
+  </aside>
+</section>
+
+<!-- Slide 19: GitHub Actions wiring -->
 <section>
   <h2>GitHub Actions Wiring</h2>
   <ul>
@@ -438,7 +461,17 @@
   </aside>
 </section>
 
-<!-- Slide 18: The keys that weren't there -->
+<!-- Slide 20: Research arrives in Telegram -->
+<section>
+  <h2>Research Arrives in Telegram</h2>
+  <img src="./deep-research-telegram.PNG" alt="Research Notification in Telegram" class="screenshot" />
+  <p class="caption">Index rebuilt. Notification delivered. The loop closes in under ten minutes.</p>
+  <aside class="notes">
+    This is the feedback loop in action. A research task runs, the results push to the GitHub repo, Actions rebuilds the index, an SSM command sends a notification to the Telegram bot, and the bot delivers it to the user. Under ten minutes from trigger to delivery. The whole system confirms itself — no polling, no manual refresh, no "did it work?" It tells you.
+  </aside>
+</section>
+
+<!-- Slide 21: The keys that weren't there -->
 <section>
   <h2>The Keys That Weren't There</h2>
   <img src="./env-variable-gap.png" alt="Environment Variable Gap" class="diagram" />
@@ -448,7 +481,7 @@
   </aside>
 </section>
 
-<!-- Slide 19: What OpenClaw does with voice memos -->
+<!-- Slide 22: What OpenClaw does with voice memos -->
 <section>
   <h2>What OpenClaw Does With Voice Memos</h2>
   <img src="./voice-to-wiki-conceptual.png" alt="Voice to Wiki" class="diagram" />
@@ -458,7 +491,17 @@
   </aside>
 </section>
 
-<!-- Slide 20: The voice pipeline -->
+<!-- Slide 23: Voice pipeline diagram -->
+<section>
+  <h2>The Pipeline, End to End</h2>
+  <img src="./voice-pipeline-horizontal-draft.png" alt="Voice Pipeline — End to End" class="diagram" />
+  <p class="caption">Telegram voice message → S3 → Transcribe → markdown → GitHub → knowledge base.</p>
+  <aside class="notes">
+    Here's the full pipeline. A voice message arrives in Telegram, the gateway downloads it to the EC2 instance, the script uploads it to S3, starts a Transcribe job, polls until complete, downloads the transcript, formats it as structured markdown with YAML frontmatter, and pushes it to the research repo where GitHub Actions picks it up and rebuilds the index. Seven steps. Each one can fail independently.
+  </aside>
+</section>
+
+<!-- Slide 24: The voice pipeline steps -->
 <section>
   <h2>The Voice Pipeline</h2>
   <div class="cols">
@@ -484,7 +527,7 @@
   </aside>
 </section>
 
-<!-- Slide 21: The wrong model -->
+<!-- Slide 25: The wrong model -->
 <section>
   <h2>The Wrong Model</h2>
   <img src="./model-class-cliff.png" alt="Model Class Cliff" class="diagram" />
@@ -494,11 +537,11 @@
   </aside>
 </section>
 
-<!-- Slide 22: Fixing the model -->
+<!-- Slide 26: Fixing the model -->
 <section>
   <h2>One sed Command</h2>
   <pre><code class="language-bash">sed -i "s|amazon-bedrock/global.amazon.nova-2-lite-v1:0\
-|amazon-bedrock/us.anthropic.claude-sonnet-4-6|" openclaw.json</code></pre>
+||amazon-bedrock/us.anthropic.claude-sonnet-4-6|" openclaw.json</code></pre>
   <pre><code class="language-bash">[gateway] agent model: amazon-bedrock/us.anthropic.claude-sonnet-4-6
 [gateway] ready (9 plugins, 1.9s)</code></pre>
   <hr />
@@ -516,7 +559,7 @@
   </aside>
 </section>
 
-<!-- Slide 23: The $30 refactor -->
+<!-- Slide 27: The $30 refactor — the problem -->
 <section>
   <h2>The $30 Refactor</h2>
   <ul>
@@ -526,18 +569,31 @@
     <li>Dozens of commits, hundreds of tests (unit + integration)</li>
     <li class="warn">~$30 in Cursor tokens</li>
   </ul>
-  <hr />
-  <p style="font-size:0.78em; color:#aaa;">
-    Real driver: <span class="accent">model economics</span><br/>
-    Modular codebase → each change small enough for Sonnet<br/>
-    Escalate to Opus only when truly stuck (happened ~5-6 times)
-  </p>
   <aside class="notes">
-    The model switch fixed the behavior. It also made a different problem visible. With Sonnet 4.6 running, the system was capable enough to extend — but the codebase underneath it wasn't. The tool scripts were long, tangled, hard to test in isolation. I ended up doing a full modularization refactor. Not cosmetic cleanup — a serious restructuring to make the scripts shorter, the interfaces cleaner, and the test surface reachable. The reason was partly code quality. But the real driver was model economics. I wanted to use Sonnet 4.6 for most of my development work — faster, cheaper, good enough for the majority of tasks, but only if the codebase is simple enough for it to reason about without exceeding its effective context window. The architecture had to become more modular, more decomposed, so that each change was small enough for a cheaper model to handle well.
+    The model switch fixed the behavior. It also made a different problem visible. With Sonnet 4.6 running, the system was capable enough to extend — but the codebase underneath it wasn't. The tool scripts were long, tangled, hard to test in isolation. I ended up doing a full modularization refactor. Not cosmetic cleanup — a serious restructuring to make the scripts shorter, the interfaces cleaner, and the test surface reachable.
   </aside>
 </section>
 
-<!-- Slide 24: Skills as operational memory -->
+<!-- Slide 28: The $30 refactor — model economics -->
+<section>
+  <h2>Why Model Economics Drove It</h2>
+  <p style="font-size:0.85em; color:#aaa; max-width:80%; margin:0 auto;">
+    The reason was partly code quality.<br/>
+    But the real driver was <span class="accent">model economics</span>.
+  </p>
+  <hr />
+  <ul style="margin-top:0.8em;">
+    <li>Modular codebase → each change small enough for Sonnet</li>
+    <li>Escalate to Opus only when truly stuck (~5–6 times total)</li>
+    <li>Architecture decomposed so cheaper models can hold it in context</li>
+  </ul>
+  <p style="font-size:0.7em; color:#888; margin-top:1em;">The $30 wasn't a cost. It was an investment in cheaper future work.</p>
+  <aside class="notes">
+    The real driver was model economics. I wanted to use Sonnet 4.6 for most of my development work — faster, cheaper, good enough for the majority of tasks, but only if the codebase is simple enough for it to reason about without exceeding its effective context window. The architecture had to become more modular, more decomposed, so that each change was small enough for a cheaper model to handle well. I escalated to Opus about five or six times total — genuinely stuck, genuinely complex. Everything else: Sonnet. The $30 refactor made that possible.
+  </aside>
+</section>
+
+<!-- Slide 29: Skills as operational memory -->
 <section>
   <h2>Skills as Operational Memory</h2>
   <img src="./with-skills.png" alt="With Skills vs Without" class="diagram" />
@@ -547,7 +603,7 @@
   </aside>
 </section>
 
-<!-- Slide 25: The 7 skills table -->
+<!-- Slide 30: The 7 skills table -->
 <section>
   <h2>7 Skills</h2>
   <table>
@@ -569,7 +625,7 @@
   </aside>
 </section>
 
-<!-- Slide 26: The bot that fixes itself -->
+<!-- Slide 31: The bot that fixes itself — desktop -->
 <section>
   <h2>The Bot That Fixes Itself</h2>
   <img src="./telegram-desktop.png" alt="Telegram Deep Research — Desktop" class="screenshot" />
@@ -579,11 +635,21 @@
   </aside>
 </section>
 
+<!-- Slide 32: Deep research in action -->
+<section>
+  <h2>Deep Research in Action</h2>
+  <img src="./screenshot-telegram-deep-research.png" alt="Deep Research Output in Telegram" class="screenshot" />
+  <p class="caption">A Parallel AI research task runs in the background. The report lands in Telegram with citations, published to the knowledge base.</p>
+  <aside class="notes">
+    Deep research is triggered by a message like "research X." The bot acknowledges immediately, fires a Parallel AI task, and sends the result when ready — usually within a few minutes. The report comes back as structured markdown with inline citations, published to the research repo and linked back in the conversation. The bot doesn't just summarize. It publishes. The report is in the knowledge base. Future queries can find it. The conversation leaves a permanent record.
+  </aside>
+</section>
+
 <!-- ===================================================================
      ACT 3: The Machine That Learns
      =================================================================== -->
 
-<!-- Slide 27: Act header -->
+<!-- Slide 33: Act header -->
 <section class="act-header">
   <h2>Act 3</h2>
   <h1>The Machine That Learns</h1>
@@ -592,7 +658,7 @@
   </aside>
 </section>
 
-<!-- Slide 28: Pipeline worked, data was wrong -->
+<!-- Slide 34: Pipeline worked, data was wrong -->
 <section>
   <h2>Pipeline Worked. Data Was Wrong.</h2>
   <img src="./voice-to-knowledge-pipeline.png" alt="Voice to Knowledge Pipeline" class="diagram" />
@@ -602,7 +668,7 @@
   </aside>
 </section>
 
-<!-- Slide 29: Correct reasoning, bad data -->
+<!-- Slide 35: Correct reasoning, bad data -->
 <section>
   <h2>Correct Reasoning. Bad Data.</h2>
   <ul>
@@ -623,7 +689,7 @@
   </aside>
 </section>
 
-<!-- Slide 30: The correction workflow -->
+<!-- Slide 36: The correction workflow -->
 <section>
   <h2>The Correction Workflow</h2>
   <ul>
@@ -643,7 +709,7 @@
   </aside>
 </section>
 
-<!-- Slide 31: Research output as raw JSON -->
+<!-- Slide 37: Research output as raw JSON -->
 <section>
   <h2>Research Output: Raw JSON</h2>
   <img src="./pipeline-simplification.png" alt="Pipeline Simplification" class="diagram" />
@@ -653,7 +719,7 @@
   </aside>
 </section>
 
-<!-- Slide 32: Three bugs -->
+<!-- Slide 38: Three bugs -->
 <section>
   <h2>Three Bugs</h2>
   <table>
@@ -684,7 +750,7 @@
   </aside>
 </section>
 
-<!-- Slide 33: The bot that fixed its own code -->
+<!-- Slide 39: The bot that fixed its own code -->
 <section>
   <h2>The Bot That Fixed Its Own Code</h2>
   <img src="./knowledge-base-telegram.PNG" alt="Telegram Knowledge Base — Mobile" class="screenshot" />
@@ -694,34 +760,48 @@
   </aside>
 </section>
 
-<!-- Slide 34: Agent Self-Maintenance Protocol + make ship -->
+<!-- Slide 40: Agent Self-Maintenance Protocol — CLAUDE.md -->
 <section>
   <h2>Agent Self-Maintenance Protocol</h2>
-  <div class="cols">
-    <div class="col">
-      <p style="font-size:0.75em; color:#aaa;"><code>CLAUDE.md</code> — the bot's onboarding document</p>
-      <ul>
-        <li>Always push code changes</li>
-        <li>Always pull KB before reading it</li>
-        <li>Never leave uncommitted changes silently</li>
-      </ul>
-      <p style="font-size:0.7em; color:#888; margin-top:0.8em;">The bot is capable of fixing its own infrastructure.<br/>It cannot be trusted to follow deployment discipline<br/>without explicit rules.</p>
-    </div>
-    <div class="col">
-      <p style="font-size:0.75em; color:#aaa;"><code>make ship</code></p>
-      <pre><code class="language-makefile">ship:
-  git push origin main && make deploy</code></pre>
-      <p style="font-size:0.7em; margin-top:0.8em;" class="ok">
-        Push to GitHub and sync to EC2<br/>in a single command.<br/>Gap closed.
-      </p>
-    </div>
-  </div>
+  <p style="font-size:0.75em; color:#aaa;"><code>CLAUDE.md</code> — the bot's onboarding document</p>
+  <ul>
+    <li>Always push code changes</li>
+    <li>Always pull KB before reading it</li>
+    <li>Never leave uncommitted changes silently</li>
+  </ul>
+  <hr />
+  <p style="font-size:0.7em; color:#888; margin-top:0.5em;">
+    The bot is capable of fixing its own infrastructure.<br/>
+    It cannot be trusted to follow deployment discipline<br/>
+    without explicit rules.
+  </p>
   <aside class="notes">
-    This led directly to two things. The Agent Self-Maintenance Protocol in CLAUDE.md: the bot must always push code changes, always pull the KB before reading it, and never leave uncommitted changes silently. The bot is capable of fixing its own infrastructure. It cannot be trusted to follow deployment discipline without explicit rules. CLAUDE.md is the bot's onboarding document. And make ship — a new Makefile target: git push origin main and make deploy. One command. Push to GitHub and sync to EC2 in a single step. The gap between "code is on GitHub" and "code is on EC2" had been bridged by human memory. Every time that gap existed, the bot was running stale code. make ship closes it.
+    This led directly to two things. First: the Agent Self-Maintenance Protocol. Three rules written into CLAUDE.md — the bot's onboarding document, loaded into the context on every Cursor session. Always push code changes. Always pull the knowledge base before reading it. Never leave uncommitted changes silently. The bot is capable of fixing its own infrastructure. It cannot be trusted to follow deployment discipline without those rules written down where it can read them.
   </aside>
 </section>
 
-<!-- Slide 35: Three days -->
+<!-- Slide 41: make ship -->
+<section>
+  <h2>make ship</h2>
+  <pre><code class="language-makefile">ship:
+  git push origin main && make deploy</code></pre>
+  <hr />
+  <p style="font-size:0.8em; margin-top:0.8em;" class="ok">
+    Push to GitHub and sync to EC2<br/>
+    in a single command.
+  </p>
+  <p style="font-size:0.7em; color:#888; margin-top:0.8em;">
+    The gap between "code is on GitHub" and "code is on EC2"<br/>
+    had been bridged by human memory.<br/>
+    Every time that gap existed, the bot was running stale code.<br/>
+    <span class="accent">make ship closes it.</span>
+  </p>
+  <aside class="notes">
+    Second: make ship. A new Makefile target: git push origin main and make deploy. One command. Push to GitHub and sync to EC2 in a single step. The gap between "code is on GitHub" and "code is on EC2" had been bridged by human memory. Every time that gap existed, the bot was running stale code. make ship closes it. This is the kind of automation that sounds trivial until you've lost an afternoon to it.
+  </aside>
+</section>
+
+<!-- Slide 42: Three days -->
 <section>
   <h2>Three Days</h2>
   <img src="./three-day-feedback-loop.png" alt="Three Day Feedback Loop" class="diagram" />
@@ -731,7 +811,7 @@
   </aside>
 </section>
 
-<!-- Slide 36: Two loops -->
+<!-- Slide 43: Two loops -->
 <section>
   <h2>Two Loops</h2>
   <img src="./two-loops-development-workflow.png" alt="Two Loops" class="diagram" />
@@ -741,16 +821,17 @@
   </aside>
 </section>
 
-<!-- Slide 37: What it is now -->
+<!-- Slide 44: What it is now -->
 <section>
   <h2>What It Is Now</h2>
   <img src="./openclaw-system-architecture.png" alt="OpenClaw System Architecture" class="diagram" />
+  <p class="caption">One EC2 instance. One gateway process. All access via SSM. Bedrock called on every message — no inference on the instance itself.</p>
   <aside class="notes">
     One EC2 instance. One Node.js gateway. Port 18789, localhost only. All external access through AWS Systems Manager. On every message: six markdown files assembled into a prompt, session history appended from a JSONL file on local EBS, Bedrock called via the instance's IAM role, response returned. The model is not on the instance — the instance has 4GB of RAM and runs no inference at all. It's a prompt assembler and a caller.
   </aside>
 </section>
 
-<!-- Slide 38: Cost breakdown -->
+<!-- Slide 45: Cost breakdown -->
 <section>
   <h2>Cost Breakdown</h2>
   <table>
@@ -778,7 +859,7 @@
      CLOSING
      =================================================================== -->
 
-<!-- Slide 39: The thing it's building toward -->
+<!-- Slide 46: The thing it's building toward — accumulation -->
 <section>
   <h2>What It's Building Toward</h2>
   <p style="font-size:0.78em; color:#aaa; max-width:80%; margin: 0 auto;">
@@ -793,30 +874,54 @@
     The research reports connect to wiki entities. The wiki entities connect to goals.
     The goals connect back to values inferred from dozens of voice memos Ford didn't think of as structured data.
   </p>
-  <hr />
-  <p class="big-quote" style="font-size:1.0em;">"What should I do today?"</p>
   <aside class="notes">
-    The knowledge graph is what all of this is building toward. The bot learns what you care about not because you entered it in a form, but because you kept talking. Work life. Professional life. Community organizing. The versions of you that have never been in the same room, running in separate apps, separate contexts, no thread between them. The system is being built to draw that thread — to answer a question that sounds simple and isn't. Not "what's the weather." Not "summarize this article." Something that requires knowing the person across all of it, not just the query. What should I do today?
+    The knowledge graph is what all of this is building toward. The bot learns what you care about not because you entered it in a form, but because you kept talking. Work life. Professional life. Community organizing. The versions of you that have never been in the same room, running in separate apps, separate contexts, no thread between them. The system is being built to draw that thread.
   </aside>
 </section>
 
-<!-- Slide 40: Key takeaways -->
+<!-- Slide 47: The question -->
+<section>
+  <h2>The Question</h2>
+  <p class="big-quote" style="font-size:1.4em;">"What should I do today?"</p>
+  <hr />
+  <p style="font-size:0.75em; color:#aaa; max-width:70%; margin:0.8em auto;">
+    Not "what's the weather."<br/>
+    Not "summarize this article."<br/>
+    Something that requires knowing the person across all of it —<br/>
+    not just the query.
+  </p>
+  <aside class="notes">
+    The system is being built to answer a question that sounds simple and isn't. Not "what's the weather." Not "summarize this article." Something that requires knowing the person across all of it, not just the query. What should I do today?
+  </aside>
+</section>
+
+<!-- Slide 48: Key takeaways — first half -->
 <section>
   <h2>Key Takeaways</h2>
   <ul>
     <li><span class="accent">Work with the platform's design</span> — not against it. CLI pairing works. WebSocket tunnels don't.</li>
     <li><span class="accent">Check what model is actually running</span> before touching the instructions.</li>
     <li><span class="accent">Skills compound</span> — capture how you solved something and the AI doesn't start from scratch next time.</li>
+  </ul>
+  <aside class="notes">
+    First three things I'd tell someone starting this build. Work with the platform's design — not against it. CLI pairing works. WebSocket tunnels through SSM don't. Check what model is actually running before touching the instructions. Skills compound — capture how you solved something and the AI doesn't start from scratch next time.
+  </aside>
+</section>
+
+<!-- Slide 49: Key takeaways — second half -->
+<section>
+  <h2>Key Takeaways</h2>
+  <ul>
     <li><span class="accent">Systemd doesn't source .profile</span> — if your gateway has no env vars, check the unit file.</li>
     <li><span class="accent">Simpler pipelines fail louder</span> — "auto" to "text" deleted a stage and its silent fallback.</li>
     <li><span class="accent">Model class is not a tier difference</span> — no prompt engineering closes the Nova Lite → Sonnet gap.</li>
   </ul>
   <aside class="notes">
-    Six things I'd tell someone starting this build. Work with the platform's design — not against it. CLI pairing works. WebSocket tunnels through SSM don't. Check what model is actually running before touching the instructions. Skills compound — capture how you solved something and the AI doesn't start from scratch next time. Systemd doesn't source .profile — if your gateway has no env vars, check the unit file. Simpler pipelines fail louder — "auto" to "text" deleted a stage and its silent fallback. Model class is not a tier difference — no amount of prompt engineering closes the Nova Lite to Sonnet gap.
+    Last three. Systemd doesn't source .profile — if your gateway has no env vars, check the unit file. Simpler pipelines fail louder — "auto" to "text" deleted a stage and its silent fallback. Model class is not a tier difference — no amount of prompt engineering closes the Nova Lite to Sonnet gap.
   </aside>
 </section>
 
-<!-- Slide 41: Q&A -->
+<!-- Slide 50: Q&A -->
 <section>
   <h2>Questions?</h2>
   <hr />
