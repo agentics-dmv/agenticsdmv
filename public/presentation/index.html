@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Building a 24/7 AI Assistant on AWS</title>
+
+  <!-- Fira Code from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- reveal.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reset.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/night.css" />
+
+  <!-- Highlight.js theme for code blocks -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/monokai.css" />
+
+  <style>
+    /* Apply Fira Code globally */
+    .reveal,
+    .reveal h1,
+    .reveal h2,
+    .reveal h3,
+    .reveal h4,
+    .reveal p,
+    .reveal li,
+    .reveal blockquote,
+    .reveal pre,
+    .reveal code,
+    .reveal table,
+    .reveal .slides section {
+      font-family: 'Fira Code', monospace;
+    }
+
+    .reveal h1 { font-size: 2.2em; font-weight: 700; line-height: 1.2; }
+    .reveal h2 { font-size: 1.5em; font-weight: 600; }
+    .reveal h3 { font-size: 1.1em; font-weight: 500; color: #aaa; }
+    .reveal p  { font-size: 0.85em; line-height: 1.6; }
+    .reveal li { font-size: 0.82em; line-height: 1.7; }
+
+    /* Slide images */
+    .reveal img.diagram {
+      max-height: 58vh;
+      max-width: 88%;
+      object-fit: contain;
+      border: none;
+      box-shadow: none;
+      margin: 0.4em auto;
+      display: block;
+    }
+
+    .reveal img.screenshot {
+      max-height: 64vh;
+      max-width: 78%;
+      object-fit: contain;
+      border-radius: 6px;
+      display: block;
+      margin: 0.3em auto;
+    }
+
+    /* Caption under images */
+    .reveal .caption {
+      font-size: 0.55em;
+      color: #888;
+      margin-top: 0.4em;
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* Act header slides */
+    .reveal section.act-header {
+      background: #0d1117;
+    }
+    .reveal section.act-header h2 {
+      color: #58a6ff;
+      font-size: 1.8em;
+    }
+
+    /* Blockquote styling */
+    .reveal blockquote {
+      border-left: 3px solid #58a6ff;
+      padding: 0.4em 1em;
+      background: rgba(88, 166, 255, 0.06);
+      font-size: 0.78em;
+      line-height: 1.8;
+      text-align: left;
+      width: 88%;
+    }
+
+    /* Two-column layout */
+    .reveal .cols {
+      display: flex;
+      gap: 2em;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .reveal .cols .col {
+      flex: 1;
+    }
+
+    /* Highlight accent */
+    .reveal .accent { color: #58a6ff; }
+    .reveal .warn   { color: #f97316; }
+    .reveal .ok     { color: #22c55e; }
+
+    /* Table styling */
+    .reveal table {
+      font-size: 0.65em;
+      border-collapse: collapse;
+      width: 92%;
+      margin: 0 auto;
+    }
+    .reveal table th {
+      background: #1e2430;
+      padding: 0.5em 0.8em;
+      border-bottom: 1px solid #444;
+      color: #58a6ff;
+    }
+    .reveal table td {
+      padding: 0.4em 0.8em;
+      border-bottom: 1px solid #2d3340;
+    }
+
+    /* Cost line */
+    .reveal .cost-line {
+      font-size: 0.7em;
+      color: #888;
+      margin-top: 0.3em;
+    }
+
+    /* Title slide specifics */
+    .reveal .title-meta {
+      font-size: 0.6em;
+      color: #888;
+      margin-top: 1.2em;
+    }
+
+    /* Subtle divider */
+    .reveal hr {
+      border: none;
+      border-top: 1px solid #333;
+      margin: 0.8em auto;
+      width: 40%;
+    }
+
+    /* Big quote slides */
+    .reveal .big-quote {
+      font-size: 1.3em;
+      font-weight: 600;
+      line-height: 1.5;
+      color: #e2e8f0;
+      margin: 0.5em auto;
+      max-width: 80%;
+    }
+
+    /* Numbered list with tighter spacing */
+    .reveal ol li { margin-bottom: 0.3em; }
+    .reveal ul li { margin-bottom: 0.3em; }
+  </style>
+</head>
+
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ===================================================================
+     OPENING
+     =================================================================== -->
+
+<!-- Slide 1: Title -->
+<section>
+  <h1>Building a 24/7 AI Assistant on AWS</h1>
+  <hr />
+  <p class="accent">What worked. What didn't. Why the failures teach more.</p>
+  <p class="title-meta">AWS Meetup — Ford Prior</p>
+  <aside class="notes">
+    Welcome everyone. This talk is about what actually happens when you take something that looks easy on a blog post — run a personal AI assistant on AWS — and go build it for real. Spoiler: it's not hard, but it's not what you think either. I want to walk you through the actual experience over three days of building, including everything that broke and why.
+  </aside>
+</section>
+
+<!-- Slide 2: The motivation -->
+<section>
+  <h2>The Setup</h2>
+  <ul>
+    <li>AWS credits from a hackathon — unused, expiring</li>
+    <li>265,000-star GitHub project: <span class="accent">OpenClaw</span></li>
+    <li>Local AWS meetup needed a demo</li>
+    <li class="warn">Problem: I didn't really understand OpenClaw yet</li>
+  </ul>
+  <p style="margin-top:1em; font-size:0.75em; color:#aaa;">
+    The Mac Mini videos were everywhere. I didn't have a Mac Mini.<br/>
+    What I had was a question: <em>what exactly is this paradigm?</em>
+  </p>
+  <aside class="notes">
+    I had AWS credits sitting around from a hackathon — unused, expiring. I had this half-formed idea that kept coming back. OpenClaw had blown up: 265,000 GitHub stars, Mac Mini unboxing videos everywhere, the canonical "run AI locally" setup. I didn't have the cash for a Mac Mini, but more importantly, the paradigm itself wasn't obvious to me. What's the gateway? What are workspace files? I'd delayed touching it for weeks because every time I looked, I felt like I was missing something fundamental.
+  </aside>
+</section>
+
+<!-- Slide 3: What I actually wanted -->
+<section>
+  <h2>What I Actually Wanted</h2>
+  <p class="big-quote">"Not a faster search engine.<br/>Something that connects the parts<br/>of a life that have no reason<br/>to talk to each other."</p>
+  <hr />
+  <ul style="font-size:0.7em; color:#aaa; list-style:none; padding:0;">
+    <li>work &nbsp;/&nbsp; community organizing &nbsp;/&nbsp; professional projects</li>
+    <li>conversations I have and immediately forget</li>
+    <li>things I read and never act on</li>
+  </ul>
+  <aside class="notes">
+    What I actually wanted wasn't an AI assistant in the sense of a thing that answers questions. I have Google for that and it's free. What I wanted was something that could start connecting the parts of my life that have no reason to share context: work, community organizing, professional projects, the conversations I have and immediately forget, the things I read and never act on. All of it lives in separate silos — different apps, different contexts, a different version of me in each one. No thread between them. I'm not worried about the privacy implications. I want the dots to find each other.
+  </aside>
+</section>
+
+<!-- ===================================================================
+     ACT 1: Getting It Online
+     =================================================================== -->
+
+<!-- Slide 4: Act header -->
+<section class="act-header">
+  <h2>Act 1</h2>
+  <h1>Getting It Online</h1>
+  <aside class="notes">
+    Part one: getting the thing running at all.
+  </aside>
+</section>
+
+<!-- Slide 5: The starting point -->
+<section>
+  <h2>The Starting Point</h2>
+  <ul>
+    <li><span class="accent">aws-samples/sample-OpenClaw-on-AWS-with-Bedrock</span></li>
+    <li>Brooke Jamieson (AWS ML Hero) — "You Don't Need a Mac Mini"</li>
+    <li>Official CloudFormation template, Bedrock already wired</li>
+    <li>Not random repo-hunting — exactly where it should live</li>
+  </ul>
+  <blockquote>
+    "I used to work on the team that maintained AWS samples for the SDK.<br/>
+    That trust mattered."
+  </blockquote>
+  <aside class="notes">
+    I didn't start from scratch. I used to work on the team that maintained AWS samples for the SDK, so I knew the aws-samples org was actively maintained and well-structured. When Brooke Jamieson — an AWS Machine Learning Hero turned Senior Developer Advocate — wrote "You Don't Need a Mac Mini to Run OpenClaw", showing she'd put it on Lightsail in 15 minutes for $24 a month, someone in the comments linked to the official sample repo. An official CloudFormation template with Bedrock integration already wired in. That was not random. That was exactly where I expected something like this to live.
+  </aside>
+</section>
+
+<!-- Slide 6: The stack -->
+<section>
+  <h2>The Stack</h2>
+  <img src="./ai-stack-overview-dark-v2.png" alt="OpenClaw AWS Stack" class="diagram" />
+  <p class="caption">t4g.medium · Graviton · 30GB EBS · no public ports · Claude Sonnet 4.6 via Bedrock</p>
+  <aside class="notes">
+    The stack is simple by design. One EC2 instance — ARM64, cheap, quiet — runs a Node.js gateway that holds a connection to Telegram and calls Bedrock on every message. No database. No load balancer. No NAT gateway. The CloudFormation template asked a few questions and built the whole thing: instance role, security groups, a user data script that pulled OpenClaw from npm and started the gateway as a systemd service. The destination. Getting here took longer than the diagram suggests.
+  </aside>
+</section>
+
+<!-- Slide 7: Cursor + $20 + CloudFormation -->
+<section>
+  <h2>Cursor + $20 + CloudFormation</h2>
+  <ul>
+    <li>Opened Cursor, loaded $20 credits, cloned the sample repo</li>
+    <li>AI-assisted deploy — not reverse-engineering the YAML cold</li>
+    <li><code>make deploy-setup</code> · <code>make deploy</code> · <code>make ssh</code></li>
+    <li>Repeatability layered in as I learned</li>
+    <li>Stack up in <span class="accent">8 minutes</span>, 9 plugins, zero config changes</li>
+  </ul>
+  <p class="cost-line">Actual cost: ~$40/mo light use · ~$125/mo at series usage levels</p>
+  <aside class="notes">
+    That's the honest version. I didn't sit down with the CloudFormation template and reverse-engineer every resource definition before touching a terminal. I used AI from the first minute. The repo had a one-click deploy available, but I took the more old-school route — running the CloudFormation commands myself, but with the AI reading the template, answering my questions, and catching mistakes in real time. As I went, I wrote make targets so the steps wouldn't live in my bash history. Repeatability layered in as I learned. The stack stood up in eight minutes, the gateway started itself, and nine plugins loaded without a single config change. That part was easy.
+  </aside>
+</section>
+
+<!-- Slide 8: First contact -->
+<section>
+  <h2>First Contact</h2>
+  <ul>
+    <li>SSM tunnel → port forward → OpenClaw Control UI</li>
+    <li>QR code flow for WhatsApp — scanned it</li>
+    <li class="ok">First message came through. Bot replied.</li>
+    <li>Not infrastructure on paper — a conversation.</li>
+  </ul>
+  <hr />
+  <p class="warn" style="font-size:0.85em;">Then WhatsApp closed the door.</p>
+  <aside class="notes">
+    After the stack was up, I finally got to see the thing. I tunneled through SSM, port-forwarded to the OpenClaw Control UI, and for the first time was looking at the system running. Not logs, not CloudFormation outputs, but the actual UI. There was a QR code flow for linking WhatsApp. I scanned it. It worked. The first message came through. The bot replied. I had something real, visible, and interactive running in AWS. Then WhatsApp closed the door.
+  </aside>
+</section>
+
+<!-- Slide 9: The WhatsApp death spiral -->
+<section>
+  <h2>The WhatsApp Death Spiral</h2>
+  <img src="./whatsapp-death-spiral.png" alt="WhatsApp Death Spiral" class="diagram" />
+  <p class="caption">How a health monitor turned 20 gateway restarts into an account ban.</p>
+  <aside class="notes">
+    Here is what actually happened. Problem 1: SSM port forwarding drops WebSocket connections constantly, and the OpenClaw Control UI depends on WebSockets for everything — QR generation, status updates, the pairing flow. Every dropped connection was a reset. Problem 2: I tried a Cloudflare tunnel — that required touching openclaw.json. Touching openclaw.json is where things went wrong. The service crashed. Problem 3: Without SSH, the only way to edit the config was SSM RunCommand — Python one-liners, JSON escaped into shell commands, 10-second round trip, no interactive feedback. Problem 4: Every time the gateway restarted, the health monitor saw WhatsApp in a stopped state and triggered a reconnect, which hit a 401, which retried — after 5 seconds, 11, 21, 43, 88, 171. With more than twenty restarts in one afternoon, that was hundreds of failed auth attempts. WhatsApp noticed. The phone said: "Can't link new devices at this time."
+  </aside>
+</section>
+
+<!-- Slide 10: The lesson -->
+<section>
+  <h2>The Lesson</h2>
+  <blockquote>
+    "OpenClaw's Control UI is built for local access.<br/>
+    The gateway listens on localhost.<br/>
+    The QR flow expects a stable browser on the same machine."
+  </blockquote>
+  <hr />
+  <p style="font-size:0.8em;">
+    <span class="warn">Fighting that architecture</span> → WebSocket drops, config crashes, rate limit<br/>
+    <span class="ok">Working with it</span> → CLI pairing (<code>openclaw channels login</code>) worked immediately
+  </p>
+  <p style="font-size:0.7em; color:#888; margin-top:1em;">The platform has a design. Work with it.</p>
+  <aside class="notes">
+    The lesson — not a surprise in retrospect — is that the Control UI is built for local access. SSM port forwarding is asynchronous and drops connections, which makes it exactly wrong for anything that needs a persistent WebSocket. Fighting that architecture produced every failure. The CLI pairing flow — run directly on the server, connecting to WhatsApp's servers with no intermediary — worked immediately when I finally tried it. The platform has a design. Work with it.
+  </aside>
+</section>
+
+<!-- Slide 11: Telegram in 10 minutes -->
+<section>
+  <h2>Telegram in 10 Minutes</h2>
+  <div class="cols">
+    <div class="col">
+      <ul>
+        <li>Telegram help case had resolved</li>
+        <li>Plugin already installed, just needed credentials</li>
+        <li>First attempt: <code class="warn">token</code> → schema error</li>
+        <li>Correct key: <code class="ok">botToken</code></li>
+        <li>BotFather → token → paste → restart</li>
+      </ul>
+    </div>
+    <div class="col" style="padding-top:0.5em;">
+      <pre><code class="language-bash">[telegram] [default] starting
+  provider (@ford_clawbot)</code></pre>
+      <p style="font-size:0.65em; color:#888; margin-top:0.8em;">
+        No QR codes. No linking flows.<br/>
+        No stale credentials.<br/>
+        <span class="ok">Ten minutes and it just worked.</span>
+      </p>
+    </div>
+  </div>
+  <aside class="notes">
+    The Telegram plugin was already installed in the CloudFormation-deployed config — just no credentials. The first attempt used "token" as the config key. OpenClaw's schema validator responded immediately: "must NOT have additional properties." The correct key is "botToken." Change the key, add the value from BotFather, restart. Where WhatsApp had cost an afternoon and produced a ban, Telegram took ten minutes. BotFather was a genuine surprise — the whole flow was clean, developer-friendly, and obviously built for this kind of integration. Create a bot, get a token, paste the token, restart. I was glad the process had forced me here.
+  </aside>
+</section>
+
+<!-- Slide 12: The personality -->
+<section>
+  <h2>The Personality</h2>
+  <p style="font-size:0.75em; color:#aaa;"><code>SOUL.md</code> — injected into the prompt on every turn</p>
+  <blockquote>
+    ok but this is actually easy. do this: ...<br/><br/>
+    you're kinda overcomplicating it. just: ...<br/><br/>
+    wait... no. do it like this: ...
+  </blockquote>
+  <ul style="margin-top:0.8em;">
+    <li>Sharp. Lowercase. Slightly unimpressed. Efficient.</li>
+    <li>Not a technical innovation — an ergonomic one</li>
+    <li>The bot felt like someone with opinions, not a customer service form</li>
+  </ul>
+  <aside class="notes">
+    The first real conversations happened that night. And they happened through a personality. I had written a SOUL.md file — one of the workspace files that gets injected into the prompt on every turn. It told the model to talk like a Gen Z teenager who finds your question mildly beneath them but answers it correctly anyway. Sharp. Lowercase. Slightly unimpressed. Efficient. This is not a profound technical innovation. But it changed the ergonomics of using the system. The tone was chill, direct, not too verbose, and surprisingly effective. The bot felt like someone with opinions rather than a customer service form. For the amount of time I was about to spend talking to this thing, that mattered.
+  </aside>
+</section>
+
+<!-- ===================================================================
+     ACT 2: Teaching It to Think
+     =================================================================== -->
+
+<!-- Slide 13: Act header -->
+<section class="act-header">
+  <h2>Act 2</h2>
+  <h1>Teaching It to Think</h1>
+  <aside class="notes">
+    Part two: the bot was running. Now it needed to know things, remember things, and actually do what it was told.
+  </aside>
+</section>
+
+<!-- Slide 14: No memory -->
+<section>
+  <h2>"It Was Online. It Was Useless."</h2>
+  <ul>
+    <li>Answered simple questions — fine, capable, even impressive</li>
+    <li class="warn">Remembered nothing</li>
+    <li>Ask about RAG → no idea</li>
+    <li>Ask about a conversation from three days ago → no idea</li>
+    <li>Send a voice memo → "try Rev or Otter"</li>
+  </ul>
+  <hr />
+  <p style="font-size:0.78em; color:#aaa;">Every day at 4 AM: gateway resets. JSONL archived. Context clean.<br/>The model has no memory of yesterday unless you build it one.</p>
+  <aside class="notes">
+    The bot was running. It answered questions, held a conversation, and if you asked it something simple — the weather in Richmond, how to fix a bash script — it was fine. It remembered nothing. Ask "what do we have on RAG?" and it had no idea. Ask about a conversation from three days ago and it had no idea. Send it a voice memo and it said — politely, confidently — that it couldn't process audio and maybe try Rev or Otter. This is the problem with a 24/7 assistant that starts fresh every morning. Memory was what was missing.
+  </aside>
+</section>
+
+<!-- Slide 15: MEMORY.md -->
+<section>
+  <h2>MEMORY.md</h2>
+  <ul>
+    <li>Hand-curated markdown of long-term facts</li>
+    <li>Who Ford is, what the system does, key preferences, past lessons</li>
+    <li>~1,000 tokens — enough for basics</li>
+    <li class="warn">Can't hold 500 research reports</li>
+  </ul>
+  <hr />
+  <p style="font-size:0.78em; color:#aaa;">
+    Context window: <span class="accent">200,000 tokens</span> (Claude Sonnet 4.6)<br/>
+    Loading the full corpus on every message → slow, expensive, incoherent<br/>
+    as history fills and compaction kicks in
+  </p>
+  <aside class="notes">
+    The first fix was MEMORY.md — a hand-curated markdown file of long-term facts. About 1,000 tokens. Enough for basics. The second problem was deeper. What do you do when you've run deep research on a topic — thirty minutes of web synthesis — and want to find it six weeks from now? MEMORY.md can't hold 500 research reports. The context window can, technically — Claude Sonnet 4.6 has a 200,000-token window — but loading the full corpus on every message is how you make the assistant slow, expensive, and eventually incoherent as the context fills and the gateway starts compacting conversation history to make room.
+  </aside>
+</section>
+
+<!-- Slide 16: The index -->
+<section>
+  <h2>The Index, Not a Vector DB</h2>
+  <img src="./knowledge-layers-conceptual.png" alt="Knowledge Layers" class="diagram" />
+  <p class="caption">Raw sources stay locked. The wiki is the working layer. Agent Governance — the workspace files — runs on every turn.</p>
+  <aside class="notes">
+    The answer was an index. Not a vector database. Not embeddings. A flat JSON file. At 500 research documents, the index is about 15,000 tokens. Load it on demand, let the model reason over it, return the matching reports. The architecture spec for this — written before any code — named the alternative the "Token Crusher": the temptation to auto-load everything. The architecture explicitly prevents it. Research files are cold storage. The index is the card catalog. The agent finds the entry, fetches the document, reads it.
+  </aside>
+</section>
+
+<!-- Slide 17: GitHub Actions wiring -->
+<section>
+  <h2>GitHub Actions Wiring</h2>
+  <ul>
+    <li>OIDC provider → GitHub Actions assumes an AWS role</li>
+    <li>Trust policy scoped to pushes from the research repo's main branch</li>
+    <li>Workflow: markdown push → rebuild index → Telegram notification via SSM</li>
+    <li class="ok">Full loop in 2–10 minutes. Bot handles other messages while it waits.</li>
+  </ul>
+  <p style="font-size:0.7em; color:#888; margin-top:1em;">One session. Never opened the AWS console.</p>
+  <aside class="notes">
+    Wiring the GitHub side of this took one session without opening the AWS console: an OIDC provider for GitHub Actions to assume an AWS role, a trust policy scoped tightly to pushes from the research repo's main branch, a workflow that rebuilds the index on every markdown push and sends a Telegram notification back to the instance via SSM. The whole loop — research published, index rebuilt, notification delivered — runs in two to ten minutes. The bot handles other messages while it waits.
+  </aside>
+</section>
+
+<!-- Slide 18: The keys that weren't there -->
+<section>
+  <h2>The Keys That Weren't There</h2>
+  <img src="./env-variable-gap.png" alt="Environment Variable Gap" class="diagram" />
+  <p class="caption">Three paths for API keys. Only one reached the running gateway process.</p>
+  <aside class="notes">
+    Building the research pipeline exposed a quiet failure that had been there since the beginning. The first test ran. The script called the research API. Nothing came back. The .env file on the instance had one line for the research key: PARALLEL_API_KEY= — empty. The key had been stored in AWS SSM Parameter Store months earlier. Nothing had ever pulled it into the instance's environment. The gateway had been running without it the entire time, silently failing any research call. Then came the real gap: the .env file was correct, the .profile source line was in place, interactive sessions would pick up the keys — but the gateway runs as a systemd user service, and systemd doesn't source .profile. It uses its own flat environment. One line added: EnvironmentFile=/home/ubuntu/.openclaw/.env. Daemon reload. Restart. Verified directly from /proc/<pid>/environ. The env file and the service had been disconnected from each other since day one.
+  </aside>
+</section>
+
+<!-- Slide 19: What OpenClaw does with voice memos -->
+<section>
+  <h2>What OpenClaw Does With Voice Memos</h2>
+  <img src="./voice-to-wiki-conceptual.png" alt="Voice to Wiki" class="diagram" />
+  <p class="caption">The idea. A voice memo becomes a wiki node. Nothing about the implementation was this clean.</p>
+  <aside class="notes">
+    Voice memos are how you capture things without stopping — walking to a meeting, in the car, picking up kids. The voice memo pipeline started with a question: what does OpenClaw actually do when a voice memo arrives? The source code gave an answer nobody expected. When Telegram sends a voice file, the gateway downloads it and appends an annotation to the prompt: [media attached: media://inbound/voice_abc.oga]. That's it. The LLM receives a text annotation with a local file path. It does not receive the audio. There is no native transcription. Every voice memo since Telegram was enabled had been silently ignored. The audio sat on disk. The annotation sat in the prompt. The model said something polite and moved on.
+  </aside>
+</section>
+
+<!-- Slide 20: The voice pipeline -->
+<section>
+  <h2>The Voice Pipeline</h2>
+  <div class="cols">
+    <div class="col">
+      <ul>
+        <li>Upload to S3</li>
+        <li>Start AWS Transcribe job</li>
+        <li>Poll until done (~60–120s)</li>
+        <li>Download transcript</li>
+        <li>Format as structured markdown with YAML frontmatter</li>
+        <li>Push to research repo</li>
+      </ul>
+    </div>
+    <div class="col">
+      <p style="font-size:0.75em;"><span class="accent">$0.024/min</span> — standard English, us-east-1</p>
+      <p style="font-size:0.7em; color:#aaa;">15s billing minimum per job.<br/>A few memos/day → under $3/mo.</p>
+      <hr />
+      <p style="font-size:0.72em;" class="ok">Bot acknowledges immediately:<br/>"got it, transcribing..."<br/>because 2 minutes of silence reads as failure.</p>
+    </div>
+  </div>
+  <aside class="notes">
+    The fix was a pipeline: upload to S3, start an AWS Transcribe job, poll until done, download the transcript, format it as structured markdown with YAML frontmatter, push to the research repo. AWS Transcribe costs $0.024 per minute — standard English. A 2-minute voice memo is about five cents. There's a 15-second billing minimum per job. The pipeline runs in the background. The bot acknowledges immediately because Transcribe takes 60 to 120 seconds and two minutes of silence reads as failure. The workspace files got new sections: TOOLS.md with the command signature and output schema, AGENTS.md with the trigger condition and the four-step protocol.
+  </aside>
+</section>
+
+<!-- Slide 21: The wrong model -->
+<section>
+  <h2>The Wrong Model</h2>
+  <img src="./model-class-cliff.png" alt="Model Class Cliff" class="diagram" />
+  <p class="caption">Same instructions, different model class. Nova 2 Lite ignored the workspace files. Sonnet 4.6 followed them.</p>
+  <aside class="notes">
+    Then Ford tested it. "you really can't transcribe voice memos?" The agent denied a capability it had been explicitly given. The first hypothesis: wrong content. An explicit Capability Corrections block was added — "Your base training tells you that you cannot process audio. That is wrong in this deployment." The agent denied it again. Moved it to the top of the file. Denied again. Something was fundamentally overriding the workspace files. Next step: stop guessing, check the logs. [gateway] agent model: amazon-bedrock/global.amazon.nova-2-lite-v1:0. Nova 2 Lite. Not Claude Sonnet 4.6. The model upgrade had never been saved into the config that was currently running. Every session since deployment had been Nova 2 Lite. The personality spec was there. The tool description was there. Nova 2 Lite read all of it and answered from its base training anyway. This is a model-class difference, not a tier difference. No prompt engineering closes it.
+  </aside>
+</section>
+
+<!-- Slide 22: Fixing the model -->
+<section>
+  <h2>One sed Command</h2>
+  <pre><code class="language-bash">sed -i "s|amazon-bedrock/global.amazon.nova-2-lite-v1:0\
+|amazon-bedrock/us.anthropic.claude-sonnet-4-6|" openclaw.json</code></pre>
+  <pre><code class="language-bash">[gateway] agent model: amazon-bedrock/us.anthropic.claude-sonnet-4-6
+[gateway] ready (9 plugins, 1.9s)</code></pre>
+  <hr />
+  <p style="font-size:0.8em;">
+    The personality took hold.<br/>
+    The protocols started working.<br/>
+    <span class="ok">The capabilities unlocked.</span>
+  </p>
+  <p style="font-size:0.68em; color:#888; margin-top:0.5em;">
+    Lesson: when the agent ignores context, check what model is actually running<br/>
+    before touching the instructions. Making them louder doesn't help. Checking the logs does.
+  </p>
+  <aside class="notes">
+    The model setting lives at agents.defaults.model.primary in openclaw.json. The first attempt to update it used jq through SSM RunCommand and guessed the wrong key name. The schema validator caught it immediately: "Unrecognized key: agent." Restart loop. Restore from backup. The second attempt used sed — one string replacement, no JSON parsing, no quoting complexity. One sed command. The personality took hold. The protocols started working. The capabilities unlocked.
+  </aside>
+</section>
+
+<!-- Slide 23: The $30 refactor -->
+<section>
+  <h2>The $30 Refactor</h2>
+  <ul>
+    <li>Sonnet 4.6 fixed behavior — but made a different problem visible</li>
+    <li>Tool scripts: long, tangled, hard to test in isolation</li>
+    <li>Full modularization refactor — not cosmetic cleanup</li>
+    <li>Dozens of commits, hundreds of tests (unit + integration)</li>
+    <li class="warn">~$30 in Cursor tokens</li>
+  </ul>
+  <hr />
+  <p style="font-size:0.78em; color:#aaa;">
+    Real driver: <span class="accent">model economics</span><br/>
+    Modular codebase → each change small enough for Sonnet<br/>
+    Escalate to Opus only when truly stuck (happened ~5-6 times)
+  </p>
+  <aside class="notes">
+    The model switch fixed the behavior. It also made a different problem visible. With Sonnet 4.6 running, the system was capable enough to extend — but the codebase underneath it wasn't. The tool scripts were long, tangled, hard to test in isolation. I ended up doing a full modularization refactor. Not cosmetic cleanup — a serious restructuring to make the scripts shorter, the interfaces cleaner, and the test surface reachable. The reason was partly code quality. But the real driver was model economics. I wanted to use Sonnet 4.6 for most of my development work — faster, cheaper, good enough for the majority of tasks, but only if the codebase is simple enough for it to reason about without exceeding its effective context window. The architecture had to become more modular, more decomposed, so that each change was small enough for a cheaper model to handle well.
+  </aside>
+</section>
+
+<!-- Slide 24: Skills as operational memory -->
+<section>
+  <h2>Skills as Operational Memory</h2>
+  <img src="./with-skills.png" alt="With Skills vs Without" class="diagram" />
+  <p class="caption">Same tokens, deeper thinking. Without skills, the AI explores broadly and fails often. With skills, the early branches are pre-solved.</p>
+  <aside class="notes">
+    Throughout this whole process, I kept stopping to do something that felt tangential but turned out to be one of the most important patterns in the build. Every time I figured out how to do something, I asked the AI to write a skill for it. A skill is a reusable instruction file — markdown, stored locally, loaded into Cursor's context on demand. After I learned how to deploy through SSM, I had the AI write an openclaw-deploy skill that captured every step. After the WhatsApp nightmare, an openclaw-whatsapp skill documenting the CLI linking flow. Seven skills total by the end. These don't run on the bot — they're for the human-AI pair working in Cursor. Next week, when I need to do something I've done before, the skill file means the AI doesn't start from scratch. It picks up where the last session left off. No rediscovery. The system compounds instead of resetting.
+  </aside>
+</section>
+
+<!-- Slide 25: The 7 skills table -->
+<section>
+  <h2>7 Skills</h2>
+  <table>
+    <thead>
+      <tr><th>Skill</th><th>What It Captures</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>openclaw-deploy</code></td><td>CloudFormation deployment, SSM plugin install, teardown</td></tr>
+      <tr><td><code>openclaw-operate</code></td><td>start/stop/status/logs, Makefile commands, common failures</td></tr>
+      <tr><td><code>openclaw-whatsapp</code></td><td>CLI linking flow, credential cleanup, rate limit recovery</td></tr>
+      <tr><td><code>openclaw-customize</code></td><td>Config editing, models, channels, plugins, heartbeat</td></tr>
+      <tr><td><code>openclaw-personality</code></td><td>SOUL.md writing guide, templates, AGENTS.md separation</td></tr>
+      <tr><td><code>openclaw-parallel-research</code></td><td>Parallel AI setup, script deployment, processor tiers</td></tr>
+      <tr><td><code>openclaw-deploy-changes</code></td><td>Git-based deploy pipeline, workspace/tools sync</td></tr>
+    </tbody>
+  </table>
+  <aside class="notes">
+    Here are the seven skills I built. Each one captures hard-won knowledge from a specific phase of the build. The pattern was: build something, capture it, move on. This became a major way I worked. The system compounds instead of resetting.
+  </aside>
+</section>
+
+<!-- Slide 26: The bot that fixes itself -->
+<section>
+  <h2>The Bot That Fixes Itself</h2>
+  <img src="./telegram-desktop.png" alt="Telegram Deep Research — Desktop" class="screenshot" />
+  <p class="caption">11:11 PM: voice memo in, transcribed. 11:12 PM: "running deep research now." 11:15 PM: report published, link delivered, brief on what it covers.</p>
+  <aside class="notes">
+    One thing that struck me immediately, once Sonnet 4.6 was running and the personality was active: the bot was unusually ready to fix things itself. When something broke, the bot didn't just report the error and wait. It would reason through the failure, propose a fix, and often apply it — patching a script, adjusting a config value, retrying a command sequence. It would keep working a thread. Absorb errors. Try again from a different angle. But it couldn't be fully trusted. I gave it a GitHub token so it could push changes. Having the token wasn't enough — the bot would fix something, commit it locally, and not push. I had to create skills and explicit instructions in CLAUDE.md to reinforce the operational discipline: always push, always pull the knowledge base before reading it, never leave uncommitted changes silently. The pattern was powerful, but it still needed guardrails.
+  </aside>
+</section>
+
+<!-- ===================================================================
+     ACT 3: The Machine That Learns
+     =================================================================== -->
+
+<!-- Slide 27: Act header -->
+<section class="act-header">
+  <h2>Act 3</h2>
+  <h1>The Machine That Learns</h1>
+  <aside class="notes">
+    Part three: the pipeline worked. The data was wrong. The bot fixed its own code and didn't push it. Three days of catching errors and feeding them back. Then the graph started growing.
+  </aside>
+</section>
+
+<!-- Slide 28: Pipeline worked, data was wrong -->
+<section>
+  <h2>Pipeline Worked. Data Was Wrong.</h2>
+  <img src="./voice-to-knowledge-pipeline.png" alt="Voice to Knowledge Pipeline" class="diagram" />
+  <p class="caption">Nine steps. The transcription error lived in step 3 and didn't surface until step 6.</p>
+  <aside class="notes">
+    The pipeline worked. Ford dictated a voice memo about his three kids — their ages, their hobbies, the youngest one's obsession with unicorns and scooters — and within three minutes the bot had created five structured wiki pages, committed them to GitHub, and replied with a link. One of the pages said his son was born in Lagos, Nigeria. AWS Transcribe heard "Lagos" where Ford said something about Richmond. The LLM integration pass had no way to know the transcription was wrong. It saw "Lagos." It placed the birthplace there. It added a note: "speculative: was Ford living in Nigeria at the time of the birth?" Correct reasoning. Bad data.
+  </aside>
+</section>
+
+<!-- Slide 29: Correct reasoning, bad data -->
+<section>
+  <h2>Correct Reasoning. Bad Data.</h2>
+  <ul>
+    <li>Transcription: "Lagos" for Richmond</li>
+    <li>LLM integration pass: <em>speculative: was Ford living in Nigeria?</em></li>
+    <li>Name: "Thaddeus" (double-d) propagated everywhere</li>
+    <li>Profile page: <code>personal/will-prior.md</code> — his name is Ford</li>
+    <li>Profile: "also goes by Ford" — exactly backward</li>
+  </ul>
+  <hr />
+  <p style="font-size:0.78em; color:#aaa;">
+    This isn't a bug to fix with better prompting.<br/>
+    Speech-to-text has error rates. LLM passes amplify them.<br/>
+    The mitigation is a <span class="accent">workflow</span>, not a technical fix.
+  </p>
+  <aside class="notes">
+    The name was wrong too. The transcript rendered "Thadeus" as "Thaddeus" — double-d — and every downstream page propagated the misspelling. A separate issue from a different session: the personal profile page had been created as personal/will-prior.md. Ford's name is Ford. He doesn't go by Will. The profile said "also goes by Ford," which had it exactly backward. This isn't a bug to fix with better prompting. Speech-to-text has error rates. LLM integration passes amplify those errors. The mitigation is a workflow: bot creates drafts, human reviews, corrections commit with provenance notes. Source transcripts stay immutable. Derived pages evolve. The git history shows both.
+  </aside>
+</section>
+
+<!-- Slide 30: The correction workflow -->
+<section>
+  <h2>The Correction Workflow</h2>
+  <ul>
+    <li><code>personal/will-prior.md</code> → <code>personal/ford-prior.md</code></li>
+    <li>Birthplace: Lagos, Nigeria → Richmond, VA; speculative note deleted</li>
+    <li>Name: Thaddeus → Thadeus (everywhere)</li>
+    <li>Raw transcript: <span class="warn">left alone</span></li>
+  </ul>
+  <hr />
+  <blockquote>
+    "It's the immutable record of what AWS Transcribe produced.<br/>
+    If you want to know what the machine heard, it's there.<br/>
+    If you want to know what was actually true, the correction note tells you."
+  </blockquote>
+  <aside class="notes">
+    Seven files corrected methodically. The raw transcript was left alone — it's the immutable record of what AWS Transcribe produced. The correction note sits beside it in the source page, not written over it. If you want to know what the machine heard, it's there. If you want to know what was actually true, the correction note tells you why the derived pages diverged from the transcript. Source transcripts stay immutable. Derived pages evolve. The git history shows both.
+  </aside>
+</section>
+
+<!-- Slide 31: Research output as raw JSON -->
+<section>
+  <h2>Research Output: Raw JSON</h2>
+  <img src="./pipeline-simplification.png" alt="Pipeline Simplification" class="diagram" />
+  <p class="caption">One parameter change deleted an entire pipeline stage and its silent failure mode.</p>
+  <aside class="notes">
+    Separately, the first deep research results had been rendering as raw JSON on GitHub. 250 lines of nested objects, arrays, and escaped strings. Not a research report. A blob. The script was submitting tasks with output_schema: { type: "auto" }. Auto mode returns structured JSON — right for batch enrichment pipelines. The script had a second stage that called Bedrock to reformat the JSON into markdown. When that Bedrock call failed silently, the fallback wrote the raw JSON directly to the file. No error surfaced. The fix: Parallel's Task API has a "text" mode. It returns a full markdown narrative report with inline citations, no schema definition required, no downstream formatting step. The change: "auto" to "text". One word. The Bedrock formatting step — 36 lines of bash, temp files, jq templates, an aws bedrock-runtime invoke-model invocation, fallback logic, cleanup — was deleted. Fewer parts. One fewer API call per research run. No silent fallback.
+  </aside>
+</section>
+
+<!-- Slide 32: Three bugs -->
+<section>
+  <h2>Three Bugs</h2>
+  <table>
+    <thead>
+      <tr><th>Bug</th><th>Problem</th><th>Fix</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>IAM mismatch</td>
+        <td>Script used <code>openclaw-wiki-*</code> job names; IAM allowed <code>openclaw-voice-*</code></td>
+        <td>Align script to working prefix</td>
+      </tr>
+      <tr>
+        <td>Non-ASCII in Bedrock</td>
+        <td>Em-dashes in prompt template rejected by AWS CLI <code>--body file://</code></td>
+        <td><code>fileb://</code> — one character</td>
+      </tr>
+      <tr>
+        <td>GHA metadata</td>
+        <td>Grep pattern matched body content, not frontmatter; multi-line JSON broke step output</td>
+        <td>Python frontmatter parser + heredoc delimiters</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="ok" style="font-size:0.75em; margin-top:0.8em;">After those three fixes: pipeline ran end to end.</p>
+  <aside class="notes">
+    With ingest-voice.sh deployed and AGENTS.md routing voice memos through the full pipeline, a test memo went in. It failed immediately. Bug 1: ingest-voice.sh was using openclaw-wiki-* job names for AWS Transcribe. The IAM policy on the instance role allowed openclaw-voice-*. These two had never been tested together. Bug 2: wiki-integrate.sh built a JSON request body that contained em-dashes and Unicode. The AWS CLI's --body file:// flag treats the file as text and rejects non-ASCII characters. Fix: fileb:// instead of file://. One character. Bug 3: The GitHub Actions workflow used grep to extract frontmatter fields. The pattern matched body content, not frontmatter. And the summary extraction piped multi-line JSON into echo which GitHub Actions can't parse as step output. Fix: a Python-based frontmatter parser scoped to the YAML block, and heredoc delimiters for all GITHUB_OUTPUT writes. After those three fixes, the pipeline ran end to end.
+  </aside>
+</section>
+
+<!-- Slide 33: The bot that fixed its own code -->
+<section>
+  <h2>The Bot That Fixed Its Own Code</h2>
+  <img src="./knowledge-base-telegram.PNG" alt="Telegram Knowledge Base — Mobile" class="screenshot" />
+  <p class="caption">Debugging its own git rebase logic, then immediately ingesting a voice memo: "doesn't really love movies but favorites: Dune, The Matrix, Interstellar."</p>
+  <aside class="notes">
+    lib/git.sh didn't have a retry loop — if a push was rejected because GitHub Actions had concurrently pushed an index rebuild, the script would fail and report status: partial. The bot diagnosed the issue, wrote a retry-with-rebase loop, and committed it. On EC2. It did not push. The fix sat on the instance, unreachable from the laptop, until a git pull surfaced commit fdcef68 sitting on the remote. The bot had done real developer work — correct diagnosis, clean fix — and then ignored every convention that makes developer work usable. The commit existed. Nobody knew about it. The laptop was deploying old code.
+  </aside>
+</section>
+
+<!-- Slide 34: Agent Self-Maintenance Protocol + make ship -->
+<section>
+  <h2>Agent Self-Maintenance Protocol</h2>
+  <div class="cols">
+    <div class="col">
+      <p style="font-size:0.75em; color:#aaa;"><code>CLAUDE.md</code> — the bot's onboarding document</p>
+      <ul>
+        <li>Always push code changes</li>
+        <li>Always pull KB before reading it</li>
+        <li>Never leave uncommitted changes silently</li>
+      </ul>
+      <p style="font-size:0.7em; color:#888; margin-top:0.8em;">The bot is capable of fixing its own infrastructure.<br/>It cannot be trusted to follow deployment discipline<br/>without explicit rules.</p>
+    </div>
+    <div class="col">
+      <p style="font-size:0.75em; color:#aaa;"><code>make ship</code></p>
+      <pre><code class="language-makefile">ship:
+  git push origin main && make deploy</code></pre>
+      <p style="font-size:0.7em; margin-top:0.8em;" class="ok">
+        Push to GitHub and sync to EC2<br/>in a single command.<br/>Gap closed.
+      </p>
+    </div>
+  </div>
+  <aside class="notes">
+    This led directly to two things. The Agent Self-Maintenance Protocol in CLAUDE.md: the bot must always push code changes, always pull the KB before reading it, and never leave uncommitted changes silently. The bot is capable of fixing its own infrastructure. It cannot be trusted to follow deployment discipline without explicit rules. CLAUDE.md is the bot's onboarding document. And make ship — a new Makefile target: git push origin main and make deploy. One command. Push to GitHub and sync to EC2 in a single step. The gap between "code is on GitHub" and "code is on EC2" had been bridged by human memory. Every time that gap existed, the bot was running stale code. make ship closes it.
+  </aside>
+</section>
+
+<!-- Slide 35: Three days -->
+<section>
+  <h2>Three Days</h2>
+  <img src="./three-day-feedback-loop.png" alt="Three Day Feedback Loop" class="diagram" />
+  <p class="caption">Two variants of the same cycle. Bot-driven when it could fix things itself. Human-driven when the environment got too noisy.</p>
+  <aside class="notes">
+    All of this took roughly three days. The actual process was not elegant in a traditional software-engineering sense. It was a loop: catch an error, feed it back into the system, watch the fix attempt, verify or redirect. Sometimes the bot would fix the issue itself and I'd tell it to push upstream. Other times I'd copy Telegram outputs — error messages, stack traces, the bot's own confused responses — back into Cursor, let the model reason through the issue, and apply the fix from there. That loop was the real engine of progress. There were moments when the environment fought back. The SSM-based interaction would sometimes overwhelm Cursor's terminal session memory. When that happened, I told the AI to stop executing and give me the exact commands to run in sequence. I'd run them myself, gather the debugging output, and feed the results back. This is not a failure mode worth hiding. It's a realistic human-agent handoff pattern.
+  </aside>
+</section>
+
+<!-- Slide 36: Two loops -->
+<section>
+  <h2>Two Loops</h2>
+  <img src="./two-loops-development-workflow.png" alt="Two Loops" class="diagram" />
+  <p class="caption">The phone loop runs daily. The laptop loop runs weekly. Both write to the same repos.</p>
+  <aside class="notes">
+    The three-day build settled into something steadier. The system now runs on two rhythms. The phone loop runs daily: Ford sends voice memos, questions, research commands. The bot transcribes, publishes, replies. Every interaction adds to the knowledge graph. The graph grows without anyone managing it. The laptop loop runs weekly: pull the latest from both repos — including any patches the bot committed directly. Review what changed. Tune the workspace files. Edit the tool scripts. Run the 196 Bats tests. Ship. Both loops write to rvaopenclaw and openclaw-research. The bot is on the control plane too — it commits fixes, pushes patches, keeps the KB current. The human reviews. Corrections go back through git. The loop closes.
+  </aside>
+</section>
+
+<!-- Slide 37: What it is now -->
+<section>
+  <h2>What It Is Now</h2>
+  <img src="./openclaw-system-architecture.png" alt="OpenClaw System Architecture" class="diagram" />
+  <aside class="notes">
+    One EC2 instance. One Node.js gateway. Port 18789, localhost only. All external access through AWS Systems Manager. On every message: six markdown files assembled into a prompt, session history appended from a JSONL file on local EBS, Bedrock called via the instance's IAM role, response returned. The model is not on the instance — the instance has 4GB of RAM and runs no inference at all. It's a prompt assembler and a caller.
+  </aside>
+</section>
+
+<!-- Slide 38: Cost breakdown -->
+<section>
+  <h2>Cost Breakdown</h2>
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Light use (~$40/mo)</th><th>Active use (~$125/mo)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>EC2 t4g.medium + EBS</td><td>~$27</td><td>~$27</td></tr>
+      <tr><td>Bedrock (Claude Sonnet 4.6)</td><td>~$9</td><td>~$28 observed<br/><span style="font-size:0.85em;color:#888;">(vs $44 estimated)</span></td></tr>
+      <tr><td>Transcribe</td><td>~$2</td><td>~$3</td></tr>
+      <tr><td>Other (SSM, S3, etc.)</td><td>&lt;$2</td><td>~$67</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:0.65em; color:#888; margin-top:0.7em;">
+    Prompt caching: Bedrock caches 6,650 tokens of workspace files.<br/>
+    Cache reads at $0.30/M vs $3.00/M for raw input.<br/>
+    <span class="accent">Cheaper in practice than on paper.</span>
+  </p>
+  <aside class="notes">
+    The AWS bill shows $0 right now — free credits absorbing the real spend. The actual cost is about $125 a month at the usage levels in this series: 391 Bedrock invocations in seven days, short voice clips hitting the 15-second Transcribe billing minimum, one to three research tasks a day. That's lower than the heavy-use estimate. The gap is prompt caching. Bedrock caches the system prompt — the 6,650 tokens of workspace files — so most input arrives at $0.30 per million tokens rather than $3.00. Cache writes cost more but happen once per session. The net result is that observed Bedrock cost came in at about $28 for the week rather than the $44 the raw-input estimate would predict. The system is cheaper in practice than on paper. At light use: about $40 a month all in. The model choice is still the largest lever. Nova 2 Lite would cut the Bedrock line by 8.6×. But as Part 2 documented, Nova 2 Lite can't follow the workspace instructions. That saving would cost you the assistant.
+  </aside>
+</section>
+
+<!-- ===================================================================
+     CLOSING
+     =================================================================== -->
+
+<!-- Slide 39: The thing it's building toward -->
+<section>
+  <h2>What It's Building Toward</h2>
+  <p style="font-size:0.78em; color:#aaa; max-width:80%; margin: 0 auto;">
+    One memo about kids. One memo about a housing search. One memo from a community meeting.
+    One from a work conversation. One about what Ford doesn't actually like but keeps mentioning anyway.
+  </p>
+  <hr />
+  <p style="font-size:0.78em; color:#aaa; max-width:80%; margin: 0 auto;">
+    The integration pass extracts entities, creates concept pages, infers relationships.
+    Over weeks, patterns emerge. "Runs trails" becomes a tag, then a value.
+    "Three kids by the river" becomes a relationship chain.
+    The research reports connect to wiki entities. The wiki entities connect to goals.
+    The goals connect back to values inferred from dozens of voice memos Ford didn't think of as structured data.
+  </p>
+  <hr />
+  <p class="big-quote" style="font-size:1.0em;">"What should I do today?"</p>
+  <aside class="notes">
+    The knowledge graph is what all of this is building toward. The bot learns what you care about not because you entered it in a form, but because you kept talking. Work life. Professional life. Community organizing. The versions of you that have never been in the same room, running in separate apps, separate contexts, no thread between them. The system is being built to draw that thread — to answer a question that sounds simple and isn't. Not "what's the weather." Not "summarize this article." Something that requires knowing the person across all of it, not just the query. What should I do today?
+  </aside>
+</section>
+
+<!-- Slide 40: Key takeaways -->
+<section>
+  <h2>Key Takeaways</h2>
+  <ul>
+    <li><span class="accent">Work with the platform's design</span> — not against it. CLI pairing works. WebSocket tunnels don't.</li>
+    <li><span class="accent">Check what model is actually running</span> before touching the instructions.</li>
+    <li><span class="accent">Skills compound</span> — capture how you solved something and the AI doesn't start from scratch next time.</li>
+    <li><span class="accent">Systemd doesn't source .profile</span> — if your gateway has no env vars, check the unit file.</li>
+    <li><span class="accent">Simpler pipelines fail louder</span> — "auto" to "text" deleted a stage and its silent fallback.</li>
+    <li><span class="accent">Model class is not a tier difference</span> — no prompt engineering closes the Nova Lite → Sonnet gap.</li>
+  </ul>
+  <aside class="notes">
+    Six things I'd tell someone starting this build. Work with the platform's design — not against it. CLI pairing works. WebSocket tunnels through SSM don't. Check what model is actually running before touching the instructions. Skills compound — capture how you solved something and the AI doesn't start from scratch next time. Systemd doesn't source .profile — if your gateway has no env vars, check the unit file. Simpler pipelines fail louder — "auto" to "text" deleted a stage and its silent fallback. Model class is not a tier difference — no amount of prompt engineering closes the Nova Lite to Sonnet gap.
+  </aside>
+</section>
+
+<!-- Slide 41: Q&A -->
+<section>
+  <h2>Questions?</h2>
+  <hr />
+  <table style="width:70%; font-size:0.72em;">
+    <tbody>
+      <tr>
+        <td style="color:#888; padding:0.4em 1em;">Writing</td>
+        <td>part-1-getting-it-online.md<br/>part-2-teaching-it-to-think.md<br/>part-3-the-machine-that-learns.md</td>
+      </tr>
+      <tr>
+        <td style="color:#888; padding:0.4em 1em;">Sample repo</td>
+        <td>aws-samples/sample-OpenClaw-on-AWS-with-Bedrock</td>
+      </tr>
+      <tr>
+        <td style="color:#888; padding:0.4em 1em;">Brooke's post</td>
+        <td>"You Don't Need a Mac Mini to Run OpenClaw"</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="title-meta" style="margin-top:1.5em;">Ford Prior &nbsp;·&nbsp; RVA Hacks &nbsp;·&nbsp; AWS Meetup</p>
+  <aside class="notes">
+    Thank you. Happy to answer questions about any part of the build — the AWS architecture, the model selection, the voice pipeline, the skills system, the cost model, or anything else.
+  </aside>
+</section>
+
+</div><!-- .slides -->
+</div><!-- .reveal -->
+
+<!-- reveal.js scripts -->
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/highlight.js"></script>
+
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    backgroundTransition: 'fade',
+    controls: true,
+    progress: true,
+    center: true,
+    width: 1280,
+    height: 720,
+    margin: 0.04,
+    plugins: [ RevealNotes, RevealHighlight ]
+  });
+</script>
+</body>
+</html>
