@@ -10,10 +10,10 @@ export interface BlogPost {
 const part1: BlogPost = {
   slug: "you-wanted-a-24-7-ai-assistant",
   part: 1,
-  title: "The Stack Took Eight Minutes. WhatsApp Took Three Hours.",
+  title: "OpenClaw Phase 1: Stack in 8 Minutes, Integration in 8 Hours.",
   subtitle: "Deploying OpenClaw on AWS, building the intelligence layer.",
   date: "2026-04-11",
-  content: `# The Stack Took Eight Minutes. WhatsApp Took Three Hours.
+  content: `# OpenClaw Phase 1: Stack in 8 Minutes, Integration in 8 Hours.
 
 *Part 1 of 2. Deploying OpenClaw on AWS, building the intelligence layer.*
 
@@ -146,6 +146,8 @@ Daemon reload. Restart. Verified from \`/proc/<pid>/environ\` — all three keys
 ## Phase 6: Voice Pipeline
 
 Voice memos are how you capture things without stopping — the thought at the moment it occurs.
+
+Six months earlier I'd built a local version of this: Whisper running on a MacBook Air, an Automator Folder Action watching the iCloud sync directory, transcripts uploading to S3. [That writeup is here](https://fordprior672326990.wordpress.com/2025/06/02/automating-voice-memo-transcription/). It worked but required the laptop to be awake. The EC2 version would run 24/7 using AWS Transcribe instead of local Whisper — same idea, different runtime.
 
 Before writing anything, checked: what does OpenClaw actually do when a voice memo arrives?
 
@@ -365,7 +367,7 @@ That's version N. We're on version 1.
 
 ---
 
-*[← Part 1: The Stack Took Eight Minutes. WhatsApp Took Three Hours.](/blog/you-wanted-a-24-7-ai-assistant)*`,
+*[← Part 1: OpenClaw Phase 1: Stack in 8 Minutes, Integration in 8 Hours.](/blog/you-wanted-a-24-7-ai-assistant)*`,
 };
 
 export const blogPosts: BlogPost[] = [part1, part2];
