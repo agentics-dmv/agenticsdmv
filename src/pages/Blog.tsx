@@ -14,7 +14,7 @@ const Blog = () => {
           </p>
           <p className="text-label uppercase tracking-widest text-muted-foreground mb-16">
             <a
-              href="/presentation/"
+              href="/presentation/index.html"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-subtle"
