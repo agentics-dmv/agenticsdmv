@@ -33,6 +33,9 @@ Once I felt like I finally had a rough handle on the core technology and the ope
 
 I didn't start from scratch. I used to work on the team that maintained AWS samples for the SDK, so I already knew the \`aws-samples\` org was actively maintained, well-structured, and covered a huge number of use cases. That trust mattered. When [Brooke Jamieson](https://www.linkedin.com/posts/brookejamieson_aws-openclaw-lightsail-activity-7435419577406263296-Fu63), an [AWS Machine Learning Hero](https://dev.to/aws-heroes/how-i-became-an-aws-machine-learning-hero-5e75) turned Senior Developer Advocate at AWS, wrote *"You Don't Need a Mac Mini to Run OpenClaw"* — showing she'd put it on Lightsail in 15 minutes for $24 a month — someone in the comments linked to [\`aws-samples/sample-OpenClaw-on-AWS-with-Bedrock\`](https://github.com/aws-samples/sample-OpenClaw-on-AWS-with-Bedrock). An official CloudFormation template with Bedrock integration already wired in. That was not random repo-hunting. It was exactly where I expected something like this to live.
 
+![OpenClaw on AWS: System Architecture](/blog/openclaw-system-architecture.png)
+*One EC2 instance, one Node.js gateway, no open ports. All access through AWS Systems Manager. This is the destination — the path there was less clean.*
+
 ---
 
 ## Cursor, Twenty Dollars, and a CloudFormation Stack
@@ -66,6 +69,9 @@ I tunneled through SSM, port-forwarded to the OpenClaw Control UI, and for the f
 It worked.
 
 The first message came through. The bot replied. I had something real, visible, and interactive running in AWS. Not infrastructure on paper — a conversation.
+
+![The bot in Telegram — the channel that replaced WhatsApp](/blog/knowledge-base-telegram.png)
+*Not the first channel — but the right one. This is what the bot looks like when it's actually doing its job.*
 
 Then WhatsApp closed the door.
 
@@ -147,6 +153,9 @@ The examples in the file are more instructive than the rules:
 > wait... no. do it like this: ...
 
 This is not a profound technical innovation. But it changed the ergonomics of using the system. The tone was chill, direct, not too verbose, and surprisingly effective. The bot felt like someone with opinions rather than a customer service form. For the amount of time I was about to spend talking to this thing, that mattered.
+
+![Two loops: phone loop daily, laptop loop weekly](/blog/two-loops-development-workflow.png)
+*This is what the system settles into — a phone loop that runs every day and a laptop loop that runs every week. Part 1 ends here. Parts 2 and 3 are how it gets here.*
 
 ---
 
