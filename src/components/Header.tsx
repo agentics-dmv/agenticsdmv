@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Calendar, HelpCircle, FolderGit2 } from "lucide-react";
+import { Home, Calendar, HelpCircle, FolderGit2, BookOpen } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 
 const navLinks = [
   { href: "/events", label: "Events", Icon: Calendar },
   { href: "/resources", label: "Resources", Icon: FolderGit2 },
+  { href: "/blog", label: "Blog", Icon: BookOpen },
   { href: "/about", label: "About", Icon: HelpCircle },
 ];
 
@@ -23,7 +24,7 @@ const Header = () => {
               key={link.href}
               to={link.href}
               className={`transition-subtle ${
-                location.pathname === link.href
+                location.pathname.startsWith(link.href)
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               }`}
@@ -49,7 +50,7 @@ const Header = () => {
               key={link.href}
               to={link.href}
               className={`transition-subtle ${
-                location.pathname === link.href
+                location.pathname.startsWith(link.href)
                   ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               }`}

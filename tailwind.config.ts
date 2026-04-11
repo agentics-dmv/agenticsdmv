@@ -17,7 +17,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+        mono: ['"Fira Code"', 'ui-monospace', 'monospace'],
       },
       fontSize: {
         'display': ['3rem', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '300' }],
@@ -96,5 +96,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
 } satisfies Config;

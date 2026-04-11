@@ -10,6 +10,8 @@ import Join from "./pages/Join";
 import About from "./pages/About";
 import CodeOfConduct from "./pages/CodeOfConduct";
 import Privacy from "./pages/Privacy";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminEvents from "./pages/admin/AdminEvents";
@@ -33,6 +35,8 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/code-of-conduct" element={<CodeOfConduct />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminEvents />} />
             <Route path="recordings" element={<AdminRecordings />} />
