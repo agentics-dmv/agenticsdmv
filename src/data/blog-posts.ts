@@ -95,7 +95,7 @@ The first real conversations happened that night through a personality file.
 >
 > you're kinda overcomplicating it. just: ...
 
-Not a technical innovation. An ergonomic one. For the amount of time I was about to spend talking to this thing, tone mattered.
+An innovation in ergonomics, not engineering. For the amount of time I was about to spend talking to this thing, tone mattered.
 
 ---
 
@@ -196,7 +196,7 @@ The acknowledgment at step 1 is non-optional. Two minutes of silence reads as fa
 {"status":"failed","error":"audio_path is required. Usage: transcribe-voice.sh <audio_path> [sender] [timestamp]"}
 \`\`\`
 
-Right script. Right error. Right format.
+Right script, right error, right format.
 
 ## Phase 7: Wrong Model
 
@@ -218,7 +218,7 @@ Nova 2 Lite. Not Sonnet 4.6.
 
 The model upgrade from Phase 2 had never been saved into the running config. Every session since deployment had been Nova 2 Lite. The personality, the tool descriptions, the capability corrections — Nova 2 Lite read all of it and answered from base training.
 
-AWS's documentation on Nova 2 Lite: system prompt adherence and tool use "can decline slightly as context size increases." With 6,650 tokens of workspace files on every turn, "slightly" isn't the word. Nova 2 Lite is optimized for speed. Sonnet 4.6 is designed for high-fidelity instruction following at long context. Not a tier difference — a model-class difference. No amount of prompting closes it.
+AWS's documentation on Nova 2 Lite: system prompt adherence and tool use "can decline slightly as context size increases." With 6,650 tokens of workspace files on every turn, "slightly" isn't the word. Nova 2 Lite is optimized for speed. Sonnet 4.6 is designed for high-fidelity instruction following at long context — not a tier difference but a model-class difference, and no amount of prompting closes it.
 
 First fix attempt: \`jq\` through SSM RunCommand, wrong key name.
 
@@ -353,7 +353,7 @@ One EC2 instance. One Node.js gateway. Port 18789, localhost only. All access vi
 
 Workspace files: ~6,650 tokens. \`SOUL.md\` is 38 lines. \`USER.md\` is 17.
 
-To change the personality: edit \`SOUL.md\`, \`make ship\`, send a message. Next response applies the new instructions. To add a tool: write a section in \`TOOLS.md\`. To add a protocol: write it in \`AGENTS.md\`. No redeployment, no restart, no config change. The programming language is English. The runtime is a language model. The deploy target is a filesystem.
+To change the personality: edit \`SOUL.md\`, \`make ship\`, send a message. Next response applies the new instructions. To add a tool: write a section in \`TOOLS.md\`. To add a protocol: write it in \`AGENTS.md\`. No redeployment, no restart, no config change. The programming language is English, the runtime is a language model, the deploy target is a filesystem.
 
 ![OpenClaw: Personal AI Assistant on AWS](/blog/openclaw-system-architecture.png)
 
