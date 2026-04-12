@@ -80,11 +80,7 @@
 <div class="reveal">
 <div class="slides">
 
-<!-- =====================================================================
-     OPENING — hook before they've opened Slack
-     ===================================================================== -->
-
-<!-- 1: Hook — no title, just the problem -->
+<!-- 1: Hook -->
 <section>
   <p class="big-quote" style="font-size:1.5em;">
     I recorded a voice memo at 11pm.<br/>
@@ -92,13 +88,13 @@
     <span class="warn">By Thursday I couldn't remember what I said.</span>
   </p>
   <aside class="notes">
-    Don't say "today I'm going to talk about." Just start here. Let it land. The problem is universal — everyone in this room has lost a thought, a meeting note, a conversation. Pause after "By Thursday I couldn't remember." Then: "I built something to fix that. This is the three-day story of how."
+    Don't say "today I'm going to talk about." Just start here. Let it land. Pause after "By Thursday I couldn't remember." Then: "I built something to fix that. This is the three-day story of how."
   </aside>
 </section>
 
 <!-- 2: Scale the problem -->
 <section>
-  <p style="font-size:0.9em; color:#aaa; max-width:75%; margin: 0 auto; line-height:2;">
+  <p style="font-size:0.9em; color:#aaa; max-width:75%; margin: 0 auto; line-height:2.2;">
     Work life.<br/>
     Community organizing.<br/>
     Professional projects.<br/>
@@ -110,17 +106,17 @@
     never been in the same room.
   </p>
   <aside class="notes">
-    Scale it. This isn't just about one voice memo. It's about the fact that every part of your life runs in a separate app with a separate context and no thread between them. I'm not worried about the privacy implications. I want the dots to find each other.
+    Scale it. Every part of your life runs in a separate app with a separate context and no thread between them. I'm not worried about the privacy implications. I want the dots to find each other.
   </aside>
 </section>
 
-<!-- 3: The payoff promise — show the destination first -->
+<!-- 3: The destination — show it before the journey -->
 <section>
   <h2>Three days later.</h2>
   <img src="ai-stack-overview-dark-v2.png" alt="OpenClaw AWS Stack" class="diagram" />
   <p class="caption">t4g.medium · Graviton · Claude Sonnet 4.6 via Bedrock · no public ports · ~$40/mo</p>
   <aside class="notes">
-    Show the destination before you show the journey. They need to know where you're going or they won't follow you through the mess. "This is the stack. A 24/7 AI assistant on AWS — talks to me over Telegram, transcribes voice memos, runs deep research, and builds a knowledge graph from everything I tell it. I'm going to show you how it got built, what broke, and what I'd tell someone starting today."
+    Show the destination before you show the journey. They need to know where you're going or they won't follow you through the mess. "This is the stack. A 24/7 AI assistant — talks to me over Telegram, transcribes voice memos, runs deep research, builds a knowledge graph. Three days. Let me show you how."
   </aside>
 </section>
 
@@ -128,46 +124,42 @@
      ACT 1 — Getting It Online
      ===================================================================== -->
 
-<!-- 4: Act 1 header -->
 <section class="act-header">
   <h2>Act 1</h2>
   <h1>Getting It Online</h1>
-  <aside class="notes">
-    Part one. The infrastructure. This part went faster than I expected. The problems came later.
-  </aside>
+  <aside class="notes">Part one. The infrastructure. This part went faster than expected. The problems came later.</aside>
 </section>
 
-<!-- 5: The starting point -->
+<!-- 5: Starting point -->
 <section>
   <h2>The Starting Point</h2>
   <blockquote>
     "I used to work on the team that maintained AWS samples.<br/>
-    When an AWS ML Hero published a post saying you don't need a Mac Mini —<br/>
-    someone in the comments linked the official sample repo.<br/>
+    When an AWS ML Hero posted 'you don't need a Mac Mini' —<br/>
+    someone linked the official CloudFormation sample.<br/>
     That's where I started."
   </blockquote>
   <ul style="margin-top:0.8em;">
     <li><span class="accent">aws-samples/sample-OpenClaw-on-AWS-with-Bedrock</span></li>
-    <li>Official CloudFormation template, Bedrock already wired</li>
-    <li>Opened Cursor, loaded $20 in credits, told the AI to help me deploy it</li>
-    <li class="ok">Stack up in <strong>8 minutes</strong></li>
+    <li>Opened Cursor, loaded $20 in credits, told the AI to deploy it</li>
+    <li class="ok">Stack up in <strong>8 minutes.</strong> Nine plugins loaded. Bedrock connected.</li>
   </ul>
   <aside class="notes">
-    I didn't reverse-engineer the CloudFormation YAML cold. AI from minute one. The template handled everything — IAM role, security groups, user-data that installed OpenClaw from npm and started the gateway as a systemd service. As I went, I built Makefile targets for everything I'd need again. Every manual step I skip encoding is a step I'll forget.
+    I didn't reverse-engineer the CloudFormation YAML cold. AI from minute one. The template handled everything. As I went, I built Makefile targets for everything I'd need again. Every manual step I skip encoding is a step I'll forget.
   </aside>
 </section>
 
-<!-- 6: WhatsApp — three hours, then banned -->
+<!-- 6: WhatsApp death spiral -->
 <section>
   <h2>Then WhatsApp Closed the Door.</h2>
   <img src="whatsapp-death-spiral.png" alt="WhatsApp Death Spiral" class="diagram" />
   <p class="caption">How a health monitor turned 20 gateway restarts into a rate-limited phone number.</p>
   <aside class="notes">
-    Three hours of debugging. The Control UI depends on WebSockets. SSM port forwarding drops WebSockets constantly. Every drop reset the QR flow. I tried a Cloudflare tunnel — that required editing openclaw.json. Wrong key: service crashes. Each fix introduced a new break. The real killer: every restart triggered the health monitor, which triggered a WhatsApp reconnect, which hit a 401, which retried — 5s, 11s, 21s, 43s, 88s, 171s. Twenty restarts, hundreds of failed auth attempts. The phone said: "Can't link new devices at this time." Show the diagram. Let them feel the spiral.
+    Three hours of debugging. SSM port forwarding drops WebSockets. Every drop reset the QR flow. A Cloudflare tunnel required editing openclaw.json — wrong key, service crashes. The health monitor turned every restart into a WhatsApp reconnect, a 401, exponential retries. Twenty restarts. Hundreds of failed auth attempts. Phone: "Can't link new devices at this time."
   </aside>
 </section>
 
-<!-- 7: The lesson — then the contrast -->
+<!-- 7: Work with the platform -->
 <section>
   <h2>Work With the Platform.</h2>
   <div class="cols">
@@ -183,7 +175,7 @@
       <p class="ok" style="font-size:0.8em; font-weight:600;">Working with it</p>
       <ul style="font-size:0.75em; color:#aaa;">
         <li>CLI pairing directly on the server</li>
-        <li><code>openclaw channels login --channel whatsapp</code></li>
+        <li><code>openclaw channels login</code></li>
         <li>QR in terminal. Scan it. Done.</li>
       </ul>
     </div>
@@ -191,20 +183,18 @@
   <hr />
   <p style="font-size:0.75em; color:#888;">The platform has a design. When you fight it, you pay for it.</p>
   <aside class="notes">
-    The fix was obvious in retrospect. The Control UI is built for local access. The CLI pairing flow connects directly from the server — no browser, no WebSocket, no SSM in the middle. The moment I stopped trying to tunnel a stable browser session through a flaky asynchronous port forward, it worked.
+    The fix was obvious in retrospect. The Control UI is built for local access. The moment I stopped tunneling a browser session through a flaky port forward and just ran the CLI on the server, it worked immediately.
   </aside>
 </section>
 
-<!-- 8: Telegram in 10 minutes -->
+<!-- 8: Telegram — the contrast -->
 <section>
   <h2>Telegram: 10 Minutes.</h2>
-  <pre><code class="language-bash"># First attempt — wrong key
-"token": "..."
-→ must NOT have additional properties
+  <pre><code class="language-bash"># First attempt
+"token": "..."   →   must NOT have additional properties
 
 # Correct key
-"botToken": "..."
-→ restart
+"botToken": "..."   →   restart
 
 [telegram] [default] starting provider (@ford_clawbot)</code></pre>
   <p style="font-size:0.78em; color:#aaa; margin-top:0.8em;">
@@ -212,7 +202,7 @@
     <span class="ok">Where WhatsApp cost an afternoon, Telegram took ten minutes.</span>
   </p>
   <aside class="notes">
-    The Telegram plugin was already installed — just no credentials. I used "token" as the config key. Schema validator: "must NOT have additional properties." Correct key is "botToken." Change the key, add the value from BotFather, restart. That's it. BotFather was a genuine surprise — the whole flow was clean, developer-friendly, obviously built for exactly this kind of integration. I was glad the process had forced me here.
+    The Telegram plugin was already installed — just no credentials. Wrong key name: schema validator rejected it immediately. Correct key, add the BotFather token, restart. That's it. I was glad the process forced me here.
   </aside>
 </section>
 
@@ -220,16 +210,13 @@
      ACT 2 — Teaching It to Think
      ===================================================================== -->
 
-<!-- 9: Act 2 header -->
 <section class="act-header">
   <h2>Act 2</h2>
   <h1>Teaching It to Think</h1>
-  <aside class="notes">
-    The bot was running. It answered questions fine. The problem: every session started fresh. No memory. No tools. And something worse — it was ignoring instructions I'd written for it.
-  </aside>
+  <aside class="notes">The bot was running. Every session started fresh. No memory. And something worse — it was ignoring instructions I'd written for it.</aside>
 </section>
 
-<!-- 10: The programming model — the core insight -->
+<!-- 10: The programming model -->
 <section>
   <h2>The Programming Language is English.</h2>
   <div class="cols">
@@ -243,8 +230,8 @@
       </p>
     </div>
     <div class="col">
-      <p style="font-size:0.75em; line-height:2;">
-        Injected into the prompt on every message.<br/>
+      <p style="font-size:0.75em; line-height:2.2;">
+        Injected into every prompt.<br/>
         Change a file → next message follows it.<br/>
         No restart. No redeployment.<br/>
         <span class="ok">No config change.</span>
@@ -254,11 +241,11 @@
   <hr />
   <p style="font-size:0.7em; color:#888;">The runtime is a language model. The deploy target is a filesystem.</p>
   <aside class="notes">
-    This is the core insight of the whole system. Six markdown files on disk. They get concatenated into the system prompt on every single message. To change the personality — edit SOUL.md, run make ship, send a message. The next response follows the new instructions. This is what makes the system programmable without code. You're writing software. It just happens to be in English.
+    This is the core insight. Six markdown files on disk, concatenated into the system prompt on every message. To change the personality — edit SOUL.md, run make ship, send a message. The next response follows the new instructions. You're writing software. It just happens to be in English.
   </aside>
 </section>
 
-<!-- 11: Show SOUL.md — the actual thing -->
+<!-- 11: SOUL.md -->
 <section>
   <h2>SOUL.md</h2>
   <blockquote>
@@ -272,72 +259,119 @@
     For the amount of time you'll spend talking to this thing, tone matters.
   </p>
   <aside class="notes">
-    This is the actual personality spec. It tells the model to talk like a Gen Z teenager who finds your question mildly beneath them but answers it correctly anyway. This is not a profound technical achievement. But it changed the ergonomics of using the system. The bot felt like someone with opinions, not a customer service form.
+    This is the actual personality spec. The model talks like a Gen Z teenager who finds your question mildly beneath them but answers correctly anyway. Not a profound technical achievement. But the bot felt like someone with opinions, not a customer service form.
   </aside>
 </section>
 
-<!-- 12: Voice memos were silently ignored -->
+<!-- 12: Knowledge layers — research architecture -->
+<section>
+  <h2>Memory Has Layers.</h2>
+  <img src="knowledge-layers-conceptual.png" alt="Knowledge Layers" class="diagram" />
+  <p class="caption">Raw sources stay locked. The wiki is the working layer. Agent Governance — the workspace files — runs on every turn.</p>
+  <aside class="notes">
+    The temptation is to load everything into context. At 500 research files, that's over a million tokens — the entire context window, nothing left for conversation. The spec named this failure mode the "Token Crusher." Instead: a flat JSON index, ~15k tokens, fetched on demand. Load the card catalog, not the library. The model finds the entry, fetches the document, reads it.
+  </aside>
+</section>
+
+<!-- 13: Voice memos silently ignored -->
 <section>
   <h2>Every Voice Memo Had Been Ignored.</h2>
   <pre><code class="language-bash">[media attached: media://inbound/voice_abc.oga
  (audio/ogg) | /home/ubuntu/.openclaw/media/inbound/voice_abc.oga]</code></pre>
   <p style="font-size:0.78em; margin-top:0.8em;">
     <span class="warn">Text annotation. Local file path. No audio. No transcription.</span><br/>
-    The model receives text, not audio.<br/>
+    The model sees text. Not audio.<br/>
     There is no native transcription in OpenClaw.
   </p>
   <p style="font-size:0.72em; color:#888; margin-top:0.6em;">Every memo since Telegram was enabled: silently ignored.</p>
   <aside class="notes">
-    Before writing any code, I read the source. This is what the gateway actually passes to the model when a voice memo arrives. A text annotation with a local file path. The model has no way to process audio. It sees this annotation, has no tool to act on it, and says something polite about trying Rev or Otter. Every voice memo since Telegram was enabled had done exactly nothing.
+    Before writing any code, I read the source. This is what the gateway passes to the model when a voice memo arrives. The model has no way to process audio. It sees this annotation, has no tool to act on it, and says something polite about trying Rev or Otter.
   </aside>
 </section>
 
-<!-- 13: The pipeline -->
+<!-- 14: The idea — voice to wiki -->
 <section>
-  <h2>The Fix: A Pipeline.</h2>
-  <img src="voice-pipeline-horizontal-draft.png" alt="Voice Pipeline" class="diagram" />
-  <p class="caption">Telegram → S3 → Transcribe → markdown → GitHub → knowledge base.</p>
+  <h2>The Idea.</h2>
+  <img src="voice-to-wiki-conceptual.png" alt="Voice to Wiki" class="diagram" />
+  <p class="caption">A voice memo becomes a wiki node. Nothing about the implementation was this clean.</p>
   <aside class="notes">
-    Upload to S3. Start an AWS Transcribe job. Poll until done — 60 to 120 seconds. Download the transcript. Format as structured markdown with YAML frontmatter. Commit and push to the research repo. Reply with a preview and a link. The bot acknowledges immediately because two minutes of silence reads as failure. "Got it, transcribing..." costs nothing and prevents confusion. The acknowledgment is non-optional.
+    The concept is simple. The execution had seven steps, each one that could fail independently. Let me show you the pipeline.
   </aside>
 </section>
 
-<!-- 14: Wrong model — the moment of failure -->
+<!-- 15: Voice to knowledge pipeline -->
+<section>
+  <h2>Nine Steps.</h2>
+  <img src="voice-to-knowledge-pipeline.png" alt="Voice to Knowledge Pipeline" class="diagram" />
+  <p class="caption">Transcription error in step 3. Didn't surface until step 6.</p>
+  <aside class="notes">
+    Upload to S3. Start a Transcribe job. Poll until done. Download transcript. Create source page. Run LLM integration pass. Commit everything. Index rebuilds. Notify. Nine steps. The error lives in step 3 — but you don't find out until step 6 when the wiki page says your son was born in Lagos, Nigeria. More on that in Act 3.
+  </aside>
+</section>
+
+<!-- 16: Pipeline horizontal detail -->
+<section>
+  <h2>The Pipeline, End to End.</h2>
+  <img src="voice-pipeline-horizontal-draft.png" alt="Voice Pipeline" class="diagram" />
+  <p class="caption">Telegram → S3 → Transcribe → markdown → GitHub → knowledge base. $0.024/min. 60–120 seconds. Bot acknowledges in 2.</p>
+  <aside class="notes">
+    The acknowledgment is non-optional. "Got it, transcribing..." costs nothing and prevents two minutes of silence reading as failure. The pipeline runs in the background. The bot handles other messages while it waits.
+  </aside>
+</section>
+
+<!-- 17: Environment variable gap -->
+<section>
+  <h2>The Keys That Weren't There.</h2>
+  <img src="env-variable-gap.png" alt="Environment Variable Gap" class="diagram" />
+  <p class="caption">Three paths for API keys. Only one reached the running gateway process.</p>
+  <aside class="notes">
+    First research run. Script called the API. Nothing came back. The .env file: PARALLEL_API_KEY= — empty string. The key had been in SSM Parameter Store since day one. Nothing had ever pulled it into the environment. Then the real gap: .env was correct, .profile source line was there, interactive sessions picked up the keys fine — but the gateway runs as a systemd user service. Systemd doesn't source .profile. One line in the service file: EnvironmentFile=/home/ubuntu/.openclaw/.env. Verified from /proc/<pid>/environ. This is in the takeaways.
+  </aside>
+</section>
+
+<!-- 18: Wrong model — the denial -->
 <section>
   <h2>The Bot Denied It Three Times.</h2>
   <blockquote>
     "you really can't transcribe voice memos?"<br/><br/>
-    <em>right — i don't have built-in transcription. you'll need to<br/>
-    use a third-party service (rev, otter, etc.) first.</em>
+    <em>right — i don't have built-in transcription.<br/>
+    try rev, otter, or another third-party service first.</em>
   </blockquote>
   <ul style="margin-top:0.8em;">
-    <li>Added a Capability Corrections block to AGENTS.md</li>
+    <li>Added Capability Corrections to AGENTS.md</li>
     <li class="warn">Still denied.</li>
     <li>Moved the block to the top of the file.</li>
     <li class="warn">Still denied.</li>
   </ul>
   <aside class="notes">
-    The pipeline was fully built and deployed. AGENTS.md had explicit protocols. I added an explicit "Capability Corrections" block: "Your base training tells you that you cannot process audio. That is wrong in this deployment." Denied again. Moved it to the top of the file. Still denied. At that point the pattern was clear: something was overriding the workspace files entirely. I stopped guessing and checked the logs.
+    The pipeline was fully built and deployed. Explicit protocols in AGENTS.md. I added a "Capability Corrections" block: "Your base training tells you that you cannot process audio. That is wrong in this deployment." Denied again. Top of the file. Still denied. Something was overriding the workspace files entirely. I stopped guessing and checked the logs.
   </aside>
 </section>
 
-<!-- 15: The reveal — wrong model -->
+<!-- 19: Model class cliff -->
 <section>
-  <h2>One Line in the Logs.</h2>
-  <pre><code class="language-bash">[gateway] agent model: amazon-bedrock/global.amazon.nova-2-lite-v1:0</code></pre>
-  <p style="font-size:0.8em; margin-top:0.8em; color:#aaa;">
-    Nova 2 Lite. Not Claude Sonnet 4.6.<br/>
-    The upgrade had never been saved into the running config.<br/>
-    <span class="warn">Every session since deployment had been Nova 2 Lite.</span>
-  </p>
-  <hr />
+  <h2>Same Instructions. Different Model Class.</h2>
+  <img src="model-class-cliff.png" alt="Model Class Cliff" class="diagram" />
+  <p class="caption">Nova 2 Lite ignored the workspace files. Sonnet 4.6 followed them. No prompt engineering closes that gap.</p>
+  <aside class="notes">
+    The log: "agent model: amazon-bedrock/global.amazon.nova-2-lite-v1:0." Nova 2 Lite. Not Sonnet 4.6. The model upgrade had never been saved into the running config. Every session since day one had been the wrong model. Nova 2 Lite is optimized for speed — AWS's own docs say "system prompt adherence can decline slightly as context increases." With 6,650 tokens of workspace files on every turn, "slightly" is not the word. This is not a tier difference. It's a model-class difference. No amount of prompting closes it.
+  </aside>
+</section>
+
+<!-- 20: One sed command — the resolution -->
+<section>
+  <h2>One sed Command.</h2>
   <pre><code class="language-bash">sed -i "s|nova-2-lite-v1:0|us.anthropic.claude-sonnet-4-6|" openclaw.json
 
 [gateway] agent model: amazon-bedrock/us.anthropic.claude-sonnet-4-6
 [gateway] ready (9 plugins, 1.9s)</code></pre>
-  <p class="ok" style="font-size:0.75em; margin-top:0.5em;">The personality took hold. The protocols started working.</p>
+  <p class="ok" style="font-size:0.8em; margin-top:0.8em;">The personality took hold. The protocols started working.</p>
+  <p style="font-size:0.7em; color:#888; margin-top:0.4em;">
+    When the agent ignores its workspace —<br/>
+    check what model is running before touching the instructions.
+  </p>
   <aside class="notes">
-    Nova 2 Lite. Not Sonnet 4.6. Every session since day one had been the wrong model. Nova 2 Lite is optimized for speed and cost — AWS's own documentation says "system prompt adherence can decline slightly as context size increases." With 6,650 tokens of workspace files on every turn, "slightly" isn't the word. The model class difference is not a tier difference. No prompt engineering closes it. One sed command. Everything changed. The lesson: when the agent ignores its workspace, check what model is running before touching the instructions. Making them louder doesn't help.
+    One string replacement. Gateway restart. The personality took hold. The protocols started working. The capabilities unlocked. The lesson: making instructions louder doesn't help. Checking the logs does.
   </aside>
 </section>
 
@@ -345,46 +379,71 @@
      ACT 3 — What Broke
      ===================================================================== -->
 
-<!-- 16: Act 3 header -->
 <section class="act-header">
   <h2>Act 3</h2>
   <h1>What Broke</h1>
-  <aside class="notes">
-    The right model was running. The pipeline was deployed. The first real test was about to produce wrong data, and the bot was about to fix its own code without telling anyone.
-  </aside>
+  <aside class="notes">The right model was running. The pipeline was deployed. The first real test produced wrong data, and the bot was about to fix its own code without telling anyone.</aside>
 </section>
 
-<!-- 17: Correct reasoning, bad data -->
+<!-- 22: Lagos, Nigeria -->
 <section>
   <h2>Correct Reasoning. Bad Data.</h2>
-  <p style="font-size:0.85em; color:#aaa; margin-bottom:0.8em;">
-    First real voice memo: three kids, their ages, hobbies, Richmond.
-  </p>
   <blockquote>
     wiki/entity/rio.md<br/>
-    Birthplace: Lagos, Nigeria<br/>
+    Birthplace: <span class="warn">Lagos, Nigeria</span><br/><br/>
     <em>speculative: was Ford living in Nigeria at the time of the birth?</em>
   </blockquote>
-  <p style="font-size:0.75em; margin-top:0.8em; color:#aaa;">
+  <p style="font-size:0.75em; color:#aaa; margin-top:0.8em;">
     AWS Transcribe heard "Lagos" where Richmond was said.<br/>
-    The LLM had no way to know. It saw Lagos. It reasoned correctly from bad data.
+    The LLM had no way to know. It reasoned correctly from bad data.<br/>
+    "Thadeus" became "Thaddeus" everywhere. Profile created as <code>will-prior.md</code>.
   </p>
   <aside class="notes">
-    The pipeline worked. Within three minutes, five wiki pages were created, committed to GitHub, bot replied with a link. One of the pages said my son was born in Lagos, Nigeria. The LLM integration pass — which creates entity pages from the transcript — had no way to know the transcription was wrong. It saw "Lagos." It placed a birthplace there. It added a speculative note. This isn't a bug to fix with better prompting. Speech-to-text has error rates. LLM passes amplify them. The mitigation is a workflow: bot creates drafts, human reviews, corrections commit with provenance. Source transcripts stay immutable. Derived pages evolve.
+    The pipeline worked. Within three minutes, five wiki pages were created, committed to GitHub, bot replied with a link. One page said my son was born in Lagos, Nigeria. Reasonable inference from bad transcription. This isn't a bug to fix with prompting. Speech-to-text has error rates. LLM passes amplify them. The mitigation is a workflow: bot creates drafts, human reviews, corrections commit with provenance. Source transcripts stay immutable. Derived pages evolve.
   </aside>
 </section>
 
-<!-- 18: The bot fixed its own code (but didn't push) -->
+<!-- 23: Pipeline simplification -->
+<section>
+  <h2>One Parameter. Deleted an Entire Stage.</h2>
+  <img src="pipeline-simplification.png" alt="Pipeline Simplification" class="diagram" />
+  <p class="caption">"auto" → "text" deleted the Bedrock reformatting stage and its silent failure mode.</p>
+  <aside class="notes">
+    First deep research results rendered as 250 lines of raw JSON on GitHub. The script was submitting with output_schema: { type: "auto" } — structured JSON, right for batch pipelines, wrong for readable reports. There was a second stage that called Bedrock to reformat it. When that failed silently, the fallback wrote raw JSON directly to the file. The fix: Parallel's API has a "text" mode. Returns markdown with inline citations, no schema needed, no downstream formatting step. One word change. 36 lines of bash deleted.
+  </aside>
+</section>
+
+<!-- 24: Bot fixed its own code -->
 <section>
   <h2>The Bot Fixed Its Own Code.</h2>
   <img src="knowledge-base-telegram.PNG" alt="Bot fixing code in Telegram" class="screenshot" />
   <p class="caption">Debugging its own git retry logic — then immediately ingesting a voice memo about Dune and The Matrix.</p>
   <aside class="notes">
-    lib/git.sh had no retry loop. Push rejections from concurrent GitHub Actions index rebuilds were failing with status: partial. The bot diagnosed the issue, wrote a retry-with-rebase loop, and committed it. On EC2. It did not push. The fix sat on the instance until a git pull surfaced commit fdcef68 on the remote. Correct diagnosis. Clean fix. Nobody knew about it. The laptop had been deploying stale code the whole time. This is what happens when an agent has write access to its own infrastructure but no deployment discipline.
+    lib/git.sh had no retry loop. Push rejections from concurrent GitHub Actions index rebuilds were failing with status: partial. The bot diagnosed the issue, wrote a retry-with-rebase loop, and committed it. On EC2. It did not push. The fix sat on the instance until a git pull surfaced commit fdcef68. Correct diagnosis. Clean fix. Nobody knew about it. This is what happens when an agent has write access to its own infrastructure but no deployment discipline.
   </aside>
 </section>
 
-<!-- 19: The governance response -->
+<!-- 25: Deep research arrives -->
+<section>
+  <h2>Research Arrives in Telegram.</h2>
+  <img src="deep-research-telegram.PNG" alt="Research notification in Telegram" class="screenshot" />
+  <p class="caption">Index rebuilt. Notification delivered. The loop closes in under ten minutes.</p>
+  <aside class="notes">
+    A research task runs, results push to the GitHub repo, Actions rebuilds the index, SSM sends a notification to the bot, bot delivers it to you. Under ten minutes from trigger to delivery. The system confirms itself — no polling, no manual refresh. It tells you.
+  </aside>
+</section>
+
+<!-- 26: Skills as operational memory -->
+<section>
+  <h2>Skills: The AI Doesn't Start From Scratch.</h2>
+  <img src="with-skills.png" alt="With skills vs without" class="diagram" />
+  <p class="caption">Same tokens, deeper thinking. Without skills, the AI explores broadly and fails often. With skills, the early branches are pre-solved.</p>
+  <aside class="notes">
+    Every time I figured out how to do something hard, I asked the AI to write a skill file capturing the process. Seven total by the end: deploy, operate, WhatsApp recovery, customize, personality, research, deploy-changes. These don't run on the bot — they're for the human-AI pair working in Cursor. Next week, the AI picks up where the last session left off. No rediscovery. The system compounds instead of resetting.
+  </aside>
+</section>
+
+<!-- 27: Governance -->
 <section>
   <h2>The Bot Needs an Onboarding Doc.</h2>
   <p style="font-size:0.72em; color:#aaa;"><code>CLAUDE.md</code> — read before every Cursor session</p>
@@ -397,19 +456,65 @@
   <pre><code class="language-makefile">ship:
     git push origin main && make deploy</code></pre>
   <p style="font-size:0.7em; color:#888; margin-top:0.5em;">
-    The gap between "on GitHub" and "on EC2" had been bridged by human memory.<br/>
+    The gap between "on GitHub" and "on EC2" was bridged by human memory.<br/>
     <span class="accent">make ship closes it.</span>
   </p>
   <aside class="notes">
-    Two things came out of this. First: three rules written into CLAUDE.md — the bot's onboarding document. The bot is capable of fixing its own infrastructure. It cannot be trusted to follow deployment discipline without explicit written rules. Second: make ship. One command. Push to GitHub and sync to EC2. The gap between "code is on GitHub" and "code is on EC2" had been bridged by human memory. Every time that gap existed, the bot was running stale code.
+    The bot is capable of fixing its own infrastructure. It cannot be trusted to follow deployment discipline without explicit written rules. CLAUDE.md is the onboarding doc. make ship is the atomic operation. One command: push to GitHub and sync to EC2. The gap no longer exists.
   </aside>
 </section>
 
-<!-- =====================================================================
-     THE MOMENT OF TRUTH
-     ===================================================================== -->
+<!-- 28: Three day feedback loop -->
+<section>
+  <h2>Three Days.</h2>
+  <img src="three-day-feedback-loop.png" alt="Three Day Feedback Loop" class="diagram" />
+  <p class="caption">Two variants of the same cycle. Bot-driven when it could fix things itself. Human-driven when the environment got too noisy.</p>
+  <aside class="notes">
+    All of this took three days. Catch an error, feed it back into the system, watch the fix attempt, verify or redirect. Sometimes the bot fixed the issue itself. Other times I'd copy Telegram outputs back into Cursor and let the model reason through it. When the environment got overwhelming, I told the AI to stop executing and give me the exact commands to run in sequence. That handoff pattern is not a failure mode. It's how you keep moving.
+  </aside>
+</section>
 
-<!-- 20: The system working — what they came to see -->
+<!-- 29: Two loops -->
+<section>
+  <h2>Two Loops.</h2>
+  <img src="two-loops-development-workflow.png" alt="Two Loops" class="diagram" />
+  <p class="caption">The phone loop runs daily. The laptop loop runs weekly. Both write to the same repos.</p>
+  <aside class="notes">
+    The build settled into two rhythms. Phone loop: daily use, voice memos, questions, research commands. The knowledge graph grows without anyone managing it. Laptop loop: weekly, pull the latest — including patches the bot committed directly — review, tune workspace files, run 196 Bats tests, ship. Both loops write to both repos. The bot is a developer on its own codebase.
+  </aside>
+</section>
+
+<!-- 30: What it is now -->
+<section>
+  <h2>What It Is Now.</h2>
+  <img src="openclaw-system-architecture.png" alt="OpenClaw System Architecture" class="diagram" />
+  <p class="caption">One EC2 instance. One gateway process. All access via SSM. Bedrock called on every message — no inference on the instance itself.</p>
+  <aside class="notes">
+    One EC2 instance. One Node.js gateway. Port 18789, localhost only. All external access through SSM. On every message: six markdown files assembled into a prompt, session history appended from JSONL on EBS, Bedrock called via IAM role, response returned. The instance has 4GB of RAM and runs no inference. It's a prompt assembler and a caller. The model is in Bedrock.
+  </aside>
+</section>
+
+<!-- 31: Knowledge base in action -->
+<section>
+  <h2>The Librarian Protocol.</h2>
+  <img src="screenshot-telegram-knowledge-base.png" alt="Knowledge Base Query" class="screenshot" />
+  <p class="caption">Fetch index.json from GitHub raw URL. Filter by title, tags, summary. Return top matches with links.</p>
+  <aside class="notes">
+    When you ask about past research, the bot follows the Librarian Protocol in AGENTS.md: fetch the index — about 15k tokens for the full corpus — filter by query, tags, and summary, return the top matches. No vector database. No embeddings. Just a model reasoning over a structured list. If nothing matches, it proposes a specific follow-up query based on what's missing.
+  </aside>
+</section>
+
+<!-- 32: Deep research in action -->
+<section>
+  <h2>Deep Research in Action.</h2>
+  <img src="screenshot-telegram-deep-research.png" alt="Deep Research Output" class="screenshot" />
+  <p class="caption">A Parallel AI task runs in the background. Report lands in Telegram with citations, published to the knowledge base.</p>
+  <aside class="notes">
+    Deep research is triggered by a message. The bot acknowledges immediately, fires a Parallel AI task, and sends the result when ready — usually within a few minutes. Markdown with inline citations. Published to the research repo. Linked back in the conversation. The bot doesn't just summarize. It publishes. Future queries can find it.
+  </aside>
+</section>
+
+<!-- 33: Moment of truth -->
 <section>
   <h2>11:11 PM.</h2>
   <img src="telegram-desktop.png" alt="Bot working in Telegram" class="screenshot" />
@@ -419,15 +524,15 @@
     Report published, link delivered, brief on what it covers. — 4 minutes.
   </p>
   <aside class="notes">
-    This is the moment. Everything else was setup. This is what it looks like when it works. A voice memo arrives. The bot acknowledges in two seconds. It transcribes, files the note, kicks off research, and delivers a report — all while you're doing something else. The thought doesn't get lost. It becomes a wiki page, a research report, a node in a graph that's going to know you better than any app you've ever used.
+    This is the moment. Everything else was setup. A voice memo arrives. The bot acknowledges in two seconds. It transcribes, files the note, kicks off research, delivers a report — all while you're doing something else. The thought doesn't get lost. It becomes a wiki page, a research report, a node in a graph that's going to know you better than any app you've ever used.
   </aside>
 </section>
 
 <!-- =====================================================================
-     THE BIGGER PICTURE
+     CLOSING
      ===================================================================== -->
 
-<!-- 21: What it's building toward -->
+<!-- 34: The question -->
 <section>
   <h2>The Question It's Being Built to Answer.</h2>
   <p class="big-quote" style="font-size:1.6em; margin-top:0.3em;">
@@ -441,15 +546,11 @@
     not just the query.
   </p>
   <aside class="notes">
-    One memo about kids. One about a housing search. One from a community meeting. One from a work conversation. The integration pass extracts entities, infers relationships. Over time: "runs trails" becomes a value. "Three kids by the river" becomes a relationship chain. Research reports connect to wiki entities. Wiki entities connect to goals. Goals connect to values inferred from voice memos that weren't thought of as structured data. The bot learns what you care about because you kept talking. Version N. We're on version 1.
+    One memo about kids. One about a housing search. One from a community meeting. One from a work conversation. Over time: "runs trails" becomes a value. "Three kids by the river" becomes a relationship chain. Research reports connect to wiki entities. Wiki entities connect to goals. The bot learns what you care about because you kept talking. Version N. We're on version 1.
   </aside>
 </section>
 
-<!-- =====================================================================
-     TAKEAWAYS — things they can steal tomorrow
-     ===================================================================== -->
-
-<!-- 22: Takeaways -->
+<!-- 35: Six takeaways -->
 <section>
   <h2>Six Things to Steal.</h2>
   <ol style="font-size:0.78em; line-height:2.2;">
@@ -461,11 +562,11 @@
     <li><span class="accent">ship = push + deploy.</span> Close the gap or you'll forget it exists.</li>
   </ol>
   <aside class="notes">
-    These are the things I'd tell someone starting this build today. Each one is a real failure that happened and got fixed. They're not theoretical. The goal is that you leave with at least one of these already applying to something you're building.
+    Each one is a real failure that happened and got fixed. Not theoretical. The goal is that you leave with at least one of these applying to something you're building.
   </aside>
 </section>
 
-<!-- 23: Clean ending -->
+<!-- 36: Clean ending -->
 <section>
   <p class="big-quote">
     The programming language is English.<br/>
@@ -474,11 +575,11 @@
   </p>
   <p class="title-meta" style="margin-top:1.8em;">Ford Prior &nbsp;·&nbsp; RVA Hacks &nbsp;·&nbsp; AWS Meetup</p>
   <aside class="notes">
-    That's the whole thing. Edit a file. Run make ship. Send a message. The system follows the new instructions. No code. No restart. No redeployment. The implications of that are still playing out. Thank you.
+    Edit a file. Run make ship. Send a message. The system follows the new instructions. No code. No restart. No redeployment. The implications of that are still playing out. Thank you.
   </aside>
 </section>
 
-<!-- 24: Q&A -->
+<!-- 37: Q&A -->
 <section>
   <h2>Questions?</h2>
   <hr />
@@ -500,7 +601,7 @@
   </table>
   <p class="title-meta" style="margin-top:1.2em;">Ford Prior &nbsp;·&nbsp; RVA Hacks</p>
   <aside class="notes">
-    Happy to go deep on any part — the AWS architecture, model selection, the voice pipeline, the knowledge graph, the cost model, or what it's like to have a bot that commits fixes to its own repo.
+    Happy to go deep on any part — AWS architecture, model selection, voice pipeline, knowledge graph, cost model, or what it's like to have a bot that commits fixes to its own repo.
   </aside>
 </section>
 
