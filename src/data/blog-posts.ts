@@ -321,10 +321,10 @@ The system runs on two rhythms.
 
 **Phone loop (daily):** voice memos, questions, \`/research\` commands. Bot transcribes, publishes, replies. Each interaction adds entities, concepts, relationships to the knowledge graph. The graph grows without anyone managing it.
 
-**Laptop loop (when needed):** pull latest from both repos — including patches the bot committed directly. Review what changed. Tune workspace files. Edit tool scripts. Run 196 Bats tests. \`make ship\`.
+**Laptop loop (weekly):** pull latest from both repos — including patches the bot committed directly. Review what changed. Tune workspace files. Edit tool scripts. Run 196 Bats tests. \`make ship\`.
 
 ![Two Loops: How OpenClaw Gets Smarter](/blog/two-loops-development-workflow.png)
-*The phone loop runs daily. The laptop loop runs as needed. Both write to the same repos.*
+*The phone loop runs daily. The laptop loop runs weekly. Both write to the same repos.*
 
 Both loops write to \`rvaopenclaw\` and \`openclaw-research\`. The bot commits fixes, keeps the KB current. Human reviews. Corrections go back through git.
 
