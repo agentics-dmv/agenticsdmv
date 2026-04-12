@@ -19,9 +19,23 @@ const main: BlogPost = {
 
 ---
 
-A note before you start: this is an engineering diary, not a tutorial. The mistakes are in here because the thought process is the thing. Polishing it into a case study would kill that.
+A note before you start: this is an engineering diary, not a tutorial. The mistakes are in here because the thought process is the thing. I did not start this knowing what I was doing. I was learning the paradigm while building it, improvising when things broke, and asking the AI for help at every step. Polishing that into a clean success story would miss the point entirely.
 
 All of this — deployment through voice pipeline through research library — happened over three days.
+
+---
+
+## Where This Started
+
+I had AWS credits left over from a hackathon. They were expiring.
+
+That is the real beginning. Not a grand architectural vision, not a carefully planned AI infrastructure project. Credits running out, and a question: could I turn them into something tangible before they disappeared?
+
+I had been circling OpenClaw for a while. It clearly had serious capability — a persistent agent, workspace-file-driven behavior, tool dispatch, multi-channel messaging — but I had kept putting off diving in. The paradigm was not obvious to me at first glance. How were the workspace files actually used? What did the model see? What constrained the agent's behavior and what didn't? I had enough of a sense of what it could do to know I wanted to try it, but not enough to feel ready to start without understanding it better. So I had been watching it from a distance.
+
+The credits gave me a forcing function. The idea that crystallized was this: what if I deployed OpenClaw on AWS and used that as the basis for a local AWS meetup demo? Something concrete and running, not a slide deck. A working personal AI assistant on AWS infrastructure, explained by someone who had just built it. That framing kept the scope contained and the motivation honest. I was not trying to build the perfect production system. I was trying to build something real, understand it well enough to explain it, and show it to people.
+
+That is where this started.
 
 ---
 
@@ -44,6 +58,9 @@ Four pieces make the stack:
 ![The full stack: Telegram → EC2 → Bedrock, with S3, Transcribe, and GitHub in the loop](/blog/ai-stack-overview-dark-v2.png)
 *t4g.medium on Graviton, no public ports, Claude Sonnet 4.6 via Bedrock.*
 
+![OpenClaw System Architecture](/blog/openclaw-system-architecture.png)
+*One EC2 instance. One gateway process. All access via SSM. Bedrock called on every message — no inference on the instance itself.*
+
 The thing that makes this interesting isn't the stack — it's how you program it. Six markdown files on disk get injected into the prompt on every message. \`SOUL.md\` is the personality. \`USER.md\` is who you are. \`AGENTS.md\` is the operating manual. \`MEMORY.md\` is curated long-term facts. Together they're about 6,650 tokens — 3% of the model's context window. The bot always knows who it is, who it's talking to, and what its tools are, without you having to re-explain anything.
 
 To change the personality: edit \`SOUL.md\`, run \`make ship\`, send a message. Next response follows the new instructions. No redeployment, no restart, no config change. The programming language is English. The runtime is a language model. The deploy target is a filesystem.
@@ -54,16 +71,96 @@ To change the personality: edit \`SOUL.md\`, run \`make ship\`, send a message. 
 
 ## Three Days to Build It
 
-AWS credits from a hackathon, expiring. The local AWS meetup needed a demo. The harder constraint: I didn't understand OpenClaw yet — not the paradigm, not what the workspace files were doing, not why the agent behaved differently depending on their contents. The plan was to deploy first and understand by running.
+### Learning the Paradigm First
 
-The [official CloudFormation template](https://github.com/aws-samples/sample-OpenClaw-on-AWS-with-Bedrock) handled everything: IAM role, security groups, user-data script installing OpenClaw from npm, systemd service, Bedrock connected. Stack came up in 8 minutes.
+Before touching any infrastructure, I needed to understand what OpenClaw actually was. Not the marketing pitch — the mechanics. What did the model see on each message? How were the workspace files assembled into the prompt? What happened when you edited them mid-session? What could the agent call and what could it not?
 
-Then WhatsApp — and three hours of fighting a platform that wasn't designed for this use case. SSM port forwarding drops WebSocket connections; WhatsApp's pairing flow depends on them. Trying to work around it corrupted the config file twice. Then the health monitor started triggering automatic reconnects, which the underlying library retried on exponential backoff until the phone account got rate limited.
+The workspace-file model makes intuitive sense in retrospect, but before it clicked it was opaque. I spent time on that education before doing anything concrete. That matters for understanding why the bugs we hit were the bugs we hit — a lot of them came from assumptions about what the system was doing that turned out to be wrong.
+
+Once I felt like I had a rough working model of how OpenClaw operated, things moved quickly.
+
+### Finding the Right Starting Point
+
+I used to work on the team that maintained AWS samples for the SDK, so I already knew the ecosystem well. For any significant AWS use case, there are usually examples being actively maintained by the core team. My instinct when thinking about how to deploy OpenClaw on AWS was not to build from scratch — it was to find the sample.
+
+I had also seen Brooke's blog post about OpenClaw on Bedrock. In the comments, someone referenced the example repository. That pointer, combined with prior familiarity with the samples pattern, became the path I followed. It was not random repo hunting. It was a specific move based on knowing where to look and trusting what I would find there.
+
+The [official CloudFormation template](https://github.com/aws-samples/sample-OpenClaw-on-AWS-with-Bedrock) covered the hard parts: IAM role, security groups, a user-data script installing OpenClaw from npm, a systemd service, Bedrock connected. There is even a one-click launch path. I did not use it. I ran the CloudFormation commands myself, read what they were doing as they ran, and wrapped the steps in \`make\` targets so the deployment would be repeatable — not a sequence of commands I had to remember.
+
+The actual first move: I opened Cursor, loaded twenty dollars in credits, cloned the repo, and asked the AI to help me deploy it. No architecture diagrams, no design doc. Clone, load credits, ask. The stack came up in 8 minutes.
+
+### First Contact with the Running System
+
+Once the AWS side was up, I created an SSM session and tunneled through it to reach the OpenClaw control UI in a browser. This was the first time the system felt real — not just infrastructure I had deployed, but something with an actual interface I could use. I clicked around, understood what it was offering, and generated a QR code through the UI.
+
+I connected it to WhatsApp. It worked. I had a functioning bot, visible and interactive, running in AWS.
+
+### WhatsApp: Connected, Then Gone
+
+The WhatsApp path was not a deliberate platform choice. The reason I was on WhatsApp at all was situational: my Telegram number had been banned, apparently because of whatever the previous owner of that phone number had done before I ever had it. I had a help case open with Telegram trying to get it resolved. While I waited, WhatsApp was the workaround.
+
+When the QR pairing worked, that was a real win. But what followed was not clean.
+
+The SSM port forwarding kept dropping WebSocket connections. The health monitor kept triggering reconnects. Baileys, the library OpenClaw uses for WhatsApp's unofficial web protocol, retried on exponential backoff. After twenty-plus gateway restarts in one afternoon, I had a rate-limited phone number and a blocked account. [→ Bug 2](#bug-2-ssm-port-forwarding-and-websockets-dont-mix) [→ Bug 3](#bug-3-the-whatsapp-death-spiral)
 
 ![The WhatsApp Death Spiral](/blog/whatsapp-death-spiral.png)
-*Twenty gateway restarts, hundreds of failed reconnect attempts, one rate-limited phone number. [→ Bugs 2 & 3](#bug-2-ssm-port-forwarding-and-websockets-dont-mix)*
+*Twenty gateway restarts, hundreds of failed reconnect attempts, one rate-limited phone number.*
 
-Telegram: ten minutes. Bot token from @BotFather, one config key change, one restart. No QR codes, no pairing flows, no credential state to corrupt.
+There was a genuine "now what?" moment. The path I had been on was closed. The fallback was Telegram, which was the platform I had been waiting to get unblocked on in the first place.
+
+### Telegram: The Better Fit All Along
+
+My Telegram account situation eventually resolved — help case moved, enough time passed, something. I created a bot through BotFather, got a token, dropped it into the config, and restarted the service.
+
+Ten minutes. No QR codes, no pairing flows, no credential state to corrupt, no protocol that WhatsApp was actively trying to break.
+
+BotFather was one of the genuinely pleasant surprises of the whole build. The developer experience was designed exactly for this kind of workflow. Token in hand, one config key, done. The bot responded to the first test message as if it had been running for years.
+
+I was actually glad the WhatsApp path had closed. The process forced me toward the better platform for iterative development, even though I had not chosen it deliberately.
+
+### The Big Refactor
+
+Somewhere in the middle of all this — after Telegram was working, after the research system was roughed in — it became clear that the tool scripts needed more than cleanup. They needed to be rebuilt properly.
+
+This was not about code style. The scripts had grown organically and were increasingly hard for the model to reason about without full context. Every change was expensive in tokens and fragile in practice. I was burning Opus credits on tasks that should have been within Sonnet 4.6's reach, but the architecture was not simple enough for Sonnet to hold without losing something. Too much implicit coupling, too little modularity, too many things that had to be understood together to change anything safely.
+
+The fix was a real modularization effort. Not a cosmetic pass — a refactor with 196 Bats tests written alongside the changes. Something like thirty dollars in token spend across the refactor and all the bugs it surfaced. The commit history documents it.
+
+The goal was model economics and practical reliability: if the system was simple enough for Sonnet 4.6 to handle, I could stop depending on Opus for every non-trivial task. Smaller scripts, cleaner interfaces between them, testable in isolation. Once the refactor landed, the model could extend the system without needing the full context of everything that came before.
+
+### Skills as Operational Memory
+
+One pattern repeated throughout the build: whenever I figured out how to do something — how to run a deployment step, how to debug a systemd issue, how to structure a Bats test, how to handle the SSM environment correctly — I would stop and ask the AI to turn that into a reusable skill.
+
+Not documentation. Not comments. A structured, loadable instruction set that could be invoked in a future session without having to rediscover the same workflow from scratch.
+
+![Without Skills vs. With Skills](/blog/with-skills.png)
+*Same tokens, deeper thinking. Without skills, the AI explores broadly and fails often. With skills, the early branches are pre-solved.*
+
+This became a major part of how I worked. Every solved problem was a candidate for capture. The goal was compounding rather than resetting: each session should start from a richer operational baseline than the one before. The graph of skill creation over the three days tracks closely with the rate of real progress. That was not a coincidence. Skills were load-bearing infrastructure for the way I was working, not an afterthought.
+
+### The Bot's Character
+
+Something I noticed early and kept noticing: the bot was unusually ready to fix itself.
+
+I am not going to make claims about why at an architectural level — I cannot prove platform-specific things about why this system behaved differently from other AI interactions I have had. But behaviorally: it kept working a thread when something broke. It absorbed errors, attempted repairs, and kept going without stopping to ask permission. That changed the rhythm of working with it. It felt less like directing a tool and more like debugging alongside something that had its own momentum.
+
+The persona layer mattered more than I expected. I told it to talk to me like a Gen Z teenager — direct, not verbose, a little rude, will still do what I say but clearly finds me slightly annoying. Something like: *be a teenager who helps me but doesn't pretend to be thrilled about it.* The tone that came out was lighter and faster than a formally polite assistant would have been. Less ceremony, more momentum. It turned out that interface tone affected the ergonomics of actually using the system. I was glad I set it.
+
+What the bot was not: self-deploying. Even with good self-repair instincts and a GitHub token in hand, I still had to reinforce the behavior around pushing changes upstream. It would fix something, commit it, and stop there. The explicit protocol — push after every commit, pull before every read — had to be baked into the operational instructions before it held. [→ Bug 8](#bug-8-the-bot-committed-a-fix-and-didnt-push)
+
+### The Working Loop
+
+For most of the three days, my process was a simple feedback loop: something broke, I read the error, I fed it to the model in Cursor, the model produced a fix or a diagnostic step, I ran it, I fed the output back. Sometimes the error came from the AWS logs directly. Sometimes I copied Telegram output into Cursor. The channel did not matter — what mattered was that the loop was fast.
+
+When the SSM session state got too noisy — terminal memory overloading Cursor's context, the session becoming less coherent — I would shift the model into advisory mode. Instead of letting it drive the shell, I asked for the exact commands to run in sequence. I ran them myself, collected the output, and pasted it back. Human driving, AI navigating. Less elegant but more reliable when the environment was fighting both of us.
+
+![The Three-Day Feedback Loop](/blog/three-day-feedback-loop.png)
+*Two variants of the same cycle. Bot-driven when it could fix things itself. Human-driven when the environment got too noisy.*
+
+I used Sonnet 4.6 for most tasks. I escalated to Opus when Sonnet clearly could not break through — usually when the system state was complex and the task required holding a lot in context at once. Those escalations were conscious choices, not defaults.
+
+---
 
 The research system came next. The design was done before any code: flat JSON index (not a vector database — at 500 files the index fits in ~15k tokens, well within Sonnet's 200k window), async callbacks so the gateway doesn't hold open a connection for 10 minutes, OIDC-authenticated GitHub Actions for the notification loop. A research file lands in the repo, Actions rebuilds the index, SSM notifies the running gateway. No static credentials, no open ports.
 
@@ -74,6 +171,9 @@ OpenClaw, when it receives a voice message, downloads the file locally and appen
 ![Voice → Wiki](/blog/voice-to-wiki-conceptual.png)
 *The idea: voice memo becomes a wiki node. First we had to notice it wasn't happening. [→ Bug 6](#bug-6-voice-memos-were-silently-ignored)*
 
+![Voice to Knowledge: How a Voice Memo Becomes a Wiki Page](/blog/voice-pipeline-horizontal-draft.png)
+*Telegram → S3 → Transcribe → markdown → GitHub → knowledge base. $0.024/min. 60–120 seconds. Bot acknowledges in 2.*
+
 Building the actual pipeline was straightforward. What wasn't: deploying it and finding the bot denied it could transcribe audio at all. Moved the capability description to the top of \`AGENTS.md\`. Denied again.
 
 Checked the logs. The model wasn't Sonnet 4.6. It was Amazon Nova 2 Lite — a fast, cheap model optimized for speed, not instruction-following at long context. The model upgrade had been set in the config on the developer's machine, but the change had never been saved to the running config on EC2. Every response since deployment had come from Nova 2 Lite.
@@ -83,7 +183,11 @@ Checked the logs. The model wasn't Sonnet 4.6. It was Amazon Nova 2 Lite — a f
 
 One \`sed\` replacement to swap the model ID. The personality took hold. The protocols started working.
 
-With Sonnet 4.6 actually running, the tool scripts looked obviously rough. A half-day refactor, 196 Bats tests, and it felt stable enough to hand off to the model for maintenance.
+![Voice to Knowledge: The Full Pipeline](/blog/voice-to-knowledge-pipeline.png)
+*Nine steps. The transcription error lived in step three and didn't surface until step six.*
+
+![Knowledge Layers](/blog/knowledge-layers-conceptual.png)
+*Raw sources stay locked. The wiki is the working layer. Agent Governance — the workspace files — runs on every turn.*
 
 ---
 
@@ -98,7 +202,7 @@ The system runs on two rhythms.
 ![Two Loops: How OpenClaw Gets Smarter](/blog/two-loops-development-workflow.png)
 *Both loops write to the same repos. The bot commits during the phone loop. The human reviews during the laptop loop.*
 
-The "bot committed directly" part required governance that didn't exist until the bot demonstrated it needed it. It diagnosed a bug in its own git retry logic, wrote the fix, committed it — and didn't push. The fix sat on the EC2 instance for days, invisible. The agent had write access to its own infrastructure but no deployment discipline. Two things came out of this: an explicit self-maintenance protocol requiring push after every commit, and a \`make ship\` target that pushes to GitHub and syncs to EC2 in one command. [→ Bug 8](#bug-8-the-bot-committed-a-fix-and-didnt-push)
+The "bot committed directly" part required governance that didn't exist until the bot demonstrated it needed it. It diagnosed a bug in its own git retry logic, wrote the fix, committed it — and didn't push. The fix sat on the EC2 instance for days, invisible. The agent had write access to its own infrastructure but no deployment discipline. Two things came out of this: an explicit self-maintenance protocol requiring push after every commit, and a \`make ship\` Makefile target that pushes to GitHub and syncs to EC2 in one command, so there's no gap between "code is on GitHub" and "code is on EC2." [→ Bug 8](#bug-8-the-bot-committed-a-fix-and-didnt-push)
 
 The pipeline has data quality challenges the governance layer is still absorbing. AWS Transcribe heard "Lagos" where "Richmond" was said. The integration pass placed a birthplace there. The response: raw transcripts stay immutable, correction notes sit beside them, derived pages evolve. Git history shows both. It's not a prompting problem — speech-to-text has error rates, and LLM passes amplify them. [→ Bug 13](#bug-13-speech-to-text-errors-propagating-through-the-pipeline)
 
