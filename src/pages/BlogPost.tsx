@@ -8,6 +8,20 @@ import { useReadingProgress } from "@/hooks/useReadingProgress";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useAsciiHero } from "@/hooks/useAsciiHero";
 
+function slugify(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function extractToc(content: string): { text: string; id: string }[] {
+  return content
+    .split("\n")
+    .filter((line) => line.startsWith("## "))
+    .map((line) => {
+      const text = line.slice(3).trim();
+      return { text, id: slugify(text) };
+    });
+}
+
 /** Parse footnotes: text like [^1: some note] becomes a FootnoteTooltip */
 function parseFootnotes(text: string) {
   const regex = /\[\^(\d+):\s*([^\]]+)\]/g;
@@ -37,6 +51,7 @@ const BlogPost = () => {
 
   const prevPost = postIndex > 0 ? blogPosts[postIndex - 1] : null;
   const nextPost = postIndex < blogPosts.length - 1 ? blogPosts[postIndex + 1] : null;
+  const toc = extractToc(post.content);
 
   return (
     <PageLayout>
@@ -68,6 +83,25 @@ const BlogPost = () => {
             Part {post.part} of {blogPosts.length}
           </p>
 
+          {/* Table of contents */}
+          {toc.length > 0 && (
+            <nav className="my-8 border border-divider p-5">
+              <p className="text-label uppercase tracking-widest text-muted-foreground mb-4">Contents</p>
+              <ol className="space-y-2">
+                {toc.map((item) => (
+                  <li key={item.id}>
+                    <a
+                      href={`#${item.id}`}
+                      className="text-body text-muted-foreground hover:text-foreground transition-subtle"
+                    >
+                      {item.text}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )}
+
           {/* Prose content with scroll reveal */}
           <div
             ref={revealRef}
@@ -94,6 +128,10 @@ const BlogPost = () => {
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
+                h2: ({ children }) => {
+                  const text = typeof children === "string" ? children : String(children ?? "");
+                  return <h2 id={slugify(text)}>{children}</h2>;
+                },
                 img: ({ src, alt }) => (
                   <figure className="my-8">
                     <img src={src} alt={alt} className="w-full rounded" />

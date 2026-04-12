@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import PageLayout from "@/components/PageLayout";
 import logoTransparent from "@/assets/logo-transparent.png";
+import { blogPosts } from "@/data/blog-posts";
 
 const Index = () => {
   return (
@@ -50,6 +51,54 @@ const Index = () => {
                 View events
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Series */}
+      <section className="py-24 border-t border-divider">
+        <div className="container max-w-2xl">
+          <p className="text-label uppercase tracking-widest text-muted-foreground mb-4">Featured Series</p>
+          <h2 className="text-display-sm mb-4">OpenClaw: Personal AI Assistant on AWS</h2>
+          <p className="text-body-lg text-muted-foreground mb-12">
+            A three-part series on building a 24/7 AI assistant on EC2 with Bedrock — what worked, what failed, and what the system became.
+          </p>
+
+          <img
+            src="/blog/openclaw-system-architecture.png"
+            alt="OpenClaw system architecture"
+            className="w-full mb-12 border border-divider"
+          />
+
+          <div className="space-y-0">
+            {blogPosts.map((post, index) => (
+              <Link
+                key={post.slug}
+                to={`/blog/${post.slug}`}
+                className="block group"
+              >
+                <article className={`py-10 ${index < blogPosts.length - 1 ? "border-b border-divider" : ""}`}>
+                  <p className="text-label uppercase tracking-widest text-muted-foreground mb-3">
+                    Phase {post.part}
+                  </p>
+                  <h3 className="text-heading text-foreground mb-2 group-hover:text-primary transition-subtle">
+                    {post.title}
+                  </h3>
+                  <p className="text-body text-muted-foreground leading-relaxed">
+                    {post.subtitle}
+                  </p>
+                </article>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-10">
+            <Link
+              to="/blog"
+              className="text-label uppercase tracking-widest text-muted-foreground hover:text-foreground transition-subtle"
+            >
+              View all writing →
+            </Link>
           </div>
         </div>
       </section>
