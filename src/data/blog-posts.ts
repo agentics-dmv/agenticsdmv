@@ -238,16 +238,16 @@ The right move was to stop and fix it before going further. That took most of a 
 
 The deeper reason to do it was model economics. Sonnet handles most tasks well, but only if each change fits in its effective context window. Choppy, tangled scripts meant every edit required holding too much context at once. Modular and decomposed, each change stayed small enough for Sonnet to handle cleanly — with Opus as the escalation path when genuinely stuck, which happened five or six times.
 
-*Continue to [Part 2: The Bot Started Fixing Its Own Code](/blog/the-bot-started-fixing-its-own-code)*`,
+*Continue to [Phase 2: Polish](/blog/the-bot-started-fixing-its-own-code)*`,
 };
 
 const part2: BlogPost = {
   slug: "the-bot-started-fixing-its-own-code",
   part: 2,
-  title: "The Bot Started Fixing Its Own Code.",
+  title: "OpenClaw Phase 2: Polish.",
   subtitle: "Data quality, governance, agent self-maintenance.",
   date: "2026-04-11",
-  content: `# The Bot Started Fixing Its Own Code.
+  content: `# OpenClaw Phase 2: Polish.
 
 *Part 2 of 2. Data quality, governance, agent self-maintenance.*
 
@@ -368,10 +368,10 @@ That's version N. We're on version 1.
 const overview: BlogPost = {
   slug: "what-is-this-thing",
   part: 0,
-  title: "What Is This Thing, Actually?",
+  title: "OpenClaw Phase 0: Your Context Window.",
   subtitle: "A 24/7 AI assistant on AWS for about $40/month. Here's what that means.",
   date: "2026-04-11",
-  content: `# What Is This Thing, Actually?
+  content: `# OpenClaw Phase 0: Your Context Window.
 
 *A 24/7 AI assistant on AWS for about $40/month. Here's what that means.*
 
