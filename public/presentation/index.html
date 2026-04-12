@@ -117,7 +117,7 @@
 <!-- 3: The payoff promise — show the destination first -->
 <section>
   <h2>Three days later.</h2>
-  <img src="../ai-stack-overview-dark-v2.png" alt="OpenClaw AWS Stack" class="diagram" />
+  <img src="ai-stack-overview-dark-v2.png" alt="OpenClaw AWS Stack" class="diagram" />
   <p class="caption">t4g.medium · Graviton · Claude Sonnet 4.6 via Bedrock · no public ports · ~$40/mo</p>
   <aside class="notes">
     Show the destination before you show the journey. They need to know where you're going or they won't follow you through the mess. "This is the stack. A 24/7 AI assistant on AWS — talks to me over Telegram, transcribes voice memos, runs deep research, and builds a knowledge graph from everything I tell it. I'm going to show you how it got built, what broke, and what I'd tell someone starting today."
@@ -160,7 +160,7 @@
 <!-- 6: WhatsApp — three hours, then banned -->
 <section>
   <h2>Then WhatsApp Closed the Door.</h2>
-  <img src="../whatsapp-death-spiral.png" alt="WhatsApp Death Spiral" class="diagram" />
+  <img src="whatsapp-death-spiral.png" alt="WhatsApp Death Spiral" class="diagram" />
   <p class="caption">How a health monitor turned 20 gateway restarts into a rate-limited phone number.</p>
   <aside class="notes">
     Three hours of debugging. The Control UI depends on WebSockets. SSM port forwarding drops WebSockets constantly. Every drop reset the QR flow. I tried a Cloudflare tunnel — that required editing openclaw.json. Wrong key: service crashes. Each fix introduced a new break. The real killer: every restart triggered the health monitor, which triggered a WhatsApp reconnect, which hit a 401, which retried — 5s, 11s, 21s, 43s, 88s, 171s. Twenty restarts, hundreds of failed auth attempts. The phone said: "Can't link new devices at this time." Show the diagram. Let them feel the spiral.
@@ -295,7 +295,7 @@
 <!-- 13: The pipeline -->
 <section>
   <h2>The Fix: A Pipeline.</h2>
-  <img src="../voice-pipeline-horizontal-draft.png" alt="Voice Pipeline" class="diagram" />
+  <img src="voice-pipeline-horizontal-draft.png" alt="Voice Pipeline" class="diagram" />
   <p class="caption">Telegram → S3 → Transcribe → markdown → GitHub → knowledge base.</p>
   <aside class="notes">
     Upload to S3. Start an AWS Transcribe job. Poll until done — 60 to 120 seconds. Download the transcript. Format as structured markdown with YAML frontmatter. Commit and push to the research repo. Reply with a preview and a link. The bot acknowledges immediately because two minutes of silence reads as failure. "Got it, transcribing..." costs nothing and prevents confusion. The acknowledgment is non-optional.
@@ -377,7 +377,7 @@
 <!-- 18: The bot fixed its own code (but didn't push) -->
 <section>
   <h2>The Bot Fixed Its Own Code.</h2>
-  <img src="../knowledge-base-telegram.PNG" alt="Bot fixing code in Telegram" class="screenshot" />
+  <img src="knowledge-base-telegram.PNG" alt="Bot fixing code in Telegram" class="screenshot" />
   <p class="caption">Debugging its own git retry logic — then immediately ingesting a voice memo about Dune and The Matrix.</p>
   <aside class="notes">
     lib/git.sh had no retry loop. Push rejections from concurrent GitHub Actions index rebuilds were failing with status: partial. The bot diagnosed the issue, wrote a retry-with-rebase loop, and committed it. On EC2. It did not push. The fix sat on the instance until a git pull surfaced commit fdcef68 on the remote. Correct diagnosis. Clean fix. Nobody knew about it. The laptop had been deploying stale code the whole time. This is what happens when an agent has write access to its own infrastructure but no deployment discipline.
@@ -412,7 +412,7 @@
 <!-- 20: The system working — what they came to see -->
 <section>
   <h2>11:11 PM.</h2>
-  <img src="../telegram-desktop.png" alt="Bot working in Telegram" class="screenshot" />
+  <img src="telegram-desktop.png" alt="Bot working in Telegram" class="screenshot" />
   <p class="caption">
     Voice memo in. "got it, transcribing..." — 2 seconds.<br/>
     "running deep research now." — 1 minute.<br/>
