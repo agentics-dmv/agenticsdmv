@@ -25,7 +25,7 @@ I'm sharing it because I think the messy middle — the wrong config key, the mo
 
 It's sloppy in places. Some decisions were hacky. I'm writing it anyway because the thought process is the thing, and polishing it into a case study would kill that.
 
-If you want the clean version: there isn't one yet. This is version 1.
+All of this — deployment through voice pipeline through research library — happened over three days. It reads longer than it was.
 
 ---
 
@@ -69,7 +69,7 @@ The phone: *Can't link new devices at this time.*
 
 The lesson: OpenClaw's Control UI is designed for local access. The gateway listens on localhost. The pairing flow expects a stable browser on the same machine. SSM port forwarding is exactly wrong for a persistent WebSocket. Every failure came from fighting that.
 
-WhatsApp stayed linked for a few weeks. Then the health monitor started hitting 403s on reconnect, every five minutes. Baileys reverse-engineers WhatsApp's web protocol and WhatsApp's servers are hostile to unofficial clients. It was going to keep breaking.
+WhatsApp stayed linked through the end of that session. Then the health monitor started hitting 403s on reconnect, every five minutes. Baileys reverse-engineers WhatsApp's web protocol and WhatsApp's servers are hostile to unofficial clients. It was going to keep breaking.
 
 My Telegram number had been banned before any of this (previous owner, still on the account). Open help case. It resolved around the time WhatsApp gave up.
 
@@ -321,10 +321,10 @@ The system runs on two rhythms.
 
 **Phone loop (daily):** voice memos, questions, \`/research\` commands. Bot transcribes, publishes, replies. Each interaction adds entities, concepts, relationships to the knowledge graph. The graph grows without anyone managing it.
 
-**Laptop loop (weekly):** pull latest from both repos — including patches the bot committed directly. Review what changed. Tune workspace files. Edit tool scripts. Run 196 Bats tests. \`make ship\`.
+**Laptop loop (when needed):** pull latest from both repos — including patches the bot committed directly. Review what changed. Tune workspace files. Edit tool scripts. Run 196 Bats tests. \`make ship\`.
 
 ![Two Loops: How OpenClaw Gets Smarter](/blog/two-loops-development-workflow.png)
-*The phone loop runs daily. The laptop loop runs weekly. Both write to the same repos.*
+*The phone loop runs daily. The laptop loop runs as needed. Both write to the same repos.*
 
 Both loops write to \`rvaopenclaw\` and \`openclaw-research\`. The bot commits fixes, keeps the KB current. Human reviews. Corrections go back through git.
 
@@ -365,4 +365,121 @@ That's version N. We're on version 1.
 *[← Part 1: OpenClaw Phase 1: Stack in 8 Minutes, Integration in 8 Hours.](/blog/you-wanted-a-24-7-ai-assistant)*`,
 };
 
-export const blogPosts: BlogPost[] = [part1, part2];
+const overview: BlogPost = {
+  slug: "what-is-this-thing",
+  part: 0,
+  title: "What Is This Thing, Actually?",
+  subtitle: "A 24/7 AI assistant on AWS for about $40/month. Here's what that means.",
+  date: "2026-04-11",
+  content: `# What Is This Thing, Actually?
+
+*A 24/7 AI assistant on AWS for about $40/month. Here's what that means.*
+
+---
+
+The two longer posts on this site are engineering diaries. Useful if you're building the same thing, but not a great answer to the question: *what did you actually install, and why would I want one?*
+
+This is that answer.
+
+---
+
+## The Short Version
+
+It's a personal AI assistant that lives on a server, talks to you over Telegram, and keeps running whether your laptop is open or not.
+
+You send it a message. It responds. It remembers context within a conversation, and across sessions it remembers what you've told it about yourself. You can send it a voice memo and it transcribes and files it. You can ask it to research something and it'll commission a deep web research report, publish it to a versioned library, and notify you when it's done.
+
+It's not a SaaS product. It's infrastructure you own and operate. The code runs on your AWS account. The data goes to your GitHub repo. The model calls hit your Bedrock endpoint. Nothing routes through anyone else's server.
+
+## The Stack
+
+Four pieces:
+
+**[OpenClaw](https://github.com/openclaw/openclaw)** — the gateway software. It's an open-source Node.js application that connects messaging channels (Telegram, WhatsApp, Slack) to AI models and tools. Think of it as the runtime: it handles message routing, session management, tool dispatch, and the connection to Bedrock. You configure it with JSON files and markdown.
+
+**AWS EC2** — a `t4g.medium` instance running in us-east-1. ARM64/Graviton, Ubuntu 24.04, 30GB of storage. The gateway runs as a systemd service. No public ports — all access goes through AWS Systems Manager, so there's no SSH key management and no attack surface beyond the IAM role.
+
+**Amazon Bedrock** — the model API. The instance calls Bedrock using its IAM role directly, so there are no Anthropic API keys to manage. The model is Claude Sonnet 4.6. The instance doesn't run any inference — it just assembles a prompt and sends it to Bedrock's endpoint.
+
+**Telegram** — the interface. A bot you create via [@BotFather](https://t.me/BotFather), configured with a token in the gateway. You message the bot from your phone or desktop. It responds. Forum topics give you separate conversation threads for different purposes — research, voice notes, general chat — each with isolated history.
+
+![The full stack: Telegram → EC2 → Bedrock, with S3, Transcribe, and GitHub in the loop](/blog/ai-stack-overview-dark-v2.png)
+*t4g.medium on Graviton, no public ports, Claude Sonnet 4.6 via Bedrock.*
+
+## What Makes It Useful
+
+Most AI assistants reset every session. This one has persistent memory, but not in the "load your entire life into context" way.
+
+The workspace files — six markdown files on disk — get injected into the prompt on every message. \`SOUL.md\` is the personality. \`USER.md\` is who you are. \`AGENTS.md\` is the operating manual. \`MEMORY.md\` is curated long-term facts. Together they're about 6,650 tokens, which is 3% of the model's context window. The bot always knows who it is, who it's talking to, and what its tools are — without you having to re-explain anything.
+
+Session history persists between restarts, with a daily reset and a rolling two-day log. Long-term facts get promoted to \`MEMORY.md\` automatically after they appear multiple times. So the bot doesn't just remember this conversation — it accumulates knowledge across weeks.
+
+The research pipeline is a separate layer. Ask it to research something, it submits a task to Parallel AI, waits for the deep research report, publishes it as a markdown file to a GitHub repository, and notifies you with a link. That repository is the knowledge base. The bot can search it on demand using a flat JSON index — no vector database, just a model reasoning over a structured list.
+
+Voice memos get transcribed by AWS Transcribe and filed the same way.
+
+## What It Costs
+
+At light use — ten conversations a day, a few research tasks a week, occasional voice memos:
+
+| Service | Monthly |
+|---|---|
+| EC2 t4g.medium + 30GB EBS | $26.93 |
+| Claude Sonnet 4.6 (Bedrock) | ~$9–28 |
+| AWS Transcribe | ~$2.40 |
+| Parallel AI research | ~$0.75 |
+| Secrets Manager + S3 | ~$0.90 |
+| **Total** | **~$40–60/month** |
+
+The EC2 instance is a fixed cost. Everything else scales with usage. The model is the biggest variable — at moderate use (50 turns/day), Bedrock alone runs ~$47/month and the total climbs toward $89.
+
+There's a cheaper option: Amazon Nova 2 Lite costs 8.6× less per token than Sonnet 4.6. In practice, Nova 2 Lite doesn't reliably follow a system prompt longer than a few hundred tokens. The workspace files are 6,650 tokens. So the savings evaporate because the assistant stops working correctly. Sonnet 4.6 is the floor for this setup.
+
+The real cost came in lower than expected — around $125/month at heavy use instead of the $189 projection — because [Bedrock's prompt caching](https://aws.amazon.com/bedrock/pricing/) works. The workspace files get cached after the first message, and subsequent calls hit the cache at $0.30/M instead of $3.00/M. On a system where the same 6,650-token prompt heads every single message, that adds up.
+
+## How You Change Its Behavior
+
+This is the part that surprised me most.
+
+To change the personality: edit \`SOUL.md\`. Run \`make ship\`. Send a message. Next response follows the new instructions.
+
+To add a tool: write a section in \`TOOLS.md\` describing the command signature and output format.
+
+To add a protocol — "when you receive a voice memo, do this" — write it in \`AGENTS.md\`.
+
+No redeployment. No restart. No config change. The gateway reads the workspace files from disk on every message. Change the files, change the behavior, next message.
+
+The programming language is English. The runtime is a language model. The deploy target is a filesystem.
+
+## How It Compares to the Alternatives
+
+The research space for personal AI assistants in 2026 has a few options worth knowing about:
+
+**The DIY route** — FastAPI or Express proxying to a Bedrock endpoint, Redis for job queuing, Caddy for HTTPS. More control, more work to build. No chat channel integration out of the box. Probably the right call if you want something minimal and fully custom.
+
+**LangGraph bot templates** — production-ready Telegram bot templates with long-term memory via PostgreSQL. Worth looking at if you want the memory layer but don't need the full tool-dispatch and workspace system.
+
+**OpenClaw** (what this is) — pre-built gateway with channel integrations, session management, tool dispatch, and workspace file injection. More opinionated, less DIY, deploys in minutes with the AWS CloudFormation template.
+
+On channel choice: Meta changed WhatsApp Business Platform pricing in July 2025 to per-message billing for template messages. Telegram remains free. That gap makes Telegram the default right call for personal use, which is why Phase 2 of the deployment story ends there.
+
+On model choice: the difference between cheap and capable is larger than it looks on paper. Mistral 8B 3.0 on Bedrock runs ~$0.15/1M tokens and costs almost nothing at 100 messages a day. Claude Sonnet costs $6/1M input and $30/1M output — roughly 40× more expensive. Whether that's worth it depends entirely on whether the cheaper model reliably follows a 6,650-token system prompt. In this setup, it doesn't.
+
+## What It's Not
+
+It's not a managed product. There's no dashboard, no support team, no uptime SLA. If the instance goes down, you bring it back up. If a tool script breaks, you fix it. The [deployment story](/blog/you-wanted-a-24-7-ai-assistant) has the full history of what broke and how.
+
+It's also not cheap at scale. If you're sending 200 messages a day, the Bedrock bill climbs toward $189/month. It's priced for personal use, not a team.
+
+And it requires an AWS account, a GitHub account, and enough comfort with a terminal to run a CloudFormation template and edit a JSON file. The [official AWS sample](https://github.com/aws-samples/sample-OpenClaw-on-AWS-with-Bedrock) makes the initial deployment about eight minutes. The integration work — personality, tools, voice pipeline, research library — is where the real time goes.
+
+---
+
+If that sounds like something worth building: the [deployment story](/blog/you-wanted-a-24-7-ai-assistant) starts at the CloudFormation template and ends with a bot that fixes its own code.
+
+If you just want the bot: the [sample repo](https://github.com/aws-samples/sample-OpenClaw-on-AWS-with-Bedrock) is the fastest path. Pick a channel, add a personality, and start sending messages.
+
+The rest is iteration.`,
+};
+
+export const blogPosts: BlogPost[] = [overview, part1, part2];
