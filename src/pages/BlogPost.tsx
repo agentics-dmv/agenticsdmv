@@ -78,10 +78,12 @@ const BlogPost = () => {
             </pre>
           </div>
 
-          {/* Part label */}
-          <p className="text-label uppercase tracking-widest text-muted-foreground mb-4 mt-6">
-            Part {post.part} of {blogPosts.length}
-          </p>
+          {/* Part label — only shown when there are multiple posts */}
+          {blogPosts.length > 1 && (
+            <p className="text-label uppercase tracking-widest text-muted-foreground mb-4 mt-6">
+              Part {post.part} of {blogPosts.length}
+            </p>
+          )}
 
           {/* Table of contents */}
           {toc.length > 0 && (

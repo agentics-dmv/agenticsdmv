@@ -61,7 +61,7 @@ const Index = () => {
           <p className="text-label uppercase tracking-widest text-muted-foreground mb-4">Featured Series</p>
           <h2 className="text-display-sm mb-4">OpenClaw: Personal AI Assistant on AWS</h2>
           <p className="text-body-lg text-muted-foreground mb-12">
-            A three-part series on building a 24/7 AI assistant on EC2 with Bedrock — what worked, what failed, and what the system became.
+            Building a 24/7 AI assistant on EC2 with Bedrock — what it is, how we built it, and what broke.
           </p>
 
           <img
