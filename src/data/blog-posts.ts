@@ -397,7 +397,7 @@ Four pieces:
 
 **[OpenClaw](https://github.com/openclaw/openclaw)** — the gateway software. It's an open-source Node.js application that connects messaging channels (Telegram, WhatsApp, Slack) to AI models and tools. Think of it as the runtime: it handles message routing, session management, tool dispatch, and the connection to Bedrock. You configure it with JSON files and markdown.
 
-**AWS EC2** — a `t4g.medium` instance running in us-east-1. ARM64/Graviton, Ubuntu 24.04, 30GB of storage. The gateway runs as a systemd service. No public ports — all access goes through AWS Systems Manager, so there's no SSH key management and no attack surface beyond the IAM role.
+**AWS EC2** — a \`t4g.medium\` instance running in us-east-1. ARM64/Graviton, Ubuntu 24.04, 30GB of storage. The gateway runs as a systemd service. No public ports — all access goes through AWS Systems Manager, so there's no SSH key management and no attack surface beyond the IAM role.
 
 **Amazon Bedrock** — the model API. The instance calls Bedrock using its IAM role directly, so there are no Anthropic API keys to manage. The model is Claude Sonnet 4.6. The instance doesn't run any inference — it just assembles a prompt and sends it to Bedrock's endpoint.
 
