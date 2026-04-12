@@ -162,6 +162,11 @@ I used Sonnet 4.6 for most tasks. I escalated to Opus when Sonnet clearly could 
 
 ---
 
+<figure style="float:left; width:210px; margin:0 1.5rem 1.5rem 0; clear:left;">
+  <img src="/blog/deep-research-telegram.png" alt="Deep research in Telegram" style="width:100%; border-radius:8px;" />
+  <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">Send a voice memo. The bot transcribes it, runs deep research, and publishes a report to GitHub — all in under two minutes.</figcaption>
+</figure>
+
 The research system came next. The design was done before any code: flat JSON index (not a vector database — at 500 files the index fits in ~15k tokens, well within Sonnet's 200k window), async callbacks so the gateway doesn't hold open a connection for 10 minutes, OIDC-authenticated GitHub Actions for the notification loop. A research file lands in the repo, Actions rebuilds the index, SSM notifies the running gateway. No static credentials, no open ports.
 
 Then the voice pipeline — which revealed that every voice memo sent since Telegram was connected had been silently ignored.
@@ -183,6 +188,8 @@ Checked the logs. The model wasn't Sonnet 4.6. It was Amazon Nova 2 Lite — a f
 
 One \`sed\` replacement to swap the model ID. The personality took hold. The protocols started working.
 
+<div style="clear:both;"></div>
+
 ![Voice to Knowledge: The Full Pipeline](/blog/voice-to-knowledge-pipeline.png)
 *Nine steps. The transcription error lived in step three and didn't surface until step six.*
 
@@ -201,6 +208,9 @@ The system runs on two rhythms.
 
 ![Two Loops: How OpenClaw Gets Smarter](/blog/two-loops-development-workflow.png)
 *Both loops write to the same repos. The bot commits during the phone loop. The human reviews during the laptop loop.*
+
+![The knowledge-base and deep-research threads in Telegram — the bot acknowledges jobs, fixes itself mid-task, and publishes research reports directly to GitHub](/blog/telegram-desktop.png)
+*The two active threads: knowledge-base (left) and deep-research (right). The bot receives a voice memo, transcribes it, runs research, and returns a link to the published report — all without manual steps.*
 
 The "bot committed directly" part required governance that didn't exist until the bot demonstrated it needed it. It diagnosed a bug in its own git retry logic, wrote the fix, committed it — and didn't push. The fix sat on the EC2 instance for days, invisible. The agent had write access to its own infrastructure but no deployment discipline. Two things came out of this: an explicit self-maintenance protocol requiring push after every commit, and a \`make ship\` Makefile target that pushes to GitHub and syncs to EC2 in one command, so there's no gap between "code is on GitHub" and "code is on EC2." [→ Bug 8](#bug-8-the-bot-committed-a-fix-and-didnt-push)
 
