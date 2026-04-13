@@ -227,13 +227,13 @@ It's a personal AI assistant that lives on a server, talks to you over Telegram,
 
 Four pieces make the stack:
 
-**[OpenClaw](https://github.com/openclaw/openclaw)** — the open-source Node.js gateway. It connects messaging channels to AI models, handles session management and tool dispatch, and gets configured with JSON files and markdown documents called workspace files.
+**[OpenClaw](https://github.com/openclaw/openclaw)** — the open-source Node.js gateway. It connects messaging channels to AI models, handles session management and tool dispatch, and gets configured with JSON files and markdown documents called "workspace files."
 
-**AWS EC2** — a \`t4g.medium\` instance, ARM64/Graviton, no public ports. All access goes through AWS Systems Manager. The gateway runs as a systemd service.
+**AWS EC2** — a \`t4g.medium\` instance, ARM64/Graviton, no public ports. All access goes through AWS Systems Manager. (The gateway runs as a systemd service.)
 
 **Amazon Bedrock** — the model API. The instance calls it directly via its IAM role using Claude Sonnet 4.6. The instance runs no inference — it assembles a prompt and sends it to Bedrock's endpoint.
 
-**Telegram** — the interface. A bot created via [@BotFather](https://t.me/BotFather). Forum topics give you separate threads — research, voice notes, general chat — each with isolated history.
+**Telegram** — the bot-automation-friendly interface. A bot created via [@BotFather](https://t.me/BotFather). Forum topics give you separate threads — research, voice notes, general chat — each with isolated history.
 
 ![The full stack: Telegram → EC2 → Bedrock, with S3, Transcribe, and GitHub in the loop](/blog/ai-stack-overview-dark-v2.png)
 *t4g.medium on Graviton, no public ports, Claude Sonnet 4.6 via Bedrock.*
