@@ -1,5 +1,5 @@
 import { useParams, Link, Navigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -45,6 +45,16 @@ const BlogPost = () => {
   const progress = useReadingProgress();
   const revealRef = useScrollReveal();
   const asciiArt = useAsciiHero(slug ?? "");
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+
+  const closeLightbox = useCallback(() => setLightbox(null), []);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeLightbox(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [lightbox, closeLightbox]);
 
   if (!post) {
     return <Navigate to="/blog" replace />;
@@ -138,7 +148,12 @@ const BlogPost = () => {
                 },
                 img: ({ src, alt }) => (
                   <figure className="my-8">
-                    <img src={src} alt={alt} className="w-full rounded" />
+                    <img
+                      src={src}
+                      alt={alt}
+                      className="w-full rounded cursor-zoom-in"
+                      onClick={() => src && setLightbox({ src, alt: alt ?? "" })}
+                    />
                     {alt && (
                       <figcaption className="text-caption text-muted-foreground text-center mt-3">
                         {alt}
@@ -187,6 +202,25 @@ const BlogPost = () => {
           </nav>
         </div>
       </article>
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 cursor-zoom-out p-4"
+          onClick={closeLightbox}
+        >
+          <img
+            src={lightbox.src}
+            alt={lightbox.alt}
+            className="max-w-full max-h-full object-contain rounded shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {lightbox.alt && (
+            <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/60 text-sm font-mono px-4 text-center">
+              {lightbox.alt}
+            </p>
+          )}
+        </div>
+      )}
     </PageLayout>
   );
 };
