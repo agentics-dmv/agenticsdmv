@@ -243,9 +243,9 @@ Four pieces make the stack:
 
 The thing that makes this interesting isn't the stack — it's how you program it. Six markdown files on disk get injected into the prompt on every message. \`SOUL.md\` is the personality. \`USER.md\` is who you are. \`AGENTS.md\` is the operating manual. \`MEMORY.md\` is curated long-term facts. Together they're about 6,650 tokens — 3% of the model's context window. The bot always knows who it is, who it's talking to, and what its tools are, without you having to re-explain anything.
 
-To change the personality: edit \`SOUL.md\`, run \`make ship\`, send a message. Next response follows the new instructions. No redeployment, no restart, no config change. You write instructions in English. The model follows them.
+To change the personality: edit \`SOUL.md\`, run \`make ship\`, send a message. Next response follows the new instructions. No redeployment, no restart, no config change; you write instructions in English & the model follows them.
 
-**Cost:** EC2 runs $26.93/month fixed. Everything else scales with use. At light use, total is ~$40–60/month. At moderate use, ~$125/month. The biggest lever is model choice — Nova 2 Lite costs 8.6× less than Sonnet 4.6, but Nova 2 Lite doesn't reliably follow a 6,650-token system prompt. That saving costs you the assistant.
+**Cost:** EC2 runs $26.93/month fixed. Everything else scales with use. At light use, total is ~$40–60/month. At moderate use, ~$125/month. The biggest lever is model choice — Nova 2 Lite costs 8.6× less than Sonnet 4.6, but Nova 2 Lite doesn't reliably follow a 6,650-token system prompt. That saving costs you the assistant. Forty dollars a month is about the floor.
 
 ---
 
