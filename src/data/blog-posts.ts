@@ -287,7 +287,17 @@ One `sed` command to swap the model ID. Restarted the service. The personality t
 
 With Sonnet 4.6 running, it became obvious the tool scripts were rough. Even escalating to Opus, I found it was struggling to track filesystem state — too much implicit coupling between scripts, too many things that had to be understood together before anything could safely change. The test setup wasn't helping either. There was no fast feedback loop, no way to develop with confidence.
 
-Half a day and $45 in Cursor tokens. Smaller scripts, cleaner interfaces between them, 196 Bats tests written alongside the changes. After that, Sonnet 4.6 could extend the system without needing the full context of everything that came before.
+Half a day and $45 in Cursor tokens. In hindsight, I probably could have done this part myself from the start. The refactor produced over 200 clean Bats tests spanning both unit and integration coverage — enough surface area that I finally felt comfortable making high-confidence changes without wondering what I'd break three steps later.
+
+At a high level, it tightened the tool layer and made execution more deterministic. It also cleaned up how state and filesystem interactions were handled, which had been a consistent source of drift during multi-step tasks.
+
+From there, the system really started to open up around two core intake flows.
+
+**Research** is designed for depth. It takes a prompt or topic and expands it outward using external sources, synthesizing results into structured outputs that get stored and reused. Instead of just answering a question, it builds a layer of durable understanding — something closer to a reusable artifact than a one-off response. Over time, this becomes a compounding asset. Not just a chat history you forget exists.
+
+**Knowledge base ingestion** is more personal and continuous. Voice memos, notes, day-to-day inputs — they get transformed into structured knowledge. Heavily inspired by LLM Wiki: raw inputs compiled into organized, navigable documents that evolve over time. Instead of dumping text into a folder, the system incrementally builds something closer to a living, queryable map of your own thinking.
+
+Both flows feed the same underlying knowledge base, but from opposite directions. One pulls in external intelligence and distills it. The other captures internal context and refines it. Together, they start to form something that actually feels like memory instead of just storage.
 
 ### Skills as Operational Memory
 
