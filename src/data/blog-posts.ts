@@ -245,7 +245,7 @@ The thing that makes this interesting isn't the stack — it's how you program i
 
 To change the personality: edit \`SOUL.md\`, run \`make ship\`, send a message. Next response follows the new instructions. No redeployment, no restart, no config change; you write instructions in English & the model follows them.
 
-**Cost:** EC2 runs $26.93/month fixed. Everything else scales with use. At light use, total is ~$40–60/month. At moderate use, ~$125/month. The biggest lever is model choice — Nova 2 Lite costs 8.6× less than Sonnet 4.6, but Nova 2 Lite doesn't reliably follow a 6,650-token system prompt. That saving costs you the assistant. Forty dollars a month is about the floor.
+**Cost:** EC2 runs $26.93/month fixed, with everything else scaling with use (light: ~$40–60/month, moderate: ~$125/month). Unfortunately, the biggest lever is model selection; despite costing 9x more than Nove 2 Lite, Sonnet 4.6 was the cheapest model that could reliably follow a 6,650-token system prompt. So $40 is about as cheap as I could go.
 
 ---
 
@@ -253,7 +253,9 @@ To change the personality: edit \`SOUL.md\`, run \`make ship\`, send a message. 
 
 ### Learning the Paradigm First
 
-Before touching any infrastructure, I needed to understand what OpenClaw actually was. Not the marketing pitch — the mechanics. What did the model see on each message? How were the workspace files assembled into the prompt? What happened when you edited them mid-session? What could the agent call and what could it not?
+Before I could get my hands dirty, I needed to understand OpenClaw beyond the marketing pitch, e.g. system prompting, workspace file management, tool calling rules, etc.
+
+In short, on every message the gateway assembles a prompt from a handful of markdown files on disk, sends it to the model, and routes any tool calls the model makes back to shell scripts running on the server. That's the loop. Everything else is configuration on top of it.
 
 The workspace-file model makes intuitive sense in retrospect, but before it clicked it was opaque. I spent time on that education before doing anything concrete. That matters for understanding why the bugs we hit were the bugs we hit — a lot of them came from assumptions about what the system was doing that turned out to be wrong.
 
