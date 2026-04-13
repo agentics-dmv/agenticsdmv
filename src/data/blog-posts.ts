@@ -291,7 +291,7 @@ This helped me tightened the tool layer, made execution more deterministic, and 
 
 From there, the system really started to open up around two core intake flows.
 
-**Research** is designed for depth. It takes a prompt or topic and expands it outward using external sources, synthesizing results into structured outputs that get stored and reused. Instead of just answering a question, it builds a layer of durable understanding — something closer to a reusable artifact than a one-off response. Over time, this becomes a compounding asset. Not just a chat history you forget exists.
+**Research** is designed for depth. It takes a prompt or topic, expands it outward using external sources, and synthesizes results into a structured markdown report that lands in a versioned library. The index is a flat JSON file — not a vector database — which at 500 entries fits in ~15k tokens and stays well within Sonnet's context window. Reports are published via async callbacks so the gateway never holds a connection open for 10 minutes waiting; a GitHub Actions workflow rebuilds the index and SSM-notifies the running gateway when it's done. No static credentials, no open ports. Over time this becomes a compounding asset — not just a chat history you forget exists.
 
 **Knowledge base ingestion** is more personal and continuous. Voice memos, notes, day-to-day inputs — they get transformed into structured knowledge. Heavily inspired by LLM Wiki: raw inputs compiled into organized, navigable documents that evolve over time. Instead of dumping text into a folder, the system incrementally builds something closer to a living, queryable map of your own thinking.
 
@@ -318,7 +318,7 @@ The persona layer mattered more than I expected. I set it to talk like a Gen Z t
 
 What the bot was not: self-deploying. It would fix something, commit it, and stop there. The push-after-every-commit protocol had to be baked into the operational instructions before it held. [→ Bug 8](#bug-8-the-bot-committed-a-fix-and-didnt-push)
 
-### The Working Loop
+### Emergent Pattern #3: The Working Loop
 
 For most of the three days, my process was a simple feedback loop: something broke, I read the error, I fed it to the model in Cursor, the model produced a fix or a diagnostic step, I ran it, I fed the output back. Sometimes the error came from the AWS logs directly. Sometimes I copied Telegram output into Cursor. The channel did not matter — what mattered was that the loop was fast.
 
@@ -328,72 +328,6 @@ When the SSM session state got too noisy — terminal memory overloading Cursor'
 *Two variants of the same cycle. Bot-driven when it could fix things itself. Human-driven when the environment got too noisy.*
 
 I used Sonnet 4.6 for most tasks. I escalated to Opus when Sonnet clearly could not break through — usually when the system state was complex and the task required holding a lot in context at once. Those escalations were conscious choices, not defaults.
-
----
-
-<figure style="float:left; width:210px; margin:0 1.5rem 1.5rem 0; clear:left;">
-  <img src="/blog/deep-research-telegram.png" alt="Deep research in Telegram" style="width:100%; border-radius:8px;" />
-  <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">Send a voice memo. The bot transcribes it, runs deep research, and publishes a report to GitHub — all in under two minutes.</figcaption>
-</figure>
-
-The research system came next. The design was done before any code: flat JSON index (not a vector database — at 500 files the index fits in ~15k tokens, well within Sonnet's 200k window), async callbacks so the gateway doesn't hold open a connection for 10 minutes, OIDC-authenticated GitHub Actions for the notification loop. A research file lands in the repo, Actions rebuilds the index, SSM notifies the running gateway. No static credentials, no open ports.
-
-Then the voice pipeline — which revealed that every voice memo sent since Telegram was connected had been silently ignored.
-
-OpenClaw, when it receives a voice message, downloads the file locally and appends a text annotation to the prompt: \`[media attached: voice_abc.oga]\`. Text. File path. No audio. No transcription. The agent saw a path to a file it couldn't read and said nothing.
-
-![Voice → Wiki](/blog/voice-to-wiki-conceptual.png)
-*The idea: voice memo becomes a wiki node. First we had to notice it wasn't happening. [→ Bug 6](#bug-6-voice-memos-were-silently-ignored)*
-
-![Voice to Knowledge: How a Voice Memo Becomes a Wiki Page](/blog/voice-pipeline-horizontal-draft.png)
-*Telegram → S3 → Transcribe → markdown → GitHub → knowledge base. $0.024/min. 60–120 seconds. Bot acknowledges in 2.*
-
-Building the actual pipeline was straightforward. What wasn't: deploying it and finding the bot denied it could transcribe audio at all. Moved the capability description to the top of \`AGENTS.md\`. Denied again.
-
-Checked the logs. The model wasn't Sonnet 4.6. It was Amazon Nova 2 Lite — a fast, cheap model optimized for speed, not instruction-following at long context. The model upgrade had been set in the config on the developer's machine, but the change had never been saved to the running config on EC2. Every response since deployment had come from Nova 2 Lite.
-
-![The Model-Class Cliff](/blog/model-class-cliff.png)
-*Same workspace files, same instructions. Nova 2 Lite ignored them. Sonnet 4.6 followed them. [→ Bug 7](#bug-7-the-wrong-model-was-running)*
-
-One \`sed\` replacement to swap the model ID. The personality took hold. The protocols started working.
-
-<div style="clear:both;"></div>
-
-![Voice to Knowledge: The Full Pipeline](/blog/voice-to-knowledge-pipeline.png)
-*Nine steps. The transcription error lived in step three and didn't surface until step six.*
-
-![Knowledge Layers](/blog/knowledge-layers-conceptual.png)
-*Raw sources stay locked. The wiki is the working layer. Agent Governance — the workspace files — runs on every turn.*
-
----
-
-## How It Runs Now
-
-The system runs on two rhythms.
-
-**Phone loop (daily):** voice memos, questions, \`/research\` commands. The bot transcribes, publishes, replies. Each interaction adds entities, concepts, and relationships to the knowledge graph. The graph grows without anyone managing it.
-
-**Laptop loop (weekly):** pull the latest from both repos — including patches the bot committed directly. Review what changed. Tune workspace files. Edit tool scripts. Run tests. Push.
-
-![Two Loops: How OpenClaw Gets Smarter](/blog/two-loops-development-workflow.png)
-*Both loops write to the same repos. The bot commits during the phone loop. The human reviews during the laptop loop.*
-
-![The knowledge-base and deep-research threads in Telegram — the bot acknowledges jobs, fixes itself mid-task, and publishes research reports directly to GitHub](/blog/telegram-desktop.png)
-*The two active threads: knowledge-base (left) and deep-research (right). The bot receives a voice memo, transcribes it, runs research, and returns a link to the published report — all without manual steps.*
-
-The "bot committed directly" part required governance that didn't exist until the bot demonstrated it needed it. It diagnosed a bug in its own git retry logic, wrote the fix, committed it — and didn't push. The fix sat on the EC2 instance for days, invisible. The agent had write access to its own infrastructure but no deployment discipline. Two things came out of this: an explicit self-maintenance protocol requiring push after every commit, and a \`make ship\` Makefile target that pushes to GitHub and syncs to EC2 in one command, so there's no gap between "code is on GitHub" and "code is on EC2." [→ Bug 8](#bug-8-the-bot-committed-a-fix-and-didnt-push)
-
-
-Cool fact: On every message: six workspace files assembled into a prompt, session history appended from a JSONL file on EBS, Bedrock called via the instance IAM role, response returned. 4GB RAM. No inference on the instance. Prompt caching keeps the Bedrock cost lower than projected — the workspace files get cached after the first message, hitting at $0.30/M instead of $3.00/M. Sorry Lambda!
-
-
-The bot learns what you care about because you kept talking.
-
-The system is being built to answer a question that requires knowing the person across all of it.
-
-*What should I do today?*
-
-That's version N. We're on version 1.
 
 ---
 
@@ -407,11 +341,11 @@ The interesting part now isn't what it does today. It's what comes next.
 
 **Transcription upgrade to Whisper.** Amazon Transcribe works fine. Fine isn't a compelling long-term strategy. Whisper is more accurate, more resilient to real-world audio, and still affordable enough to justify the switch. This doesn't change the architecture — just the quality of everything downstream.
 
-**Prompt caching and session efficiency.** This one is already working quietly. Running on EC2 allows session reuse, so context doesn't have to be rebuilt from scratch on every message. That keeps latency down and keeps costs from creeping up as usage increases. Not flashy, but the kind of detail that makes the system actually sustainable.
-
 **Structured self-improvement via GitHub issues.** Right now improvements are still ad hoc. I want to formalize the loop: describe a feature or bug in a Telegram topic, that automatically creates a GitHub issue, the issue triggers a cloud agent workflow, the agent implements the change, pushes the code, handles redeployment. Intent directly into shipped changes. Less "open a ticket and come back later," more "state the problem and let the system close the loop."
 
 **Dedicated Q&A interface.** A clean way to actually use all of this — not another bot, just a dedicated Telegram topic. A place to ask questions and get answers grounded in everything the system has ingested. The ingestion pipeline is already doing the hard work of building context. This is just the surface layer where that context becomes useful.
+
+Side note: prompt caching on EC2 means session context gets reused across messages, so the model doesn't rebuild it from scratch every time — keeps latency low and costs from drifting up quietly.
 
 ---
 
