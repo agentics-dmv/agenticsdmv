@@ -33,6 +33,11 @@ For a decade, automation meant Zapier. Or IFTTT. Or, more recently, n8n. These t
 
 These platforms eventually added LLMs. But *how* they added them is the key thing. The LLM was a node in a pipeline someone else defined. A smarter formatting step. "Take this customer complaint and classify it as billing, technical, or other." The model received a fixed input, produced a structured output, and the workflow moved on. It didn't plan. It didn't decide what tools to call next. It didn't remember yesterday. It was deterministic automation with a reasoning step inserted — the plumbing was still rigid, the logic was still explicit, the state still evaporated when the workflow terminated.
 
+<figure style="float:right; width:280px; margin:0 0 1.5rem 1.5rem; clear:right;">
+  <img src="/blog/llm-as-one-node.png" alt="The LLM as one node in a trigger-action pipeline" style="width:100%; border-radius:8px;" />
+  <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">One box among equals. No memory, no planning, no initiative — just a smarter formatting step.</figcaption>
+</figure>
+
 The first attempts to break this model arrived in 2023: AutoGPT, BabyAGI, the early LangChain agent abstractions. These gave models the ability to call tools in a loop — the "ReAct" pattern: reason about what to do, take an action, observe the result, reason again. That was the right instinct. The implementation collapsed. Models with 4,000-token context windows couldn't hold a multi-step task's constraints from step one to step twenty. Agents hallucinated progress. They looped. They burned through API credits on the same failed call, retried until the credits ran out, and stopped without completing anything.
 
 The problem wasn't that agents were a bad idea. The infrastructure wasn't ready.
@@ -46,6 +51,11 @@ The problem wasn't that agents were a bad idea. The infrastructure wasn't ready.
 
 Three things converged between 2023 and 2026, and their combination is what made frameworks like OpenClaw viable rather than aspirational.
 
+<figure style="float:left; width:260px; margin:0 1.5rem 1.5rem 0; clear:left;">
+  <img src="/blog/three-enabling-conditions.png" alt="The three enabling conditions: context windows, instruction following, inference cost" style="width:100%; border-radius:8px;" />
+  <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">Three shifts that converged. Any one alone wouldn't have been enough.</figcaption>
+</figure>
+
 **Context windows grew by two orders of magnitude.** Claude Sonnet 4.6 has a 200,000-token context window. The workspace files that define my assistant's personality, knowledge, tools, and operating protocols are 6,650 tokens combined — 3% of that window. An early agent running on a 4k-token model couldn't hold its own operating instructions while also tracking a multi-step task. The ratio was wrong. Now it's not.
 
 **Models crossed the instruction-following threshold.** There's a qualitative difference between a model that follows a 500-token system prompt and one that follows a 6,650-token prompt with fidelity across a long conversation. This post has an entire bug entry about this: the system ran Amazon Nova 2 Lite for days while I thought it was Sonnet, and the tell was that the workspace files were being progressively ignored as conversations grew longer. Both models are capable. Only one of them held the instructions at depth. That's not a marginal difference — it's the difference between a system that works and one that degrades.
@@ -58,6 +68,8 @@ The technical term for what OpenClaw is: a **stateful gateway daemon**. Not a ch
 
 The old model: the task existed in the human's head, and the machine executed explicitly defined steps toward it. The new model: the task, its history, its dependencies, and its progress exist inside the machine's own persistent state. That shift is structural, not cosmetic.
 
+<div style="clear:both;"></div>
+
 ---
 
 ## Three Conversations in Richmond That Couldn't Have Happened Before
@@ -67,6 +79,11 @@ I want to make this concrete. Not hypothetical AI futures — actual conversatio
 **The first conversation** happens at the end of a run. I send a voice memo: *"I've been thinking about the Shockoe project more. Still think the thing that gets it funded is connecting it to the flooding infrastructure work the city's already committed to — same argument as last year's greenway pitch."* The bot transcribes it. Checks its memory. Responds: *"You made almost the same argument for the greenway funding in October. You won that one. Want me to pull the structure of that pitch and see how it maps to Shockoe?"* This is not a search result. It's a relationship. The bot remembered October because October is in MEMORY.md, and it recognized the structural similarity because it was listening for it. A Zapier workflow has no October. It has no pitch. It has no understanding of what "same argument" means across two different conversations.
 
 **The second conversation** happens at 2pm on a Tuesday when I haven't sent a message. The bot's heartbeat fires — a proactive trigger that runs every 30 minutes and checks a HEARTBEAT.md checklist. It notices I asked two weeks ago to track coverage of a particular city council vote. It searches. The vote happened yesterday. I get a message: *"The vote passed 6-3. Three members voted against it. This connects to the rezoning concern you flagged in March."* I didn't ask. It went looking. That's not trigger-action logic. That's initiative. A Zapier workflow runs when something happens to it. This ran because the agent decided something was due.
+
+<figure style="float:right; width:250px; margin:0 0 1.5rem 1.5rem; clear:right;">
+  <img src="/blog/the-heartbeat.png" alt="The heartbeat: clock fires every 30 min, checks HEARTBEAT.md, acts if something is due" style="width:100%; border-radius:8px;" />
+  <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">No message required. The agent checks, decides, acts.</figcaption>
+</figure>
 
 **The third conversation** happens over a week without any single explicit ask. I've been talking about a job transition — not as a formal "help me with my career" query, but the way people actually talk, tangentially, across fragmented messages. *"The meeting went weird today."* *"I'm not sure the role is what I thought it was."* *"I need to figure out my options."* By Friday, the bot has a picture I didn't explicitly draw for it. It says: *"Looking at this week, it sounds like the question isn't whether the fit is right — you seem clear on that. The question is timing and what you'd step into. Do you want to talk through what the landing zone looks like?"* That's synthesis across a week of signals. A chatbot with no memory resets on every message. This didn't.
 
@@ -143,6 +160,11 @@ If inference produces a tool call, the gateway intercepts it before sending any 
 
 This Reason-Act-Observe loop has no fixed depth bound beyond the session timeout. The loop includes retry logic: if a tool call fails, the gateway can invoke compaction and retry rather than aborting. Failed tool calls surface to the model as error output; the model reasons about the failure and either recovers or escalates. The model doesn't "know" how to transcribe audio or run a research query. It knows tool interfaces exist, and it calls them. The domain expertise lives in the tools; the routing judgment lives in the model.
 
+<figure style="float:right; width:270px; margin:0 0 1.5rem 1.5rem; clear:right;">
+  <img src="/blog/react-loop.png" alt="The ReAct loop: Reason, Act, Observe — cycling until done" style="width:100%; border-radius:8px;" />
+  <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">Each cycle: decide what to call, call it, read the result. Repeat until there's nothing left to do.</figcaption>
+</figure>
+
 ### Stage 6: Memory Is a First-Class Runtime Component
 
 Memory in OpenClaw is not an opaque vector store behind an API endpoint. It's a defined file layout in the workspace, indexed into SQLite:
@@ -154,6 +176,11 @@ Memory in OpenClaw is not an opaque vector store behind an API endpoint. It's a 
 The memory engine watches these files and re-indexes automatically on change. There is only one memory plugin slot in the gateway's plugin architecture — if you install a custom memory plugin, it replaces the builtin engine entirely, not supplements it. The design reason: two competing memory systems writing to the same agent state produce contradictions. The exclusive slot makes memory the system's concern, not yours.
 
 The operational implication of file-based memory: it's **legible**. You can open MEMORY.md, read what the agent believes about you, edit an entry that's wrong, and commit the correction. Vector database embeddings cannot be read, corrected, or versioned by a human. File-based memory can. When the transcription bug produced a Lagos entry for a Richmond meeting, the correction path was straightforward: edit the wiki page, commit a provenance note, move on. The error chain was traceable because the memory was readable.
+
+<figure style="float:right; width:280px; margin:0 0 1.5rem 1.5rem; clear:right;">
+  <img src="/blog/memory-legibility.png" alt="Vector store vs MEMORY.md: one is a black box, one is a file you can read, edit, and git revert" style="width:100%; border-radius:8px;" />
+  <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">If a bad memory gets committed, you fix it like any other file.</figcaption>
+</figure>
 
 ### Stage 7: The Automation Substrate
 
