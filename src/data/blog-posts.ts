@@ -19,9 +19,9 @@ const main: BlogPost = {
 
 ---
 
-A note before you start: this is an engineering diary, not a tutorial. The mistakes are in here because the thought process is the thing. I did not start this knowing what I was doing. I was learning the paradigm while building it, improvising when things broke, and asking the AI for help at every step. Polishing that into a clean success story would miss the point entirely.
+This is an engineering diary, not a tutorial. The mistakes stay because the thinking matters. I started without knowing the paradigm, learning it in real time—improvising when things broke and leaning on AI at every step. Turning this into a polished success story would miss the point.
 
-All of this — deployment through voice pipeline through research library — happened over three days.
+Deployment, voice pipeline, and research library—all built in three days.
 
 ---
 
