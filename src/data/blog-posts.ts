@@ -225,6 +225,11 @@ That is where this started.
 
 It's a personal AI assistant that lives on a server, talks to you over Telegram, and keeps running whether your laptop is open or not. Within Telegram, you set up a group and topics in these groups. Within each topic, you send a message, it responds, and within each topic, it tracks context. Across all sessions, it accumulates knowledge about you — your projects, goals, relationships, the things you talk about repeatedly. You can send a voice memo and it transcribes and files it. You can ask it to research something and it'll commission a deep research report, publish it to a versioned library, and notify you when it's done.
 
+<figure style="float:right; width:260px; margin:0 0 1.5rem 1.5rem; clear:right;">
+  <img src="/blog/voice-to-wiki-conceptual.png" alt="Voice → Wiki: voice memo becomes a structured markdown note" style="width:100%; border-radius:8px;" />
+  <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">Voice memo in, structured wiki page out.</figcaption>
+</figure>
+
 Four pieces make the stack:
 
 **[OpenClaw](https://github.com/openclaw/openclaw)** — the open-source Node.js gateway. It connects messaging channels to AI models, handles session management and tool dispatch, and gets configured with JSON files and markdown documents called "workspace files."
@@ -235,11 +240,14 @@ Four pieces make the stack:
 
 **Telegram** — the bot automation-friendly interface. A bot created via [@BotFather](https://t.me/BotFather). Forum topics give you separate threads — research, voice notes, general chat — each with isolated history.
 
-![The full stack: Telegram → EC2 → Bedrock, with S3, Transcribe, and GitHub in the loop](/blog/ai-stack-overview-dark-v2.png)
+![Ford's AI Assistant Stack: Telegram → EC2 (workspace files + Claude Sonnet 4.6) → GitHub repos + S3](/blog/03-ai-assistant-stack.png)
 *t4g.medium on Graviton, no public ports, Claude Sonnet 4.6 via Bedrock.*
 
-![OpenClaw System Architecture](/blog/openclaw-system-architecture.png)
+![OpenClaw: Personal AI Assistant on AWS — gateway, workspace files, shell tools, memory tiers, external services](/blog/01-openclaw-system-architecture.png)
 *One EC2 instance. One gateway process. All access via SSM. Bedrock called on every message — no inference on the instance itself.*
+
+![Telegram desktop — topics, threads, voice notes, research](/blog/telegram-desktop.png)
+*What it actually looks like to use: forum topics as separate threads, each with isolated history.*
 
 The thing that makes this interesting isn't the stack — it's how you program it. Six markdown files on disk get injected into the prompt on every message. \`SOUL.md\` is the personality. \`USER.md\` is who you are. \`AGENTS.md\` is the operating manual. \`MEMORY.md\` is curated long-term facts. Together they're about 6,650 tokens — 3% of the model's context window. The bot always knows who it is, who it's talking to, and what its tools are, without you having to re-explain anything.
 
@@ -277,7 +285,13 @@ On Telegram, I created a bot through @BotFather, got a token, dropped it into th
 
 With Telegram working, the first real feature was voice memo ingestion. The idea: send a voice memo, the bot transcribes it, and passes it to OpenClaw for action (in this case ingesting it into the LLM Wiki knowledge base).
 
+![Voice → Wiki: Telegram voice memo becomes a structured markdown note via AWS](/blog/05-voice-to-wiki-conceptual.png)
+*The concept: voice memo in, structured wiki page out.*
+
 Diving deep for a minute: the pipeline is 4 steps. Telegram delivers the voice message as a [\`.oga\`](https://en.wikipedia.org/wiki/Ogg) file. A shell script stages it to [S3](https://docs.aws.amazon.com/s3/) and submits a job to [AWS Transcribe](https://docs.aws.amazon.com/transcribe/). Transcribe returns a JSON transcript. A second model pass extracts entities and creates or updates wiki pages in the knowledge base repo — people, places, projects, anything worth remembering. The whole thing runs in the background and the bot acknowledges when it's done.
+
+![Voice to Knowledge: How a Voice Memo Becomes a Wiki Page — all 7 stages from input to GitHub Markdown](/blog/10-voice-pipeline-horizontal.png)
+*Voice Input → Telegram → OpenClaw EC2 → AWS Transcribe → S3 (1-day lifecycle) → GitHub Markdown → Confirmation.*
 
 There were a few bugs. The most interesting one: [Amazon Nova 2 Lite](https://aws.amazon.com/bedrock/nova/) — the model that ships with the official CloudFormation template, which is what I had been running the whole time — turned out to be incapable of following OpenClaw's workspace file instructions at any useful depth. The personality didn't hold. Tool protocols were bypassed. When I added transcription capability to \`AGENTS.md\` and the bot denied it could transcribe audio at all, I assumed it was a prompting problem. It wasn't. Nova 2 Lite degrades on instruction-following as context grows. It's optimized for speed, not for holding a 6,650-token system prompt across a real conversation.
 
@@ -297,13 +311,19 @@ From there, the system really started to open up around two core intake flows.
 
 Both flows feed the same underlying knowledge base, but from opposite directions. One pulls in external intelligence and distills it. The other captures internal context and refines it. Together, they start to form something that actually feels like memory instead of just storage.
 
+![Knowledge Layers: Agent Governance → LLM Wiki → Raw Sources](/blog/11-knowledge-layers.png)
+*Three tiers. Config and prompt files feed governance. Governance writes to the wiki. The wiki draws from raw sources.*
+
+![Voice to Knowledge: The Full Pipeline — 9 stages from capture to retrieval](/blog/02-voice-to-knowledge-pipeline.png)
+*From Ford speaking into his phone to a retrievable wiki page, including the git push, GitHub Actions index rebuild, and SSM notify.*
+
 ### Emergent Pattern #1: Skills as Operational Memory
 
 One pattern repeated throughout the build: whenever I figured out how to do something — how to run a deployment step, how to debug a [systemd](https://www.freedesktop.org/software/systemd/man/systemd.html) issue, how to structure a [Bats](https://github.com/bats-core/bats-core) test, how to handle the SSM environment correctly — I would stop and ask the AI to turn that into a reusable skill.
 
 TLDR; forget a doc or code comment! In 2026 I put everything in structured, loadable instruction sets that can be invoked in future session without having to rediscover the same workflow from scratch. This saves on tokens and reduces inference entropy.
 
-![Without Skills vs. With Skills](/blog/with-skills.png)
+![Without Skills vs. With Skills](/blog/07-with-skills.png)
 *Same tokens, deeper thinking. Without skills, the AI explores broadly and fails often. With skills, the early branches are pre-solved.*
 
 I'm not kidding that this skills-first strategy has became a major part of how I work. Every solved problem has a post-hook of "what skill would you update based on what you learned in this session?". This creates a flywheel where each session starts from a richer operational baseline than the one before.
@@ -324,8 +344,11 @@ For most of the three days, my process was a simple feedback loop: something bro
 
 When the SSM session state got too noisy — terminal memory overloading Cursor's context, the session becoming less coherent — I would shift the model into advisory mode. Instead of letting it drive the shell, I asked for the exact commands to run in sequence. I ran them myself, collected the output, and pasted it back. Human driving, AI navigating. Less elegant but more reliable when the environment was fighting both of us.
 
-![The Three-Day Feedback Loop](/blog/three-day-feedback-loop.png)
+![The Three-Day Feedback Loop](/blog/12-three-day-feedback-loop.png)
 *Two variants of the same cycle. Bot-driven when it could fix things itself. Human-driven when the environment got too noisy.*
+
+![Two Loops: How OpenClaw Gets Smarter — phone loop daily, laptop loop weekly, both writing to the same repos](/blog/04-two-loops-workflow.png)
+*The steady-state operational pattern after the build: phone loop for daily use, laptop loop for weekly development.*
 
 I used Sonnet 4.6 for most tasks. I escalated to Opus when Sonnet clearly could not break through — usually when the system state was complex and the task required holding a lot in context at once. Those escalations were conscious choices, not defaults.
 
@@ -379,6 +402,9 @@ Every gateway restart — from a config change, a crash, or the systemd health m
 
 The phone showed: *Can't link new devices at this time.*
 
+![The WhatsApp Death Spiral: health monitor restarts → stale credentials → Baileys retries → rate limit → repeat](/blog/09-whatsapp-death-spiral.png)
+*20+ restarts × exponential backoff = hundreds of failed auth attempts in one afternoon.*
+
 The fix was breaking the cycle entirely: stop the service, delete all credential files, wait, then run the pairing command directly on the server terminal — no browser, no SSM WebSocket layer, just a QR code rendered in the terminal. Scan it. Done.
 
 **What this tells you:** A health monitor that restarts a service with aggressive reconnect behavior will eventually trigger rate limiting or bans. The restart loop is the bug, not the reconnect logic. WhatsApp's unofficial client support is inherently fragile — [Baileys](https://github.com/WhiskeySockets/Baileys) reverse-engineers a protocol WhatsApp actively discourages. Telegram has none of these problems.
@@ -403,7 +429,7 @@ The fix: an \`EnvironmentFile=\` directive in the systemd service unit pointing 
 
 **What this tells you:** On a Linux server, there are at least three distinct paths for environment variables: SSM Parameter Store, user profile scripts, and systemd's own environment. They don't automatically connect. Systemd is authoritative for processes it manages. Put variables where [systemd](https://www.freedesktop.org/software/systemd/man/systemd.html) will actually see them, and verify with \`/proc/<pid>/environ\` rather than assuming.
 
-![The Environment Variable Gap](/blog/env-variable-gap.png)
+![The Environment Variable Gap](/blog/08-env-variable-gap.png)
 *Three paths for API keys. Only one reached the running gateway process.*
 
 ---
@@ -428,7 +454,7 @@ Checking the gateway logs revealed: \`agent model: amazon-bedrock/global.amazon.
 
 **What this tells you:** When an agent consistently ignores its workspace files, the first thing to check is which model is actually running — not how the instructions are written. Nova 2 Lite and Sonnet 4.6 aren't the same tier; they're different model classes. Nova 2 Lite is optimized for speed and degrades on instruction-following as context length increases. Making the instructions louder doesn't help if the model isn't reading them.
 
-![The Model-Class Cliff](/blog/model-class-cliff.png)
+![The Model-Class Cliff](/blog/06-model-class-cliff.png)
 *Same workspace files, same instructions. Nova 2 Lite ignored them. Sonnet 4.6 followed them.*
 
 ---
