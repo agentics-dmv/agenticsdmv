@@ -223,9 +223,7 @@ That is where this started.
 
 ## What It Is
 
-It's a personal AI assistant that lives on a server, talks to you over Telegram, and keeps running whether your laptop is open or not.
-
-You send it a message. It responds. Within a conversation it tracks context, and across sessions it accumulates knowledge about you — your projects, goals, relationships, the things you talk about repeatedly. You can send a voice memo and it transcribes and files it. You can ask it to research something and it'll commission a deep research report, publish it to a versioned library, and notify you when it's done.
+It's a personal AI assistant that lives on a server, talks to you over Telegram, and keeps running whether your laptop is open or not. Within Telegram, you set up a group and topics in these groups. Within each topic, you send a message, it responds, and within each topic, it tracks context. Across all sessions, it accumulates knowledge about you — your projects, goals, relationships, the things you talk about repeatedly. You can send a voice memo and it transcribes and files it. You can ask it to research something and it'll commission a deep research report, publish it to a versioned library, and notify you when it's done.
 
 Four pieces make the stack:
 
