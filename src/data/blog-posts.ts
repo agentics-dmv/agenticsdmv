@@ -277,11 +277,11 @@ On Telegram, I created a bot through @BotFather, got a token, dropped it into th
 
 With Telegram working, the first real feature was voice memo ingestion. The idea: send a voice memo, the bot transcribes it, files it into the knowledge base.
 
-The pipeline is four steps. Telegram delivers the voice message as a `.oga` file. A shell script stages it to S3 and submits a job to AWS Transcribe. Transcribe returns a JSON transcript. A second model pass extracts entities and creates or updates wiki pages in the knowledge base repo — people, places, projects, anything worth remembering. The whole thing runs in the background and the bot acknowledges when it's done.
+The pipeline is four steps. Telegram delivers the voice message as a \`.oga\` file. A shell script stages it to S3 and submits a job to AWS Transcribe. Transcribe returns a JSON transcript. A second model pass extracts entities and creates or updates wiki pages in the knowledge base repo — people, places, projects, anything worth remembering. The whole thing runs in the background and the bot acknowledges when it's done.
 
-There were a few bugs. The most interesting one: Amazon Nova 2 Lite — the model that ships with the official CloudFormation template, which is what I had been running the whole time — turned out to be incapable of following OpenClaw's workspace file instructions at any useful depth. The personality didn't hold. Tool protocols were bypassed. When I added transcription capability to `AGENTS.md` and the bot denied it could transcribe audio at all, I assumed it was a prompting problem. It wasn't. Nova 2 Lite degrades on instruction-following as context grows. It's optimized for speed, not for holding a 6,650-token system prompt across a real conversation.
+There were a few bugs. The most interesting one: Amazon Nova 2 Lite — the model that ships with the official CloudFormation template, which is what I had been running the whole time — turned out to be incapable of following OpenClaw's workspace file instructions at any useful depth. The personality didn't hold. Tool protocols were bypassed. When I added transcription capability to \`AGENTS.md\` and the bot denied it could transcribe audio at all, I assumed it was a prompting problem. It wasn't. Nova 2 Lite degrades on instruction-following as context grows. It's optimized for speed, not for holding a 6,650-token system prompt across a real conversation.
 
-One `sed` command to swap the model ID. Restarted the service. The personality took hold on the next message. [→ Bug 7](#bug-7-the-wrong-model-was-running)
+One \`sed\` command to swap the model ID. Restarted the service. The personality took hold on the next message. [→ Bug 7](#bug-7-the-wrong-model-was-running)
 
 ### The Refactor
 
