@@ -271,7 +271,7 @@ For example: My Telegram account was banned thanks to the sins of whoever owned 
 
 ### Telegram: The Better Fit All Along
 
-On Telegram, I created a bot through @BotFather, got a token, dropped it into the config, and restarted the service (unliked WhatsApp: no QR codes, no weird pairing flows, no credential state to corrupt, no protocol that WhatsApp was actively trying to hack).
+On Telegram, I created a bot through @BotFather, got a token, dropped it into the config, and restarted the service (no QR codes, no weird pairing flows, no credential state to corrupt, no protocol that WhatsApp was actively trying to hack).
 
 ### Voice Memo Ingestion
 
@@ -398,6 +398,24 @@ The system is being built to answer a question that requires knowing the person 
 *What should I do today?*
 
 That's version N. We're on version 1.
+
+---
+
+## What's Next
+
+At this point there's not much more to explain about the core system. What emerged was a clean feedback loop where the bot can partially fix itself. I built out a set of skills that made it easy to pass commands back and forth — instead of constantly intervening, I could guide it at a higher level. The development and debugging flow ended up being surprisingly fluid, especially once the system had enough context to reason about its own state.
+
+The interesting part now isn't what it does today. It's what comes next.
+
+**Knowledge base enrichment and propagation.** Ingestion works, but it's still too literal. I want to introduce a cloud agent that runs whenever a new entry is added. Its job: normalize, enrich, and distribute that information across the system. So instead of just storing "I'm going to the beach this summer," it adds it to events and places, links it to relationships, maps it to goals. Turning isolated facts into connected knowledge. This is partially working today but not yet consistent enough. The target is something closer to semantic propagation across the knowledge graph, even if I'm not calling it that out loud.
+
+**Transcription upgrade to Whisper.** Amazon Transcribe works fine. Fine isn't a compelling long-term strategy. Whisper is more accurate, more resilient to real-world audio, and still affordable enough to justify the switch. This doesn't change the architecture — just the quality of everything downstream.
+
+**Prompt caching and session efficiency.** This one is already working quietly. Running on EC2 allows session reuse, so context doesn't have to be rebuilt from scratch on every message. That keeps latency down and keeps costs from creeping up as usage increases. Not flashy, but the kind of detail that makes the system actually sustainable.
+
+**Structured self-improvement via GitHub issues.** Right now improvements are still ad hoc. I want to formalize the loop: describe a feature or bug in a Telegram topic, that automatically creates a GitHub issue, the issue triggers a cloud agent workflow, the agent implements the change, pushes the code, handles redeployment. Intent directly into shipped changes. Less "open a ticket and come back later," more "state the problem and let the system close the loop."
+
+**Dedicated Q&A interface.** A clean way to actually use all of this — not another bot, just a dedicated Telegram topic. A place to ask questions and get answers grounded in everything the system has ingested. The ingestion pipeline is already doing the hard work of building context. This is just the surface layer where that context becomes useful.
 
 ---
 
