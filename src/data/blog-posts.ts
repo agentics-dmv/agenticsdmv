@@ -56,9 +56,9 @@ Three things converged between 2023 and 2026, and their combination is what made
   <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">Three shifts that converged. Any one alone wouldn't have been enough.</figcaption>
 </figure>
 
-**Context windows grew by two orders of magnitude.** Claude Sonnet 4.6 has a 200,000-token context window. The workspace files that define my assistant's personality, knowledge, tools, and operating protocols are 6,650 tokens combined — 3% of that window. An early agent running on a 4k-token model couldn't hold its own operating instructions while also tracking a multi-step task. The ratio was wrong. Now it's not.
+**Context windows grew by two orders of magnitude.** [Claude Sonnet 4.6](https://www.anthropic.com/claude) has a 200,000-token context window. The workspace files that define my assistant's personality, knowledge, tools, and operating protocols are 6,650 tokens combined — 3% of that window. An early agent running on a 4k-token model couldn't hold its own operating instructions while also tracking a multi-step task. The ratio was wrong. Now it's not.
 
-**Models crossed the instruction-following threshold.** There's a qualitative difference between a model that follows a 500-token system prompt and one that follows a 6,650-token prompt with fidelity across a long conversation. This post has an entire bug entry about this: the system ran Amazon Nova 2 Lite for days while I thought it was Sonnet, and the tell was that the workspace files were being progressively ignored as conversations grew longer. Both models are capable. Only one of them held the instructions at depth. That's not a marginal difference — it's the difference between a system that works and one that degrades.
+**Models crossed the instruction-following threshold.** There's a qualitative difference between a model that follows a 500-token system prompt and one that follows a 6,650-token prompt with fidelity across a long conversation. This post has an entire bug entry about this: the system ran [Amazon Nova 2 Lite](https://aws.amazon.com/bedrock/nova/) for days while I thought it was Sonnet, and the tell was that the workspace files were being progressively ignored as conversations grew longer. Both models are capable. Only one of them held the instructions at depth. That's not a marginal difference — it's the difference between a system that works and one that degrades.
 
 **Inference costs dropped enough to make persistence economical.** Running an always-on agent means paying for inference on every message, indefinitely. At 2022 prices, that was a real commitment. At current prices — with prompt caching hitting at $0.30/M tokens instead of $3.00/M — persistence is just a feature, not a business decision. Gartner projects a 90% cost reduction in LLM inference by 2030. The economics are already most of the way there.
 
@@ -148,7 +148,7 @@ Before the model sees the message, the gateway assembles the full prompt from fo
 
 ### Stage 4: Inference and Structured Tool Calling
 
-The assembled context goes to the model — Claude Sonnet 4.6 via Amazon Bedrock, called using the instance IAM role, no credentials stored anywhere.
+The assembled context goes to the model — [Claude Sonnet 4.6](https://www.anthropic.com/claude) via [Amazon Bedrock](https://docs.aws.amazon.com/bedrock/), called using the instance [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html), no credentials stored anywhere.
 
 One thing that matters a lot here: [structured function calling](https://platform.openai.com/docs/guides/function-calling), which OpenAI standardized in June 2023 and [Anthropic followed](https://docs.anthropic.com/en/docs/build-with-claude/tool-use). Before this, agents had to write something like "I need to run the research tool" in free-form text and hope a parser caught it. Now the model emits a structured JSON tool call with schema-validated parameters. The gateway intercepts it, routes it, feeds back a structured result. The schema is enforced at the provider level, not in your code.
 
@@ -279,19 +279,19 @@ With Telegram working, the first real feature was voice memo ingestion. The idea
 
 Diving deep for a minute: the pipeline is 4 steps. Telegram delivers the voice message as a [\`.oga\`](https://en.wikipedia.org/wiki/Ogg) file. A shell script stages it to [S3](https://docs.aws.amazon.com/s3/) and submits a job to [AWS Transcribe](https://docs.aws.amazon.com/transcribe/). Transcribe returns a JSON transcript. A second model pass extracts entities and creates or updates wiki pages in the knowledge base repo — people, places, projects, anything worth remembering. The whole thing runs in the background and the bot acknowledges when it's done.
 
-There were a few bugs. The most interesting one: Amazon Nova 2 Lite — the model that ships with the official CloudFormation template, which is what I had been running the whole time — turned out to be incapable of following OpenClaw's workspace file instructions at any useful depth. The personality didn't hold. Tool protocols were bypassed. When I added transcription capability to \`AGENTS.md\` and the bot denied it could transcribe audio at all, I assumed it was a prompting problem. It wasn't. Nova 2 Lite degrades on instruction-following as context grows. It's optimized for speed, not for holding a 6,650-token system prompt across a real conversation.
+There were a few bugs. The most interesting one: [Amazon Nova 2 Lite](https://aws.amazon.com/bedrock/nova/) — the model that ships with the official CloudFormation template, which is what I had been running the whole time — turned out to be incapable of following OpenClaw's workspace file instructions at any useful depth. The personality didn't hold. Tool protocols were bypassed. When I added transcription capability to \`AGENTS.md\` and the bot denied it could transcribe audio at all, I assumed it was a prompting problem. It wasn't. Nova 2 Lite degrades on instruction-following as context grows. It's optimized for speed, not for holding a 6,650-token system prompt across a real conversation.
 
 One \`sed\` command to swap the model ID. Restarted the service. The personality took hold on the next message. [→ Bug 7](#bug-7-the-wrong-model-was-running)
 
 ### The Refactor
 
-With Sonnet 4.6 running, it became obvious the tool scripts were rough. Even after escalating to Opus within Cursor IDE, I found my context windows for updates were struggling with high-confidence updates and testing. So I halted dev and spent 4 hours and roughly $45 in Opus 4.6 Thinking tokens refactoring the whole thing to add 200+ integration and unit tests.
+With Sonnet 4.6 running, it became obvious the tool scripts were rough. Even after escalating to Opus within [Cursor](https://cursor.com) IDE, I found my context windows for updates were struggling with high-confidence updates and testing. So I halted dev and spent 4 hours and roughly $45 in Opus 4.6 Thinking tokens refactoring the whole thing to add 200+ integration and unit tests.
 
 This helped me tightened the tool layer, made execution more deterministic, and gave me way more confidence in making updates. Side benefit: it also significantly cleaned up how state and filesystem interactions were handled.
 
 From there, the system really started to open up around two core intake flows.
 
-**Research** is designed for depth. It takes a prompt or topic, expands it outward using external sources, and synthesizes results into a structured markdown report that lands in a versioned library. The index is a flat JSON file — not a vector database — which at 500 entries fits in ~15k tokens and stays well within Sonnet's context window. Reports are published via async callbacks so the gateway never holds a connection open for 10 minutes waiting; a GitHub Actions workflow rebuilds the index and SSM-notifies the running gateway when it's done. No static credentials, no open ports. Over time this becomes a compounding asset — not just a chat history you forget exists.
+**Research** is designed for depth. It takes a prompt or topic, expands it outward using external sources, and synthesizes results into a structured markdown report that lands in a versioned library. The index is a flat JSON file — not a vector database — which at 500 entries fits in ~15k tokens and stays well within Sonnet's context window. Reports are published via async callbacks so the gateway never holds a connection open for 10 minutes waiting; a [GitHub Actions](https://docs.github.com/en/actions) workflow rebuilds the index and SSM-notifies the running gateway when it's done. No static credentials, no open ports. Over time this becomes a compounding asset — not just a chat history you forget exists.
 
 **Knowledge base ingestion** is more personal and continuous. Voice memos, notes, day-to-day inputs — they get transformed into structured knowledge. Heavily inspired by LLM Wiki: raw inputs compiled into organized, navigable documents that evolve over time. Instead of dumping text into a folder, the system incrementally builds something closer to a living, queryable map of your own thinking.
 
@@ -320,7 +320,7 @@ What the bot was not: self-deploying. It would fix something, commit it, and sto
 
 ### Emergent Pattern #3: The Working Loop
 
-For most of the three days, my process was a simple feedback loop: something broke, I read the error, I fed it to the model in Cursor, the model produced a fix or a diagnostic step, I ran it, I fed the output back. Sometimes the error came from the AWS logs directly. Sometimes I copied Telegram output into Cursor. The channel did not matter — what mattered was that the loop was fast.
+For most of the three days, my process was a simple feedback loop: something broke, I read the error, I fed it to the model in [Cursor](https://cursor.com), the model produced a fix or a diagnostic step, I ran it, I fed the output back. Sometimes the error came from the AWS logs directly. Sometimes I copied Telegram output into Cursor. The channel did not matter — what mattered was that the loop was fast.
 
 When the SSM session state got too noisy — terminal memory overloading Cursor's context, the session becoming less coherent — I would shift the model into advisory mode. Instead of letting it drive the shell, I asked for the exact commands to run in sequence. I ran them myself, collected the output, and pasted it back. Human driving, AI navigating. Less elegant but more reliable when the environment was fighting both of us.
 
@@ -395,7 +395,7 @@ The Telegram plugin required a \`botToken\` field in \`openclaw.json\`. The firs
 
 ### Bug 5: The API Key That Never Reached the Process
 
-The research tool required a \`PARALLEL_API_KEY\` environment variable. The key had been stored in AWS SSM Parameter Store — but nothing had ever fetched it and written it into the instance's environment. The \`.env\` file on disk had \`PARALLEL_API_KEY=\` since day one.
+The research tool required a \`PARALLEL_API_KEY\` environment variable. The key had been stored in [AWS SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) — but nothing had ever fetched it and written it into the instance's environment. The \`.env\` file on disk had \`PARALLEL_API_KEY=\` since day one.
 
 Fixing the \`.env\` file revealed a second layer: even with the file written correctly and a \`.profile\` source line in place, the gateway service was started by systemd, and systemd user services don't source \`.profile\`. The service had been running with the key unset in its actual process environment the entire time. Interactive SSH sessions saw the key; the running gateway didn't.
 
@@ -473,7 +473,7 @@ The fix: a short Python frontmatter parser instead of grep, and heredoc delimite
 
 ### Bug 12: Research Output Rendering as Raw JSON
 
-The first deep research reports published to the knowledge base repo rendered on GitHub as 250 lines of nested JSON objects — completely unreadable. \`research-and-publish.sh\` was calling Parallel AI's Task API with \`output_schema: { type: "auto" }\`, which returns structured data. The script had no step to turn that data into readable prose, so it committed the raw JSON directly.
+The first deep research reports published to the knowledge base repo rendered on GitHub as 250 lines of nested JSON objects — completely unreadable. \`research-and-publish.sh\` was calling [Parallel AI](https://parallel.ai)'s Task API with \`output_schema: { type: "auto" }\`, which returns structured data. The script had no step to turn that data into readable prose, so it committed the raw JSON directly.
 
 The fix was changing the output mode to \`"text"\`, which returns a markdown narrative report with inline citations. No schema, no downstream formatting step. This also deleted a 36-line Bedrock reformatting stage that had been added to compensate for the raw JSON — a stage with its own silent failure mode that was no longer needed.
 
