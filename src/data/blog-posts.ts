@@ -29,7 +29,7 @@ All of this — deployment through voice pipeline through research library — h
 
 Before OpenClaw made sense to me, I had to understand what came before it — and why it was genuinely different.
 
-For a decade, automation meant Zapier. Or IFTTT. Or, more recently, n8n. These tools shared a common architecture: you defined a trigger, you defined a sequence of steps, data flowed through in one direction, and the workflow terminated. A new email arrives → parse it → create a Trello card. A form submits → validate → write to a database → notify Slack. Clean, predictable, auditable. If This, Then That — literally what the category was called.
+For a decade, automation meant [Zapier](https://zapier.com). Or [IFTTT](https://ifttt.com). Or, more recently, [n8n](https://n8n.io). These tools shared a common architecture: you defined a trigger, you defined a sequence of steps, data flowed through in one direction, and the workflow terminated. A new email arrives → parse it → create a Trello card. A form submits → validate → write to a database → notify Slack. Clean, predictable, auditable. If This, Then That — literally what the category was called.
 
 These platforms eventually added LLMs. But *how* they added them is the key thing. The LLM was a node in a pipeline someone else defined. A smarter formatting step. "Take this customer complaint and classify it as billing, technical, or other." The model received a fixed input, produced a structured output, and the workflow moved on. It didn't plan. It didn't decide what tools to call next. It didn't remember yesterday. It was deterministic automation with a reasoning step inserted — the plumbing was still rigid, the logic was still explicit, the state still evaporated when the workflow terminated.
 
@@ -38,7 +38,7 @@ These platforms eventually added LLMs. But *how* they added them is the key thin
   <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">One box among equals. No memory, no planning, no initiative — just a smarter formatting step.</figcaption>
 </figure>
 
-The first attempts to break this model arrived in 2023: AutoGPT, BabyAGI, the early LangChain agent abstractions. These gave models the ability to call tools in a loop — the "ReAct" pattern: reason about what to do, take an action, observe the result, reason again. That was the right instinct. The implementation collapsed. Models with 4,000-token context windows couldn't hold a multi-step task's constraints from step one to step twenty. Agents hallucinated progress. They looped. They burned through API credits on the same failed call, retried until the credits ran out, and stopped without completing anything.
+The first attempts to break this model arrived in 2023: [AutoGPT](https://github.com/Significant-Gravitas/AutoGPT), [BabyAGI](https://github.com/yoheinakajima/babyagi), the early [LangChain](https://docs.langchain.com/docs/components/agents/) agent abstractions. These gave models the ability to call tools in a loop — the "[ReAct](https://arxiv.org/abs/2210.03629)" pattern: reason about what to do, take an action, observe the result, reason again. That was the right instinct. The implementation collapsed. Models with 4,000-token context windows couldn't hold a multi-step task's constraints from step one to step twenty. Agents hallucinated progress. They looped. They burned through API credits on the same failed call, retried until the credits ran out, and stopped without completing anything.
 
 The problem wasn't that agents were a bad idea. The infrastructure wasn't ready.
 
@@ -115,13 +115,13 @@ The marketing pitch for agentic AI tends toward abstraction. "It reasons. It act
 
 ### The Gateway Is Not a Web Server
 
-OpenClaw runs as a long-lived daemon — a systemd service on Linux, a LaunchAgent on macOS. It binds to \`ws://127.0.0.1:18789\` and holds that port for the lifetime of the process. One process owns everything: channel adapters for Telegram/WhatsApp/Slack, the web control UI, the CLI, the cron scheduler, all plugin lifecycle management.
+OpenClaw runs as a long-lived daemon — a [systemd](https://www.freedesktop.org/software/systemd/man/systemd.html) service on Linux, a LaunchAgent on macOS. It binds to \`ws://127.0.0.1:18789\` and holds that port for the lifetime of the process. One process owns everything: channel adapters for Telegram/WhatsApp/Slack, the web control UI, the CLI, the cron scheduler, all plugin lifecycle management.
 
 A web server terminates after each response. The gateway doesn't. It's already running when your message arrives. It knows the context from every prior message this session. The right mental model is a message broker, not an HTTP handler — it holds state, it queues work, it emits lifecycle events that everything else hooks into.
 
 ### Stage 1: Channel Normalization
 
-When a message arrives, the channel adapter normalizes it before anything else. Telegram comes in through grammY. WhatsApp through Baileys — a reverse-engineered client that speaks WhatsApp's unofficial web protocol. Voice memos, images, and text all become the same internal object: sender ID, channel, content type, content, timestamp.
+When a message arrives, the channel adapter normalizes it before anything else. Telegram comes in through [grammY](https://grammy.dev). WhatsApp through [Baileys](https://github.com/WhiskeySockets/Baileys) — a reverse-engineered client that speaks WhatsApp's unofficial web protocol. Voice memos, images, and text all become the same internal object: sender ID, channel, content type, content, timestamp.
 
 That's why the same workspace files and the same model work across every channel. By the time the message reaches the model, it has no idea which surface it came from.
 
@@ -137,9 +137,9 @@ Before the model sees the message, the gateway assembles the full prompt from fo
 
 **Workspace files** — read from disk on every single turn. SOUL.md, USER.md, AGENTS.md, TOOLS.md. Re-injected fresh every message, not held in a conversation object that drifts. The programming surface is the filesystem: edit a file, restart nothing, next message follows the new instructions.
 
-**MEMORY.md and daily notes** — long-term facts extracted from past conversations, plus an append-only daily log in \`memory/YYYY-MM-DD.md\`. Plain Markdown files, indexed into a per-agent SQLite database that re-indexes automatically when files change. When a memory is wrong, you edit the file and commit it.
+**MEMORY.md and daily notes** — long-term facts extracted from past conversations, plus an append-only daily log in \`memory/YYYY-MM-DD.md\`. Plain Markdown files, indexed into a per-agent [SQLite](https://www.sqlite.org/index.html) database that re-indexes automatically when files change. When a memory is wrong, you edit the file and commit it.
 
-**Session transcript** — a JSONL file on disk. Each turn is one appended line. When the transcript grows large enough, a compaction process summarizes older turns and evicts the raw history — but holds a token reserve back from the context window so compaction can always run without the model running out of room mid-task. The pre-compaction snapshot stays on disk for audit.
+**Session transcript** — a [JSONL](https://jsonlines.org) file on disk. Each turn is one appended line. When the transcript grows large enough, a compaction process summarizes older turns and evicts the raw history — but holds a token reserve back from the context window so compaction can always run without the model running out of room mid-task. The pre-compaction snapshot stays on disk for audit.
 
 **Skill manifests** — only skill *names* go into every prompt. The full SKILL.md file loads only when the model decides it's relevant. The model doesn't pay for expertise it won't use on this turn.
 
@@ -150,9 +150,9 @@ Before the model sees the message, the gateway assembles the full prompt from fo
 
 The assembled context goes to the model — Claude Sonnet 4.6 via Amazon Bedrock, called using the instance IAM role, no credentials stored anywhere.
 
-One thing that matters a lot here: structured function calling, which OpenAI standardized in June 2023 and Anthropic followed. Before this, agents had to write something like "I need to run the research tool" in free-form text and hope a parser caught it. Now the model emits a structured JSON tool call with schema-validated parameters. The gateway intercepts it, routes it, feeds back a structured result. The schema is enforced at the provider level, not in your code.
+One thing that matters a lot here: [structured function calling](https://platform.openai.com/docs/guides/function-calling), which OpenAI standardized in June 2023 and [Anthropic followed](https://docs.anthropic.com/en/docs/build-with-claude/tool-use). Before this, agents had to write something like "I need to run the research tool" in free-form text and hope a parser caught it. Now the model emits a structured JSON tool call with schema-validated parameters. The gateway intercepts it, routes it, feeds back a structured result. The schema is enforced at the provider level, not in your code.
 
-OpenClaw also supports MCP — Anthropic's November 2024 standard for tool and data connections. MCP servers attach via a bridge called \`mcporter\` and can be added or swapped without restarting the gateway. New tool surfaces don't require gateway changes. Just a new MCP server config.
+OpenClaw also supports [MCP](https://github.com/anthropics/mcp) — Anthropic's November 2024 standard for tool and data connections. MCP servers attach via a bridge called \`mcporter\` and can be added or swapped without restarting the gateway. New tool surfaces don't require gateway changes. Just a new MCP server config.
 
 ### Stage 5: The ReAct Loop
 
@@ -229,9 +229,9 @@ Four pieces make the stack:
 
 **[OpenClaw](https://github.com/openclaw/openclaw)** — the open-source Node.js gateway. It connects messaging channels to AI models, handles session management and tool dispatch, and gets configured with JSON files and markdown documents called "workspace files."
 
-**AWS EC2** — a \`t4g.medium\` instance, ARM64/Graviton, no public ports. All access goes through AWS Systems Manager. (The gateway runs as a systemd service.)
+**AWS EC2** — a [\`t4g.medium\`](https://aws.amazon.com/ec2/instance-types/t4g/) instance, ARM64/Graviton, no public ports. All access goes through [AWS Systems Manager](https://docs.aws.amazon.com/systems-manager/). (The gateway runs as a [systemd](https://www.freedesktop.org/software/systemd/man/systemd.html) service.)
 
-**Amazon Bedrock** — the model API. The instance calls it directly via its IAM role using Claude Sonnet 4.6. The instance runs no inference — it assembles a prompt and sends it to Bedrock's endpoint.
+**[Amazon Bedrock](https://docs.aws.amazon.com/bedrock/)** — the model API. The instance calls it directly via its IAM role using Claude Sonnet 4.6. The instance runs no inference — it assembles a prompt and sends it to Bedrock's endpoint.
 
 **Telegram** — the bot automation-friendly interface. A bot created via [@BotFather](https://t.me/BotFather). Forum topics give you separate threads — research, voice notes, general chat — each with isolated history.
 
@@ -263,7 +263,7 @@ Anyways, once I felt like I had a rough working model of how OpenClaw operated, 
 
 I used to work on the AWS SDK Code Examples team, so I knew to go straight to the aws-samples repo and found [this CloudFormation template](https://github.com/aws-samples/sample-OpenClaw-on-AWS-with-Bedrock). I cloned it, loaded up some leftover free credits I had from a previous event, loaded up $20 in Cursor tokens, and started vibing. Overall, the plan was to deploy first and understand later.
 
-The official CloudFormation template handled everything: IAM role, security groups, user-data script installing OpenClaw from npm, systemd service. Stack came up in 8 minutes.
+The official [CloudFormation](https://docs.aws.amazon.com/cloudformation/) template handled everything: IAM role, security groups, user-data script installing OpenClaw from npm, systemd service. Stack came up in 8 minutes.
 
 To interact with the deployment on EC2, you had to create a connection via SSM Session Manager, naviate to a URL, and click buttons on a poorly-vibed UI.
 
@@ -277,7 +277,7 @@ On Telegram, I created a bot through @BotFather, got a token, dropped it into th
 
 With Telegram working, the first real feature was voice memo ingestion. The idea: send a voice memo, the bot transcribes it, and passes it to OpenClaw for action (in this case ingesting it into the LLM Wiki knowledge base).
 
-Diving deep for a minute: the pipeline is 4 steps. Telegram delivers the voice message as a \`.oga\` file. A shell script stages it to S3 and submits a job to AWS Transcribe. Transcribe returns a JSON transcript. A second model pass extracts entities and creates or updates wiki pages in the knowledge base repo — people, places, projects, anything worth remembering. The whole thing runs in the background and the bot acknowledges when it's done.
+Diving deep for a minute: the pipeline is 4 steps. Telegram delivers the voice message as a [\`.oga\`](https://en.wikipedia.org/wiki/Ogg) file. A shell script stages it to [S3](https://docs.aws.amazon.com/s3/) and submits a job to [AWS Transcribe](https://docs.aws.amazon.com/transcribe/). Transcribe returns a JSON transcript. A second model pass extracts entities and creates or updates wiki pages in the knowledge base repo — people, places, projects, anything worth remembering. The whole thing runs in the background and the bot acknowledges when it's done.
 
 There were a few bugs. The most interesting one: Amazon Nova 2 Lite — the model that ships with the official CloudFormation template, which is what I had been running the whole time — turned out to be incapable of following OpenClaw's workspace file instructions at any useful depth. The personality didn't hold. Tool protocols were bypassed. When I added transcription capability to \`AGENTS.md\` and the bot denied it could transcribe audio at all, I assumed it was a prompting problem. It wasn't. Nova 2 Lite degrades on instruction-following as context grows. It's optimized for speed, not for holding a 6,650-token system prompt across a real conversation.
 
@@ -299,7 +299,7 @@ Both flows feed the same underlying knowledge base, but from opposite directions
 
 ### Emergent Pattern #1: Skills as Operational Memory
 
-One pattern repeated throughout the build: whenever I figured out how to do something — how to run a deployment step, how to debug a systemd issue, how to structure a Bats test, how to handle the SSM environment correctly — I would stop and ask the AI to turn that into a reusable skill.
+One pattern repeated throughout the build: whenever I figured out how to do something — how to run a deployment step, how to debug a [systemd](https://www.freedesktop.org/software/systemd/man/systemd.html) issue, how to structure a [Bats](https://github.com/bats-core/bats-core) test, how to handle the SSM environment correctly — I would stop and ask the AI to turn that into a reusable skill.
 
 TLDR; forget a doc or code comment! In 2026 I put everything in structured, loadable instruction sets that can be invoked in future session without having to rediscover the same workflow from scratch. This saves on tokens and reduces inference entropy.
 
@@ -339,7 +339,7 @@ The interesting part now isn't what it does today. It's what comes next.
 
 **Knowledge base enrichment and propagation.** Ingestion works, but it's still too literal. I want to introduce a cloud agent that runs whenever a new entry is added. Its job: normalize, enrich, and distribute that information across the system. So instead of just storing "I'm going to the beach this summer," it adds it to events and places, links it to relationships, maps it to goals. Turning isolated facts into connected knowledge. This is partially working today but not yet consistent enough. The target is something closer to semantic propagation across the knowledge graph, even if I'm not calling it that out loud.
 
-**Transcription upgrade to Whisper.** Amazon Transcribe works fine. Fine isn't a compelling long-term strategy. Whisper is more accurate, more resilient to real-world audio, and still affordable enough to justify the switch. This doesn't change the architecture — just the quality of everything downstream.
+**Transcription upgrade to [Whisper](https://github.com/openai/whisper).** Amazon Transcribe works fine. Fine isn't a compelling long-term strategy. Whisper is more accurate, more resilient to real-world audio, and still affordable enough to justify the switch. This doesn't change the architecture — just the quality of everything downstream.
 
 **Structured self-improvement via GitHub issues.** Right now improvements are still ad hoc. I want to formalize the loop: describe a feature or bug in a Telegram topic, that automatically creates a GitHub issue, the issue triggers a cloud agent workflow, the agent implements the change, pushes the code, handles redeployment. Intent directly into shipped changes. Less "open a ticket and come back later," more "state the problem and let the system close the loop."
 
@@ -375,13 +375,13 @@ The OpenClaw Control UI uses WebSockets for its QR pairing flow — QR generatio
 
 ### Bug 3: The WhatsApp Death Spiral
 
-Every gateway restart — from a config change, a crash, or the systemd health monitor — triggered an automatic WhatsApp reconnect through Baileys, the library OpenClaw uses for WhatsApp's unofficial web protocol. WhatsApp's servers respond to repeated failed authentications with escalating rate limiting. Baileys retries on exponential backoff: 5s, 11s, 21s, 43s, 88s, 171s. Twenty-plus gateway restarts in one afternoon meant hundreds of failed reconnect attempts arriving in waves.
+Every gateway restart — from a config change, a crash, or the systemd health monitor — triggered an automatic WhatsApp reconnect through [Baileys](https://github.com/WhiskeySockets/Baileys), the library OpenClaw uses for WhatsApp's unofficial web protocol. WhatsApp's servers respond to repeated failed authentications with escalating rate limiting. Baileys retries on exponential backoff: 5s, 11s, 21s, 43s, 88s, 171s. Twenty-plus gateway restarts in one afternoon meant hundreds of failed reconnect attempts arriving in waves.
 
 The phone showed: *Can't link new devices at this time.*
 
 The fix was breaking the cycle entirely: stop the service, delete all credential files, wait, then run the pairing command directly on the server terminal — no browser, no SSM WebSocket layer, just a QR code rendered in the terminal. Scan it. Done.
 
-**What this tells you:** A health monitor that restarts a service with aggressive reconnect behavior will eventually trigger rate limiting or bans. The restart loop is the bug, not the reconnect logic. WhatsApp's unofficial client support is inherently fragile — Baileys reverse-engineers a protocol WhatsApp actively discourages. Telegram has none of these problems.
+**What this tells you:** A health monitor that restarts a service with aggressive reconnect behavior will eventually trigger rate limiting or bans. The restart loop is the bug, not the reconnect logic. WhatsApp's unofficial client support is inherently fragile — [Baileys](https://github.com/WhiskeySockets/Baileys) reverse-engineers a protocol WhatsApp actively discourages. Telegram has none of these problems.
 
 ---
 
@@ -399,9 +399,9 @@ The research tool required a \`PARALLEL_API_KEY\` environment variable. The key 
 
 Fixing the \`.env\` file revealed a second layer: even with the file written correctly and a \`.profile\` source line in place, the gateway service was started by systemd, and systemd user services don't source \`.profile\`. The service had been running with the key unset in its actual process environment the entire time. Interactive SSH sessions saw the key; the running gateway didn't.
 
-The fix: an \`EnvironmentFile=\` directive in the systemd service unit pointing directly at the \`.env\` file. Verification via \`cat /proc/<pid>/environ\` confirmed all three keys were present in the live process after restart.
+The fix: an \`EnvironmentFile=\` directive in the systemd service unit pointing directly at the \`.env\` file. Verification via \`cat /proc/<pid>/environ\` ([proc(5)](https://man7.org/linux/man-pages/man5/proc.5.html)) confirmed all three keys were present in the live process after restart.
 
-**What this tells you:** On a Linux server, there are at least three distinct paths for environment variables: SSM Parameter Store, user profile scripts, and systemd's own environment. They don't automatically connect. Systemd is authoritative for processes it manages. Put variables where systemd will actually see them, and verify with \`/proc/<pid>/environ\` rather than assuming.
+**What this tells you:** On a Linux server, there are at least three distinct paths for environment variables: SSM Parameter Store, user profile scripts, and systemd's own environment. They don't automatically connect. Systemd is authoritative for processes it manages. Put variables where [systemd](https://www.freedesktop.org/software/systemd/man/systemd.html) will actually see them, and verify with \`/proc/<pid>/environ\` rather than assuming.
 
 ![The Environment Variable Gap](/blog/env-variable-gap.png)
 *Three paths for API keys. Only one reached the running gateway process.*
@@ -445,7 +445,7 @@ The commit sat on the instance for days — inaccessible from any other environm
 
 ### Bug 9: IAM Permission Prefix Mismatch
 
-\`ingest-voice.sh\` submitted AWS Transcribe jobs with the name prefix \`openclaw-wiki-*\`. The IAM policy attached to the instance role was scoped to allow Transcribe job actions only for resources matching \`openclaw-voice-*\`. These two strings had been written independently and never compared. The first end-to-end run produced an access denied error visible only by reading the Transcribe job status directly — the script logged \`status: failed\` with no explanation.
+\`ingest-voice.sh\` submitted [AWS Transcribe](https://docs.aws.amazon.com/transcribe/) jobs with the name prefix \`openclaw-wiki-*\`. The IAM policy attached to the instance role was scoped to allow Transcribe job actions only for resources matching \`openclaw-voice-*\`. These two strings had been written independently and never compared. The first end-to-end run produced an access denied error visible only by reading the Transcribe job status directly — the script logged \`status: failed\` with no explanation.
 
 **What this tells you:** IAM resource patterns must be aligned with what the code actually generates. A mismatch doesn't fail at deploy time — it silently fails at the first real invocation. The fix is simple (align the prefix in the script to match the policy), but finding it requires knowing to look at the IAM policy at all.
 
