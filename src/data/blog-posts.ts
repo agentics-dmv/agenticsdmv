@@ -253,7 +253,18 @@ The thing that makes this interesting isn't the stack — it's how you program i
 
 To change the personality: edit \`SOUL.md\`, run \`make ship\`, send a message. Next response follows the new instructions. No redeployment, no restart, no config change; you write instructions in English & the model follows them.
 
-**Cost:** EC2 runs $26.93/month fixed, with everything else scaling with use (light: ~$40–60/month, moderate: ~$125/month). Unfortunately, the biggest lever is model selection; despite costing 9x more than Nove 2 Lite, Sonnet 4.6 was the cheapest model that could reliably follow a 6,650-token system prompt. So $40 is about as cheap as I could go.
+**Cost:** EC2 runs $26.93/month fixed. Everything else scales with use. The critical constraint is model selection: Claude Sonnet 4.6 costs 9× more than Nova 2 Lite — but Nova 2 Lite can't hold the 6,650-token system prompt at depth. That makes ~$40/month the realistic floor, not a choice.
+
+| Service | Light (~10 turns/day) | Moderate (~50/day) | Heavy (~200/day) |
+|---|---|---|---|
+| EC2 t4g.medium | $26.93 | $26.93 | $26.93 |
+| Claude Sonnet 4.6 | $9.45 | $47.25 | $189.00 |
+| *(Nova 2 Lite alt)* | *($1.10)* | *($5.48)* | *($21.90)* |
+| AWS Transcribe | $2.40 | $2.40 | $12.00 |
+| Parallel AI (core, 1 research/day) | $0.75 | $2.25 | $7.50 |
+| **Claude stack total** | **~$39.53** | **~$78.83** | **~$235.43** |
+
+Observed reality: heavy usage with aggressive prompt caching ran ~$125/month instead of the $189 projection — because most input tokens arrive as cache reads at $0.30/1M rather than raw input at $3.00/1M. Over 7 days, the actual breakdown was $24.04 in cache writes, $3.94 in cache reads, $0.34 in Nova 2 Lite (for lighter single-turn tasks), and $0.035 in Transcribe. The optimization target isn't token volume — it's cache write frequency.
 
 ---
 
@@ -306,6 +317,20 @@ This helped me tightened the tool layer, made execution more deterministic, and 
 From there, the system really started to open up around two core intake flows.
 
 **Research** is designed for depth. It takes a prompt or topic, expands it outward using external sources, and synthesizes results into a structured markdown report that lands in a versioned library. The index is a flat JSON file — not a vector database — which at 500 entries fits in ~15k tokens and stays well within Sonnet's context window. Reports are published via async callbacks so the gateway never holds a connection open for 10 minutes waiting; a [GitHub Actions](https://docs.github.com/en/actions) workflow rebuilds the index and SSM-notifies the running gateway when it's done. No static credentials, no open ports. Over time this becomes a compounding asset — not just a chat history you forget exists.
+
+The research pipeline runs through [Parallel AI](https://parallel.ai)'s Task API. The pricing model is genuinely different from the rest of the stack: **fixed per-task, not per-token**. You pick a processor tier, submit a task, and pay a flat rate regardless of how many web sources the underlying agent crawls or how many tokens it consumes internally. That makes research costs predictable — a core-tier task is always $0.025, an ultra-tier task is always $0.10 — without any hidden scaling surprises.
+
+| Processor | Cost/task | Latency | Best for |
+|---|---|---|---|
+| \`lite\` | $0.005 | 10–60s | Single-field lookups |
+| \`base\` | $0.010 | 15–100s | ~5 fields, standard enrichment |
+| \`core\` | $0.025 | 1–5min | ~10 fields, cross-referenced |
+| \`pro\` | $0.100 | 2–10min | ~20 fields, exploratory research |
+| \`ultra\` | $0.250 | 5–25min | Multi-source deep research |
+
+Each processor also has a \`-fast\` variant (e.g. \`core-fast\`) that trades some data freshness for 2–5× lower latency — useful for interactive agent workflows where a user is waiting on a response.
+
+The other key choice is **output mode**. Parallel AI supports two: \`output_schema: { type: "text" }\` returns a markdown narrative with inline citations — exactly what you want for a readable research report. \`output_schema: { type: "auto" }\` returns structured JSON matching whatever schema you define — useful for batch enrichment workflows that need machine-readable output. Getting this wrong cost me a week of reports rendering as 250-line JSON blobs before I found the one-parameter fix. ([→ Bug 12](#bug-12-research-output-rendering-as-raw-json))
 
 **Knowledge base ingestion** is more personal and continuous. Voice memos, notes, day-to-day inputs — they get transformed into structured knowledge. Heavily inspired by LLM Wiki: raw inputs compiled into organized, navigable documents that evolve over time. Instead of dumping text into a folder, the system incrementally builds something closer to a living, queryable map of your own thinking.
 
