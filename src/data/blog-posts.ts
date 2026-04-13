@@ -257,58 +257,37 @@ Before I could get my hands dirty, I needed to understand OpenClaw beyond the ma
 
 In short, on every message the gateway assembles a prompt from a handful of markdown files on disk, sends it to the model, and routes any tool calls the model makes back to shell scripts running on the server. That's the loop. Everything else is configuration on top of it.
 
-The workspace-file model makes intuitive sense in retrospect, but before it clicked it was opaque. I spent time on that education before doing anything concrete. That matters for understanding why the bugs we hit were the bugs we hit — a lot of them came from assumptions about what the system was doing that turned out to be wrong.
-
-Once I felt like I had a rough working model of how OpenClaw operated, things moved quickly.
+Anyways, once I felt like I had a rough working model of how OpenClaw operated, things moved quickly.
 
 ### Finding the Right Starting Point
 
-I used to work on the team that maintained AWS samples for the SDK, so I already knew the ecosystem well. For any significant AWS use case, there are usually examples being actively maintained by the core team. My instinct when thinking about how to deploy OpenClaw on AWS was not to build from scratch — it was to find the sample.
+I used to work on the AWS SDK Code Examples team, so I knew to go straight to the aws-samples repo and found [this CloudFormation template](https://github.com/aws-samples/sample-OpenClaw-on-AWS-with-Bedrock). I cloned it, loaded up some leftover free credits I had from a previous event, loaded up $20 in Cursor tokens, and started vibing. Overall, the plan was to deploy first and understand later.
 
-I had also seen Brooke's blog post about OpenClaw on Bedrock. In the comments, someone referenced the example repository. That pointer, combined with prior familiarity with the samples pattern, became the path I followed. It was not random repo hunting. It was a specific move based on knowing where to look and trusting what I would find there.
+The official CloudFormation template handled everything: IAM role, security groups, user-data script installing OpenClaw from npm, systemd service. Stack came up in 8 minutes.
 
-The [official CloudFormation template](https://github.com/aws-samples/sample-OpenClaw-on-AWS-with-Bedrock) covered the hard parts: IAM role, security groups, a user-data script installing OpenClaw from npm, a systemd service, Bedrock connected. There is even a one-click launch path. I did not use it. I ran the CloudFormation commands myself, read what they were doing as they ran, and wrapped the steps in \`make\` targets so the deployment would be repeatable — not a sequence of commands I had to remember.
+To interact with the deployment on EC2, you had to create a connection via SSM Session Manager, naviate to a URL, and click buttons on a poorly-vibed UI.
 
-The actual first move: I opened Cursor, loaded twenty dollars in credits, cloned the repo, and asked the AI to help me deploy it. No architecture diagrams, no design doc. Clone, load credits, ask. The stack came up in 8 minutes.
-
-### First Contact with the Running System
-
-Once the AWS side was up, I created an SSM session and tunneled through it to reach the OpenClaw control UI in a browser. This was the first time the system felt real — not just infrastructure I had deployed, but something with an actual interface I could use. I clicked around, understood what it was offering, and generated a QR code through the UI.
-
-I connected it to WhatsApp. It worked. I had a functioning bot, visible and interactive, running in AWS.
-
-### WhatsApp: Connected, Then Gone
-
-The WhatsApp path was not a deliberate platform choice. The reason I was on WhatsApp at all was situational: my Telegram number had been banned, apparently because of whatever the previous owner of that phone number had done before I ever had it. I had a help case open with Telegram trying to get it resolved. While I waited, WhatsApp was the workaround.
-
-When the QR pairing worked, that was a real win. But what followed was not clean.
-
-The SSM port forwarding kept dropping WebSocket connections. The health monitor kept triggering reconnects. Baileys, the library OpenClaw uses for WhatsApp's unofficial web protocol, retried on exponential backoff. After twenty-plus gateway restarts in one afternoon, I had a rate-limited phone number and a blocked account. [→ Bug 2](#bug-2-ssm-port-forwarding-and-websockets-dont-mix) [→ Bug 3](#bug-3-the-whatsapp-death-spiral)
-
-![The WhatsApp Death Spiral](/blog/whatsapp-death-spiral.png)
-*Twenty gateway restarts, hundreds of failed reconnect attempts, one rate-limited phone number.*
-
-There was a genuine "now what?" moment. The path I had been on was closed. The fallback was Telegram, which was the platform I had been waiting to get unblocked on in the first place.
+For example: My Telegram account was banned thanks to the sins of whoever owned my phone number before, so I submitted a help case and connected it to my WhatsApp by generating a QR code. In 30 minutes or so, I was chatting with FordClaw. Unfortunately, the SSM port forwarding kept dropping WebSocket connections and triggering reconnects, and some combination of a glitchy QR generator buton and the way Baileys (the library OpenClaw uses for WhatsApp's unofficial web protocol) did auth retries resulted in my WhatsApp account being temporarily banned. I rage quiet, went to sleep, and awoke to find my Telegram account liberated.
 
 ### Telegram: The Better Fit All Along
 
-My Telegram account situation eventually resolved — help case moved, enough time passed, something. I created a bot through BotFather, got a token, dropped it into the config, and restarted the service.
+On Telegram, I created a bot through @BotFather, got a token, dropped it into the config, and restarted the service (unliked WhatsApp: no QR codes, no weird pairing flows, no credential state to corrupt, no protocol that WhatsApp was actively trying to hack).
 
-Ten minutes. No QR codes, no pairing flows, no credential state to corrupt, no protocol that WhatsApp was actively trying to break.
+### Voice Memo Ingestion
 
-BotFather was one of the genuinely pleasant surprises of the whole build. The developer experience was designed exactly for this kind of workflow. Token in hand, one config key, done. The bot responded to the first test message as if it had been running for years.
+With Telegram working, the first real feature was voice memo ingestion. The idea: send a voice memo, the bot transcribes it, files it into the knowledge base.
 
-I was actually glad the WhatsApp path had closed. The process forced me toward the better platform for iterative development, even though I had not chosen it deliberately.
+The pipeline is four steps. Telegram delivers the voice message as a `.oga` file. A shell script stages it to S3 and submits a job to AWS Transcribe. Transcribe returns a JSON transcript. A second model pass extracts entities and creates or updates wiki pages in the knowledge base repo — people, places, projects, anything worth remembering. The whole thing runs in the background and the bot acknowledges when it's done.
 
-### The Big Refactor
+There were a few bugs. The most interesting one: Amazon Nova 2 Lite — the model that ships with the official CloudFormation template, which is what I had been running the whole time — turned out to be incapable of following OpenClaw's workspace file instructions at any useful depth. The personality didn't hold. Tool protocols were bypassed. When I added transcription capability to `AGENTS.md` and the bot denied it could transcribe audio at all, I assumed it was a prompting problem. It wasn't. Nova 2 Lite degrades on instruction-following as context grows. It's optimized for speed, not for holding a 6,650-token system prompt across a real conversation.
 
-Somewhere in the middle of all this — after Telegram was working, after the research system was roughed in — it became clear that the tool scripts needed more than cleanup. They needed to be rebuilt properly.
+One `sed` command to swap the model ID. Restarted the service. The personality took hold on the next message. [→ Bug 7](#bug-7-the-wrong-model-was-running)
 
-This was not about code style. The scripts had grown organically and were increasingly hard for the model to reason about without full context. Every change was expensive in tokens and fragile in practice. I was burning Opus credits on tasks that should have been within Sonnet 4.6's reach, but the architecture was not simple enough for Sonnet to hold without losing something. Too much implicit coupling, too little modularity, too many things that had to be understood together to change anything safely.
+### The Refactor
 
-The fix was a real modularization effort. Not a cosmetic pass — a refactor with 196 Bats tests written alongside the changes. Something like thirty dollars in token spend across the refactor and all the bugs it surfaced. The commit history documents it.
+With Sonnet 4.6 running, it became obvious the tool scripts were rough. Even escalating to Opus, I found it was struggling to track filesystem state — too much implicit coupling between scripts, too many things that had to be understood together before anything could safely change. The test setup wasn't helping either. There was no fast feedback loop, no way to develop with confidence.
 
-The goal was model economics and practical reliability: if the system was simple enough for Sonnet 4.6 to handle, I could stop depending on Opus for every non-trivial task. Smaller scripts, cleaner interfaces between them, testable in isolation. Once the refactor landed, the model could extend the system without needing the full context of everything that came before.
+Half a day and $45 in Cursor tokens. Smaller scripts, cleaner interfaces between them, 196 Bats tests written alongside the changes. After that, Sonnet 4.6 could extend the system without needing the full context of everything that came before.
 
 ### Skills as Operational Memory
 
