@@ -233,7 +233,7 @@ Four pieces make the stack:
 
 **Amazon Bedrock** — the model API. The instance calls it directly via its IAM role using Claude Sonnet 4.6. The instance runs no inference — it assembles a prompt and sends it to Bedrock's endpoint.
 
-**Telegram** — the bot-automation-friendly interface. A bot created via [@BotFather](https://t.me/BotFather). Forum topics give you separate threads — research, voice notes, general chat — each with isolated history.
+**Telegram** — the bot automation-friendly interface. A bot created via [@BotFather](https://t.me/BotFather). Forum topics give you separate threads — research, voice notes, general chat — each with isolated history.
 
 ![The full stack: Telegram → EC2 → Bedrock, with S3, Transcribe, and GitHub in the loop](/blog/ai-stack-overview-dark-v2.png)
 *t4g.medium on Graviton, no public ports, Claude Sonnet 4.6 via Bedrock.*
