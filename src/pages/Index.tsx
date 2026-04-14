@@ -34,12 +34,6 @@ const Index = () => {
             >
               A senior-level cohort discussing how modern AI systems actually work in practice.
             </p>
-            <p 
-              className="text-caption text-muted-foreground/70 max-w-xl mb-12 opacity-0 animate-fade-in"
-              style={{ animationDelay: "0.35s" }}
-            >
-              Small. Senior. Thoughtful.
-            </p>
             <div 
               className="flex flex-wrap gap-4 opacity-0 animate-fade-in"
               style={{ animationDelay: "0.4s" }}
