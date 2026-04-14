@@ -27,6 +27,8 @@ Deployment, voice pipeline, and research library—all built in three days.
 
 ## Questions We Can Ask Now
 
+OpenClaw is a framework for running a persistent AI agent on your own infrastructure — a long-lived process with memory, tools, and the ability to act between conversations. Before getting into how it works or how I built it, here's what that actually unlocks in practice.
+
 **Memory.** End of a run, I send a voice memo about the Shockoe project. The bot: *"You made almost the same argument for the greenway funding in October. You won that one. Want me to pull that structure?"* It connected two conversations from different months because both lived in MEMORY.md. A Zapier workflow has no October.
 
 **Initiative.** At 2pm Tuesday — no message from me — the heartbeat fires. It notices I asked to track a city council vote two weeks ago. The vote passed yesterday. I get a message without asking for one. A Zapier workflow runs when something happens to it. This ran because the agent decided something was due.
