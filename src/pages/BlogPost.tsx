@@ -1,5 +1,6 @@
 import { useParams, Link, Navigate } from "react-router-dom";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -46,6 +47,16 @@ const BlogPost = () => {
   const revealRef = useScrollReveal();
   const asciiArt = useAsciiHero(slug ?? "");
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    if (post) {
+      navigator.clipboard.writeText(post.content).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  }, [post]);
 
   const closeLightbox = useCallback(() => setLightbox(null), []);
 
@@ -94,12 +105,22 @@ const BlogPost = () => {
       <article className="py-16">
         <div className="container max-w-2xl">
           {/* Back link */}
-          <Link
-            to="/blog"
-            className="text-label uppercase tracking-widest text-muted-foreground hover:text-foreground transition-subtle mb-10 inline-block"
-          >
-            ← Writing
-          </Link>
+          <div className="flex items-center justify-between mb-10">
+            <Link
+              to="/blog"
+              className="text-label uppercase tracking-widest text-muted-foreground hover:text-foreground transition-subtle"
+            >
+              ← Writing
+            </Link>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground transition-subtle font-mono"
+              aria-label="Copy post to clipboard"
+            >
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
 
           {/* Generative ASCII hero */}
           <div className="my-8 overflow-hidden rounded border border-divider bg-card p-4">
