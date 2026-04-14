@@ -47,6 +47,16 @@ const BlogPost = () => {
   const revealRef = useScrollReveal();
   const asciiArt = useAsciiHero(slug ?? "");
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    if (post) {
+      navigator.clipboard.writeText(post.content).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  }, [post]);
 
   const closeLightbox = useCallback(() => setLightbox(null), []);
 
