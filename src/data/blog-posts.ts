@@ -15,31 +15,23 @@ const main: BlogPost = {
   date: "2026-04-11",
   content: `# Building a Personal AI Assistant on AWS
 
-*What it is, how we built it, and what broke.*
-
----
-
-This is an engineering diary, not a tutorial. The mistakes stay because the thinking matters. I started without knowing the paradigm, learning it in real time—improvising when things broke and leaning on AI at every step. Turning this into a polished success story would miss the point.
-
-Deployment, voice pipeline, and research library—all built in three days.
-
 ---
 
 ## Questions We Can Ask Now
 
 I like to introduce new tech by talking about what questions it makes possible. OpenClaw is a persistent AI agent running on your own infrastructure — memory, tools, and the ability to act between conversations. Here's what that unlocks.
 
-**"Given everything you know about me over time, what should I actually be doing?"** It knows your projects, your habits, and the gap between what you said you'd focus on and what you actually did. What should you stop working on? Where are you wasting time? What have you been ignoring? Before this, every tool treated you like a goldfish with a keyboard — no history, no context, no receipts.
+**Situation 1: "Given everything you know about me over time, what should I actually be doing?"** It knows your projects, your habits, and the gap between what you said you'd focus on and what you actually did. What should you stop working on? Where are you wasting time? What have you been ignoring? Before this, every tool treated you like a goldfish with a keyboard — no history, no context, no receipts.
 
-**"Take this vague goal and figure out how to execute it end-to-end."** Say "turn my voice notes into a structured knowledge base and keep it updated." You're not defining how. You're defining intent. Older tools made you spell out every step — trigger, condition, action — like programming a very literal intern. The system figures out the steps. That's not an upgrade. That's a category break.
+**Situation 2: "Take this vague goal and figure out how to execute it end-to-end."** Say "turn my voice notes into a structured knowledge base and keep it updated." You're not defining how. You're defining intent. Older tools made you spell out every step — trigger, condition, action — like programming a very literal intern. The system figures out the steps. That's not an upgrade. That's a category break.
 
-**"Continuously do this for me and tell me when it matters."** You're no longer asking questions. You're assigning jobs. Old model: ask → get answer → repeat forever. New model: define objective → system runs → interrupts you when needed. You've moved from querying software to delegating work.
+**Situation 3: "Continuously do this for me and tell me when it matters."** You're no longer asking questions. You're assigning jobs. Old model: ask → get answer → repeat forever. New model: define objective → system runs → interrupts you when needed. You've moved from querying software to delegating work.
 
 ## Where It Came From & How It Works
 
 ### Before OpenClaw
 
-For a decade, automation meant [Zapier](https://zapier.com). Or [IFTTT](https://ifttt.com). Or, more recently, [n8n](https://n8n.io). These tools shared a common architecture: you defined a trigger, you defined a sequence of steps, data flowed through in one direction, and the workflow terminated. A new email arrives → parse it → create a Trello card. A form submits → validate → write to a database → notify Slack. Clean, predictable, auditable. If This, Then That — literally what the category was called.
+Let's rewind. For a decade+, automation meant [Zapier](https://zapier.com). Or [IFTTT](https://ifttt.com). Or, more recently, [n8n](https://n8n.io). These tools shared a common architecture: you defined a trigger, you defined a sequence of steps, data flowed through in one direction, and the workflow terminated. A new email arrives → parse it → create a Trello card. A form submits → validate → write to a database → notify Slack. Clean, predictable, auditable. If This, Then That — literally what the category was called.
 
 These platforms eventually added LLMs. But *how* they added them is the key thing. The LLM was a node in a pipeline someone else defined. A smarter formatting step. "Take this customer complaint and classify it as billing, technical, or other." The model received a fixed input, produced a structured output, and the workflow moved on. It didn't plan. It didn't decide what tools to call next. It didn't remember yesterday. It was deterministic automation with a reasoning step inserted — the plumbing was still rigid, the logic was still explicit, the state still evaporated when the workflow terminated.
 
