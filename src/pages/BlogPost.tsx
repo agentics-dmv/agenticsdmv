@@ -56,6 +56,25 @@ const BlogPost = () => {
     return () => document.removeEventListener("keydown", onKey);
   }, [lightbox, closeLightbox]);
 
+  // Attach native click listeners to every image in the prose container,
+  // including those inside raw HTML <figure> blocks rendered by rehypeRaw.
+  useEffect(() => {
+    const container = revealRef.current;
+    if (!container) return;
+
+    const imgs = Array.from(container.querySelectorAll<HTMLImageElement>("img"));
+    const cleanups = imgs.map((img) => {
+      img.style.cursor = "zoom-in";
+      const handler = () => {
+        if (img.src) setLightbox({ src: img.src, alt: img.alt ?? "" });
+      };
+      img.addEventListener("click", handler);
+      return () => img.removeEventListener("click", handler);
+    });
+
+    return () => cleanups.forEach((fn) => fn());
+  }, [post, revealRef]);
+
   if (!post) {
     return <Navigate to="/blog" replace />;
   }
@@ -118,13 +137,6 @@ const BlogPost = () => {
           {/* Prose content with scroll reveal */}
           <div
             ref={revealRef}
-            onClick={(e) => {
-              const target = e.target as HTMLElement;
-              if (target.tagName === "IMG") {
-                const img = target as HTMLImageElement;
-                if (img.src) setLightbox({ src: img.src, alt: img.alt ?? "" });
-              }
-            }}
             className="
               prose dark:prose-invert max-w-none
               prose-headings:font-mono prose-headings:tracking-tight
