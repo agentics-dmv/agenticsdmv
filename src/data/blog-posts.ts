@@ -29,16 +29,11 @@ Deployment, voice pipeline, and research library—all built in three days.
 
 I like to introduce new tech by talking about what questions it allows us to ask — or more correctly, what questions can now be answered in a way that allows for real innovation. OpenClaw is a framework for running a persistent AI agent on your own infrastructure — memory, tools, and the ability to act between conversations. Here's what that unlocks.
 
-**"What was that pitch I used for the greenway funding last year?"** End of a run, I send a voice memo about the Shockoe project. The bot: *"You made almost the same argument for the greenway funding in October. You won that one. Want me to pull that structure?"* It connected two conversations from different months. A traditional automation tool starts fresh on every trigger. This didn't.
+**"Given everything you know about me over time, what should I actually be doing?"** The system has memory, pattern recognition across sessions, and a picture of your stated goals vs actual behavior. You can ask what you should stop doing, where you're wasting time relative to what you said you care about, what you keep ignoring that actually matters. Before this, every tool treated you like a goldfish with a keyboard — no history, no context, no receipts.
 
-**"Let me know if anything happens with that city council vote."** At 2pm Tuesday — no message from me — the heartbeat fires. It remembers I said that two weeks ago. The vote passed yesterday. I get a message without asking for one. Most tools run when something happens to them. This ran because the agent decided something was due.
+**"Take this vague goal and figure out how to execute it end-to-end."** You can say: "Turn my voice notes into a structured knowledge base and keep it updated automatically." You're not defining how. You're defining intent. Older tools required you to spell out every step upfront — trigger, condition, action — like programming a very obedient but very literal intern. The system now figures out the steps. That's not an upgrade. That's a category break.
 
-<figure style="float:right; width:250px; margin:0 0 1.5rem 1.5rem; clear:right;">
-  <img src="/blog/the-heartbeat.png" alt="The heartbeat: clock fires every 30 min, checks HEARTBEAT.md, acts if something is due" style="width:100%; border-radius:8px;" />
-  <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">No message required. The agent checks, decides, acts.</figcaption>
-</figure>
-
-**"I'm not sure what to do about this job situation."** A week of fragmented messages — *"The meeting went weird."* *"I'm not sure the role is what I thought."* By Friday: *"The question isn't whether the fit is right — you seem clear on that. It's timing and what you'd step into."* A chatbot with no memory resets on every message. This didn't.
+**"Continuously do this for me and tell me when it matters."** You're no longer asking questions. You're assigning persistent jobs: monitor this space, keep improving this document, generate ideas when new data appears. Old model: ask → get answer → repeat forever. New model: define objective → system runs indefinitely → interrupts you when needed. You've moved from querying software to delegating work.
 
 The paradigm shift isn't the AI getting smarter in isolation. It's the AI getting smarter *about you*, over time, without forgetting.
 
