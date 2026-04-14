@@ -29,16 +29,16 @@ Deployment, voice pipeline, and research library—all built in three days.
 
 I like to introduce new tech by talking about what questions it allows us to ask — or more correctly, what questions can now be answered in a way that allows for real innovation. OpenClaw is a framework for running a persistent AI agent on your own infrastructure — memory, tools, and the ability to act between conversations. Here's what that unlocks.
 
-**Can it remember what I said last month?** End of a run, I send a voice memo about the Shockoe project. The bot: *"You made almost the same argument for the greenway funding in October. You won that one. Want me to pull that structure?"* It connected two conversations from different months because both lived in MEMORY.md. A Zapier workflow has no October.
+**"What was that pitch I used for the greenway funding last year?"** End of a run, I send a voice memo about the Shockoe project. The bot: *"You made almost the same argument for the greenway funding in October. You won that one. Want me to pull that structure?"* It connected two conversations from different months because both lived in MEMORY.md. A Zapier workflow has no October.
 
-**Can it act without being asked?** At 2pm Tuesday — no message from me — the heartbeat fires. It notices I asked to track a city council vote two weeks ago. The vote passed yesterday. I get a message without asking for one. A Zapier workflow runs when something happens to it. This ran because the agent decided something was due.
+**"Let me know if anything happens with that city council vote."** At 2pm Tuesday — no message from me — the heartbeat fires. It remembers I said that two weeks ago. The vote passed yesterday. I get a message without asking for one. A Zapier workflow runs when something happens to it. This ran because the agent decided something was due.
 
 <figure style="float:right; width:250px; margin:0 0 1.5rem 1.5rem; clear:right;">
   <img src="/blog/the-heartbeat.png" alt="The heartbeat: clock fires every 30 min, checks HEARTBEAT.md, acts if something is due" style="width:100%; border-radius:8px;" />
   <figcaption style="font-size:0.75rem; text-align:center; margin-top:0.5rem; color:#888;">No message required. The agent checks, decides, acts.</figcaption>
 </figure>
 
-**Can it connect things I never explicitly linked?** A week of fragmented job-transition messages: *"The meeting went weird."* *"I'm not sure the role is what I thought."* By Friday: *"The question isn't whether the fit is right — you seem clear on that. It's timing and what you'd step into."* A chatbot with no memory resets on every message. This didn't.
+**"I'm not sure what to do about this job situation."** A week of fragmented messages — *"The meeting went weird."* *"I'm not sure the role is what I thought."* By Friday: *"The question isn't whether the fit is right — you seem clear on that. It's timing and what you'd step into."* A chatbot with no memory resets on every message. This didn't.
 
 The paradigm shift isn't the AI getting smarter in isolation. It's the AI getting smarter *about you*, over time, without forgetting.
 
