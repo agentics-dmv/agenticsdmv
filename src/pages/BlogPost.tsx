@@ -118,6 +118,13 @@ const BlogPost = () => {
           {/* Prose content with scroll reveal */}
           <div
             ref={revealRef}
+            onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (target.tagName === "IMG") {
+                const img = target as HTMLImageElement;
+                if (img.src) setLightbox({ src: img.src, alt: img.alt ?? "" });
+              }
+            }}
             className="
               prose dark:prose-invert max-w-none
               prose-headings:font-mono prose-headings:tracking-tight
@@ -128,6 +135,7 @@ const BlogPost = () => {
               prose-code:text-sm prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
               prose-pre:bg-card prose-pre:border prose-pre:border-divider prose-pre:rounded prose-pre:text-sm
               prose-img:rounded prose-img:mx-auto prose-img:w-full
+              [&_img]:cursor-zoom-in
               prose-em:text-muted-foreground
               prose-table:text-body prose-th:font-mono prose-th:text-label prose-th:uppercase prose-th:tracking-widest
               prose-hr:border-divider
@@ -147,19 +155,11 @@ const BlogPost = () => {
                   return <h2 id={slugify(text)}>{children}</h2>;
                 },
                 img: ({ src, alt }) => (
-                  <figure className="my-8">
-                    <img
-                      src={src}
-                      alt={alt}
-                      className="w-full rounded cursor-zoom-in"
-                      onClick={() => src && setLightbox({ src, alt: alt ?? "" })}
-                    />
-                    {alt && (
-                      <figcaption className="text-caption text-muted-foreground text-center mt-3">
-                        {alt}
-                      </figcaption>
-                    )}
-                  </figure>
+                  <img
+                    src={src}
+                    alt={alt}
+                    className="rounded cursor-zoom-in"
+                  />
                 ),
                 blockquote: ({ children, ...props }) => (
                   <BlockquoteReveal {...props}>{children}</BlockquoteReveal>
