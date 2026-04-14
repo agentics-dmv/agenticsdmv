@@ -27,25 +27,13 @@ Deployment, voice pipeline, and research library—all built in three days.
 
 ## Questions We Can Ask Now
 
-I like to introduce new tech by talking about what questions it allows us to ask — or more correctly, what questions can now be answered in a way that allows for real innovation. OpenClaw is a framework for running a persistent AI agent on your own infrastructure — memory, tools, and the ability to act between conversations. Here's what that unlocks.
+I like to introduce new tech by talking about what questions it makes possible. OpenClaw is a persistent AI agent running on your own infrastructure — memory, tools, and the ability to act between conversations. Here's what that unlocks.
 
-**"Given everything you know about me over time, what should I actually be doing?"** The system has memory, pattern recognition across sessions, and a picture of your stated goals vs actual behavior. You can ask what you should stop doing, where you're wasting time relative to what you said you care about, what you keep ignoring that actually matters. Before this, every tool treated you like a goldfish with a keyboard — no history, no context, no receipts.
+**"Given everything you know about me over time, what should I actually be doing?"** It knows your projects, your habits, and the gap between what you said you'd focus on and what you actually did. What should you stop working on? Where are you wasting time? What have you been ignoring? Before this, every tool treated you like a goldfish with a keyboard — no history, no context, no receipts.
 
-**"Take this vague goal and figure out how to execute it end-to-end."** You can say: "Turn my voice notes into a structured knowledge base and keep it updated automatically." You're not defining how. You're defining intent. Older tools required you to spell out every step upfront — trigger, condition, action — like programming a very obedient but very literal intern. The system now figures out the steps. That's not an upgrade. That's a category break.
+**"Take this vague goal and figure out how to execute it end-to-end."** Say "turn my voice notes into a structured knowledge base and keep it updated." You're not defining how. You're defining intent. Older tools made you spell out every step — trigger, condition, action — like programming a very literal intern. The system figures out the steps. That's not an upgrade. That's a category break.
 
-**"Continuously do this for me and tell me when it matters."** You're no longer asking questions. You're assigning persistent jobs: monitor this space, keep improving this document, generate ideas when new data appears. Old model: ask → get answer → repeat forever. New model: define objective → system runs indefinitely → interrupts you when needed. You've moved from querying software to delegating work.
-
-The paradigm shift isn't the AI getting smarter in isolation. It's the AI getting smarter *about you*, over time, without forgetting.
-
-### What If OpenClaw Was Your 311 System
-
-311 can only do what engineers pre-built: fixed routing logic, fixed categories, fixed queues. If two city systems need to connect and no one built that integration, the request dies at the handoff.
-
-Give that same system API access to permitting, zoning, utilities, and public works. A pothole call near the river becomes: *"This falls within the Phase 2 stormwater project scheduled for Q3. Recommend deferring repair until drainage work completes."* Not a routing lookup — reasoning across the full project map.
-
-The constraint shifts from "what did engineers build" to "what's actually possible given the available APIs." Not replacing city workers — giving them a reasoning layer that connects things that currently only get connected by whoever happened to know about both things at once.
-
----
+**"Continuously do this for me and tell me when it matters."** You're no longer asking questions. You're assigning jobs. Old model: ask → get answer → repeat forever. New model: define objective → system runs → interrupts you when needed. You've moved from querying software to delegating work.
 
 ## Where It Came From & How It Works
 
