@@ -29,9 +29,9 @@ Deployment, voice pipeline, and research library—all built in three days.
 
 I like to introduce new tech by talking about what questions it allows us to ask — or more correctly, what questions can now be answered in a way that allows for real innovation. OpenClaw is a framework for running a persistent AI agent on your own infrastructure — memory, tools, and the ability to act between conversations. Here's what that unlocks.
 
-**"What was that pitch I used for the greenway funding last year?"** End of a run, I send a voice memo about the Shockoe project. The bot: *"You made almost the same argument for the greenway funding in October. You won that one. Want me to pull that structure?"* It connected two conversations from different months because both lived in MEMORY.md. A Zapier workflow has no October.
+**"What was that pitch I used for the greenway funding last year?"** End of a run, I send a voice memo about the Shockoe project. The bot: *"You made almost the same argument for the greenway funding in October. You won that one. Want me to pull that structure?"* It connected two conversations from different months. A traditional automation tool starts fresh on every trigger. This didn't.
 
-**"Let me know if anything happens with that city council vote."** At 2pm Tuesday — no message from me — the heartbeat fires. It remembers I said that two weeks ago. The vote passed yesterday. I get a message without asking for one. A Zapier workflow runs when something happens to it. This ran because the agent decided something was due.
+**"Let me know if anything happens with that city council vote."** At 2pm Tuesday — no message from me — the heartbeat fires. It remembers I said that two weeks ago. The vote passed yesterday. I get a message without asking for one. Most tools run when something happens to them. This ran because the agent decided something was due.
 
 <figure style="float:right; width:250px; margin:0 0 1.5rem 1.5rem; clear:right;">
   <img src="/blog/the-heartbeat.png" alt="The heartbeat: clock fires every 30 min, checks HEARTBEAT.md, acts if something is due" style="width:100%; border-radius:8px;" />
