@@ -117,6 +117,8 @@
   <p class="caption">t4g.medium · Graviton · Claude Sonnet 4.6 via Bedrock · no public ports · ~$40/mo</p>
   <aside class="notes">
     Show the destination before you show the journey. They need to know where you're going or they won't follow you through the mess. "This is the stack. A 24/7 AI assistant — talks to me over Telegram, transcribes voice memos, runs deep research, builds a knowledge graph. Three days. Let me show you how."
+
+    [If asked about alternatives] AWS shipped a Lightsail OpenClaw blueprint in March 2026 — same Claude Sonnet 4.6 default, but with bundled Let's Encrypt HTTPS and daily 03:00 UTC token rotation built in. ~$10/mo for the Lightsail instance plus Bedrock usage. That's the right answer for "I just want to try it." This deck is the EC2/CFN path because we wanted full control of the IAM role, the systemd service, the voice pipeline, and the GitHub Actions OIDC integration.
   </aside>
 </section>
 
@@ -149,6 +151,23 @@
   </aside>
 </section>
 
+<!-- 5b: The path I didn't take -->
+<section>
+  <h2>The Path I Didn't Take.</h2>
+  <hr />
+  <table style="width:84%; font-size:0.66em; text-align:left; margin-top:0.4em;">
+    <tbody>
+      <tr><td style="color:#888; padding:0.35em 0.9em; width:30%;">Lightsail OpenClaw blueprint</td><td>One click. Bundled HTTPS with Let's Encrypt. Daily 03:00 UTC token rotation. ~$10/mo.</td></tr>
+      <tr><td style="color:#888; padding:0.35em 0.9em;">Shipped</td><td>March 2026. Before I started this.</td></tr>
+      <tr><td style="color:#888; padding:0.35em 0.9em;">Why CFN instead</td><td>I wanted the IAM role, the systemd service, the GitHub Actions OIDC, and a voice pipeline I could extend. Lightsail is opinionated; CFN is mine to bend.</td></tr>
+    </tbody>
+  </table>
+  <p class="title-meta" style="margin-top:1.2em; font-size:0.7em;">Right answer for "I just want to try it." Wrong answer if you want to extend it.</p>
+  <aside class="notes">
+    AWS shipped a Lightsail OpenClaw blueprint a month before I started this. One click, bundled HTTPS via Let's Encrypt, daily token rotation at three in the morning UTC, ten dollars a month. If anyone in this room is going to spin one up tonight, that's the right answer. I went with CloudFormation because I wanted the parts: my own IAM role, my own systemd service, GitHub Actions with OIDC, a voice pipeline I could shape. Lightsail is opinionated. CFN is mine to bend. Both paths reach the same gateway. The choice is whether you want an appliance or a workshop.
+  </aside>
+</section>
+
 <!-- 6: WhatsApp death spiral -->
 <section>
   <h2>Then WhatsApp Closed the Door.</h2>
@@ -156,6 +175,8 @@
   <p class="caption">How a health monitor turned 20 gateway restarts into a rate-limited phone number.</p>
   <aside class="notes">
     Three hours of debugging. SSM port forwarding drops WebSockets. Every drop reset the QR flow. A Cloudflare tunnel required editing openclaw.json — wrong key, service crashes. The health monitor turned every restart into a WhatsApp reconnect, a 401, exponential retries. Twenty restarts. Hundreds of failed auth attempts. Phone: "Can't link new devices at this time."
+
+    [If asked about the SSM-WebSocket flakiness fix] The OpenClaw docs document Tailscale Serve as the stable remote-access path: `tailscale serve --bg http://localhost:18789` puts the Control UI behind a stable HTTPS URL on your tailnet, no port forward, no WebSocket re-handshakes, identity headers passed through. That's the right answer if SSM port-forward keeps dropping you. We didn't swap to it because Telegram replaced the need — but it's the documented escape hatch.
   </aside>
 </section>
 
@@ -316,6 +337,8 @@
   <p class="caption">Telegram → S3 → Transcribe → markdown → GitHub → knowledge base. $0.024/min. 60–120 seconds. Bot acknowledges in 2.</p>
   <aside class="notes">
     The acknowledgment is non-optional. "Got it, transcribing..." costs nothing and prevents two minutes of silence reading as failure. The pipeline runs in the background. The bot handles other messages while it waits.
+
+    [Mechanic, if asked] No Lambda. The pipeline runs in-process on the EC2 instance: Telegram webhook hands the audio to a tool inside the gateway, which uploads to S3, calls `aws transcribe start-transcription-job`, polls for completion, fetches the result, commits the markdown to the openclaw-research repo, pushes. GitHub Actions rebuilds the index. SSM RunCommand notifies the bot. Lambda would have been cleaner but added more pieces than it removed for a single-user system.
   </aside>
 </section>
 
@@ -355,6 +378,8 @@
   <p class="caption">Nova 2 Lite ignored the workspace files. Sonnet 4.6 followed them. No prompt engineering closes that gap.</p>
   <aside class="notes">
     The log: "agent model: amazon-bedrock/global.amazon.nova-2-lite-v1:0." Nova 2 Lite. Not Sonnet 4.6. The model upgrade had never been saved into the running config. Every session since day one had been the wrong model. Nova 2 Lite is optimized for speed — AWS's own docs say "system prompt adherence can decline slightly as context increases." With 6,650 tokens of workspace files on every turn, "slightly" is not the word. This is not a tier difference. It's a model-class difference. No amount of prompting closes it.
+
+    [Mechanic, if asked] The model ID matters. The right value is `us.anthropic.claude-sonnet-4-6` — the `us.` prefix is the cross-region inference profile, which routes the call across us-east-1, us-east-2, and us-west-2 to dodge per-region throttling. The raw `anthropic.claude-sonnet-4-6` works but stalls under load. New AWS accounts also have to opt in to Anthropic models in the Bedrock console first; that's a separate gate from the IAM role.
   </aside>
 </section>
 
@@ -491,6 +516,54 @@
   <p class="caption">One EC2 instance. One gateway process. All access via SSM. Bedrock called on every message — no inference on the instance itself.</p>
   <aside class="notes">
     One EC2 instance. One Node.js gateway. Port 18789, localhost only. All external access through SSM. On every message: six markdown files assembled into a prompt, session history appended from JSONL on EBS, Bedrock called via IAM role, response returned. The instance has 4GB of RAM and runs no inference. It's a prompt assembler and a caller. The model is in Bedrock.
+
+    [Mechanic, if asked about cost] Most of that prompt is the same six files turn after turn. Anthropic prompt caching splits the prompt at a stable boundary — workspace files cached, conversation tail volatile. Cache writes are 1.25× input, cache reads 0.1×. With a 5-minute default TTL on Anthropic-via-Bedrock, bursty Telegram traffic pays the write penalty repeatedly. The OpenClaw config knob is `agents.defaults.params.cacheRetention: "long"` (1-hour TTL on direct Anthropic; Bedrock pass-through behavior is documented as ambiguous). Combined with `contextInjection: "continuation-skip"` and a 55-minute heartbeat to keep the cache warm, that's a 10×+ Bedrock cost lever with no prompt changes. Bug 14 in the writeup goes into the numbers — 92% of our 30-day spend was cache writes.
+  </aside>
+</section>
+
+<!-- 30b: Cache-write storm (cost reveal) -->
+<section>
+  <h2>The Cache-Write Storm.</h2>
+  <img src="cache-write-storm.png" alt="Cache-write cost breakdown — 92% of 30-day Bedrock spend was cache writes" class="diagram" />
+  <p class="caption">$184.71 of $200.68 was cache writes. The bill isn't the model — it's the cache.</p>
+  <aside class="notes">
+    Thirty days of Bedrock. Two hundred dollars list price. Ninety-two percent of it — cache writes. Output tokens were three dollars. The model isn't the bill. The cache is the bill. Cost Explorer shows seventy-three after credits, but credits aren't strategy. The lever is on this slide: cacheRetention long, continuationSkip on context injection, heartbeat every fifty-five minutes to keep the cache warm. The five-minute default TTL on Anthropic-via-Bedrock loses the cache between bursty messages, so almost every turn pays the write penalty and almost none reaps the read benefit. Three config lines, ten-times Bedrock cost lever, no prompt engineering. The number on the right — ten dollars per month — is projected, not measured. We haven't shipped the change yet. That's the next experiment.
+  </aside>
+</section>
+
+<!-- 30c: Cache TTL timeline (the why) -->
+<section>
+  <h2>Why The Cache Expires First.</h2>
+  <img src="cache-ttl-timeline.png" alt="Cache TTL comparison — 5-minute default vs 1-hour cacheRetention long" class="diagram" />
+  <p class="caption">Same six turns. Same conversation rhythm. Different TTL. Roughly 4× cost difference.</p>
+  <aside class="notes">
+    Telegram conversations are bursty. A message every ten minutes is normal. The default 5-minute cache TTL means the cache expires before the next message arrives — every turn pays the write cost, none of them get the read discount. Top timeline. Six writes, sixty-nine cents. Switch cacheRetention to long and the TTL goes to one hour. Now you write once, read five times, refresh at fifty-five minutes via heartbeat. Bottom timeline. Eighteen cents — actually seventeen and a half, the slide rounds. Same conversation. Four times cheaper. One caveat in the footer: OpenClaw's docs say the one-hour upgrade is documented for direct Anthropic hosts, and they're silent on Bedrock pass-through behavior. So before claiming the win, check CloudWatch's CacheWriteInputTokenCount and CacheReadInputTokenCount metrics per model ID. If the writes still dominate after the change, Bedrock isn't honoring the longer TTL and we're back to negotiation.
+  </aside>
+</section>
+
+<!-- 30d: Three knobs that move the bill -->
+<section>
+  <h2>Three Knobs That Move the Bill.</h2>
+  <hr />
+  <pre style="font-size:0.7em; text-align:left; width:80%; margin:0 auto;"><code class="language-json">{
+  "agents": {
+    "defaults": {
+      "params": { "cacheRetention": "long" },
+      "contextInjection": "continuation-skip",
+      "heartbeat": { "every": "55m" }
+    }
+  }
+}</code></pre>
+  <table style="width:84%; font-size:0.62em; text-align:left; margin-top:0.8em;">
+    <tbody>
+      <tr><td style="color:#fbbf24; padding:0.3em 0.8em; width:30%; font-family:monospace;">cacheRetention</td><td>Tells the provider to hold the prefix cache for an hour instead of five minutes. The TTL lever.</td></tr>
+      <tr><td style="color:#22d3ee; padding:0.3em 0.8em; font-family:monospace;">contextInjection</td><td>Skips re-injecting the workspace bootstrap on continuation turns. Stops the prefix from being re-emitted unnecessarily.</td></tr>
+      <tr><td style="color:#34d399; padding:0.3em 0.8em; font-family:monospace;">heartbeat.every</td><td>Background ping just under the cache TTL window. Keeps the cache warm across idle gaps so the next user message hits a read, not a write.</td></tr>
+    </tbody>
+  </table>
+  <p class="title-meta" style="margin-top:0.9em; font-size:0.65em;">Three lines. Roughly 10× Bedrock cost lever. No prompt engineering.</p>
+  <aside class="notes">
+    Three lines in openclaw.json. cacheRetention long — extend the TTL from five minutes to one hour. contextInjection continuation-skip — don't re-emit the workspace bootstrap when a turn is a continuation. heartbeat every fifty-five minutes — a background ping just under the cache window so the cache stays warm even when you're not talking to the bot. Together, that's a roughly ten-times cost lever on the part of the bill that actually scales. No prompt rewrites. No model swap. The architecture stays exactly the same; the cost shape changes. This is the slide to take a picture of if you're going to try this. The Bedrock pass-through caveat from the previous slide still applies — measure before claiming the win.
   </aside>
 </section>
 
@@ -576,6 +649,38 @@
   <p class="title-meta" style="margin-top:1.8em;">Ford Prior &nbsp;·&nbsp; RVA Hacks &nbsp;·&nbsp; AWS Meetup</p>
   <aside class="notes">
     Edit a file. Run make ship. Send a message. The system follows the new instructions. No code. No restart. No redeployment. The implications of that are still playing out. Thank you.
+  </aside>
+</section>
+
+<!-- 36a: Three paths to localhost:18789 -->
+<section>
+  <h2>Three Paths to localhost:18789.</h2>
+  <img src="three-paths-control-ui.png" alt="SSM port-forward vs Tailscale Serve vs Lightsail HTTPS — three ways to reach the OpenClaw Control UI" class="diagram" />
+  <p class="caption">Same destination. Different failure modes. Pick the one whose tradeoffs match the use case.</p>
+  <aside class="notes">
+    SSM port-forward is what we used. It works, but WebSocket drops every few minutes during the QR-flow phase made it the wrong tool for that moment. Tailscale Serve is the documented escape hatch — `tailscale serve --bg http://localhost:18789` puts the Control UI behind a stable tailnet HTTPS URL with identity headers passed through. We didn't switch because Telegram replaced the need, but it's the answer if you're staying on the gateway UI. Lightsail HTTPS is the path AWS shipped in March — bundled Let's Encrypt, daily 03:00 UTC token rotation, MOTD-managed AllowedOrigin, ten dollars a month. Right answer for "I just want to try this." Three paths to the same port. None of them is wrong; one of them is right for any given moment.
+  </aside>
+</section>
+
+<!-- 36b: Mechanics Reference (optional, skip if running long) -->
+<section>
+  <h2>Mechanics Reference.</h2>
+  <hr />
+  <table style="width:88%; font-size:0.58em; text-align:left;">
+    <tbody>
+      <tr><td style="color:#888; padding:0.3em 0.8em;">Gateway</td><td>Node 24 (22.14+ supported) · port 18789 localhost only · systemd <code>--user</code></td></tr>
+      <tr><td style="color:#888; padding:0.3em 0.8em;">Workspace</td><td><code>~/.openclaw/workspace/</code> · 12k chars/file · 60k total · silent truncation past</td></tr>
+      <tr><td style="color:#888; padding:0.3em 0.8em;">Sessions</td><td>JSONL on <code>~/.openclaw/sessions/</code> · 48h timeout · keys append <code>:topic:&lt;id&gt;</code> for Telegram threads</td></tr>
+      <tr><td style="color:#888; padding:0.3em 0.8em;">Model ID</td><td><code>us.anthropic.claude-sonnet-4-6</code> (cross-region inference profile, not raw)</td></tr>
+      <tr><td style="color:#888; padding:0.3em 0.8em;">Cache knob</td><td><code>agents.defaults.params.cacheRetention: "long"</code> · 5min default → 1h on direct Anthropic</td></tr>
+      <tr><td style="color:#888; padding:0.3em 0.8em;">SSM tunnel</td><td><code>aws ssm start-session --target $ID --document-name AWS-StartPortForwardingSession --parameters '{"portNumber":["18789"],"localPortNumber":["18789"]}'</code></td></tr>
+      <tr><td style="color:#888; padding:0.3em 0.8em;">Stable remote</td><td><code>tailscale serve --bg http://localhost:18789</code> (docs.openclaw.ai/gateway/tailscale)</td></tr>
+      <tr><td style="color:#888; padding:0.3em 0.8em;">Easy mode</td><td>Lightsail OpenClaw blueprint · GA Mar 2026 · bundled HTTPS · daily token rotation</td></tr>
+    </tbody>
+  </table>
+  <p class="title-meta" style="margin-top:1.0em;">Numbers and verified config from a running deployment, not a brochure.</p>
+  <aside class="notes">
+    Optional reference slide. Skip if running long. Useful if anyone asks "but specifically how" — the answers are on screen rather than in my head. Lightsail row is the answer to "I just want to try this without the CFN dance."
   </aside>
 </section>
 

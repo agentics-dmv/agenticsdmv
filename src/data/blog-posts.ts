@@ -79,11 +79,11 @@ Four pieces make the stack:
 
 **[OpenClaw](https://github.com/openclaw/openclaw)** — the open-source Node.js gateway. It connects messaging channels to AI models, handles session management and tool dispatch, and gets configured with JSON files and markdown documents called "workspace files."
 
-**AWS EC2** — a [\`t4g.medium\`](https://aws.amazon.com/ec2/instance-types/t4g/) instance, ARM64/Graviton, no public ports. All access goes through [AWS Systems Manager](https://docs.aws.amazon.com/systems-manager/). (The gateway runs as a [systemd](https://www.freedesktop.org/software/systemd/man/systemd.html) service.)
+**AWS EC2** — a [\`t4g.medium\`](https://aws.amazon.com/ec2/instance-types/t4g/) instance, ARM64/Graviton, no public ports. All access goes through [AWS Systems Manager](https://docs.aws.amazon.com/systems-manager/) — \`aws ssm start-session --target $INSTANCE_ID\` for a shell, or \`--document-name AWS-StartPortForwardingSession --parameters '{"portNumber":["18789"],"localPortNumber":["18789"]}'\` to reach the Control UI at \`localhost:18789\`. The gateway runs as a [systemd user service](https://www.freedesktop.org/software/systemd/man/systemd.html) (\`systemctl --user\`) under the \`ubuntu\` account, not as root.
 
-**[Amazon Bedrock](https://docs.aws.amazon.com/bedrock/)** — the model API. The instance calls it directly via its IAM role using Claude Sonnet 4.6. The instance runs no inference — it assembles a prompt and sends it to Bedrock's endpoint.
+**[Amazon Bedrock](https://docs.aws.amazon.com/bedrock/)** — the model API. The instance calls it directly via its [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html) using Claude Sonnet 4.6 (model ID \`us.anthropic.claude-sonnet-4-6\` — the [cross-region inference profile](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html), not the raw model ID; using the wrong one is its own bug). No API keys on disk. The instance runs no inference — it assembles a prompt and sends it to Bedrock's endpoint.
 
-**Telegram** — the bot automation-friendly interface. A bot created via [@BotFather](https://t.me/BotFather). Forum topics give you separate threads — research, voice notes, general chat — each with isolated history.
+**Telegram** — the bot automation-friendly interface. A bot created via [@BotFather](https://t.me/BotFather), token dropped into \`channels.telegram.botToken\` in [\`~/.openclaw/openclaw.json\`](https://docs.openclaw.ai/channels/telegram). Long-polling by default — outbound HTTPS only, no public ingress, no TLS cert to manage. Forum topics give you separate threads — research, voice notes, general chat — each with isolated history (session keys append \`:topic:<id>\`).
 
 ![Ford's AI Assistant Stack: Telegram → EC2 (workspace files + Claude Sonnet 4.6) → GitHub repos + S3](/blog/03-ai-assistant-stack.png)
 *t4g.medium on Graviton, no public ports, Claude Sonnet 4.6 via Bedrock.*
@@ -100,16 +100,18 @@ To change the personality: edit \`SOUL.md\`, run \`make ship\`, send a message. 
 
 **Cost:** EC2 runs $26.93/month fixed. Everything else scales with use. The critical constraint is model selection: Claude Sonnet 4.6 costs 9× more than Nova 2 Lite — but Nova 2 Lite can't hold the 6,650-token system prompt at depth. That makes ~$40/month the realistic floor, not a choice.
 
-| Service | Light (~10 turns/day) | Moderate (~50/day) | Heavy (~200/day) |
-|---|---|---|---|
-| EC2 t4g.medium | $26.93 | $26.93 | $26.93 |
-| Claude Sonnet 4.6 | $9.45 | $47.25 | $189.00 |
-| *(Nova 2 Lite alt)* | *($1.10)* | *($5.48)* | *($21.90)* |
-| AWS Transcribe | $2.40 | $2.40 | $12.00 |
-| Parallel AI (core, 1 research/day) | $0.75 | $2.25 | $7.50 |
-| **Claude stack total** | **~$39.53** | **~$78.83** | **~$235.43** |
+| Service | Light (~10 turns/day) | Moderate (~50/day) | Heavy (~200/day) | 30-day actual (Apr 2026) |
+|---|---|---|---|---|
+| EC2 t4g.medium | $26.93 | $26.93 | $26.93 | $26.93 |
+| Claude Sonnet 4.6 | $9.45 | $47.25 | $189.00 | **$200.68** *(see below)* |
+| *(Nova 2 Lite alt)* | *($1.10)* | *($5.48)* | *($21.90)* | *$0.35 (incidental)* |
+| AWS Transcribe | $2.40 | $2.40 | $12.00 | $0.03 |
+| Parallel AI (core, 1 research/day) | $0.75 | $2.25 | $7.50 | (varies) |
+| **Claude stack total** | **~$39.53** | **~$78.83** | **~$235.43** | **~$228 list / $99 post-credits** |
 
-Observed reality: heavy usage with aggressive prompt caching ran ~$125/month instead of the $189 projection — because most input tokens arrive as cache reads at $0.30/1M rather than raw input at $3.00/1M. Over 7 days, the actual breakdown was $24.04 in cache writes, $3.94 in cache reads, $0.34 in Nova 2 Lite (for lighter single-turn tasks), and $0.035 in Transcribe. The optimization target isn't token volume — it's cache write frequency.
+Observed reality: heavy usage with aggressive prompt caching ran ~$125/month over a 7-day annualized sample — because most input tokens arrive as cache reads at $0.30/1M rather than raw input at $3.00/1M. The 30-day list-price total reconstructed from CloudWatch came in higher: $200.68 in Bedrock alone, of which **$184.71 (92%) was cache writes**, $12.50 cache reads, $2.93 output, $0.20 raw input. AWS Cost Explorer showed $72.71 actually billed for Bedrock over the same window — credits absorbed the rest. The optimization target isn't token volume. It's cache write frequency. ([→ Bug 14](#bug-14-the-cache-write-storm))
+
+> **Mechanics quick-reference.** OpenClaw \`2026.4.8\` on Ubuntu 24.04 ARM64. Node 24 recommended, [Node 22.14+](https://docs.openclaw.ai/start/getting-started) supported; the [aws-samples CFN template](https://github.com/aws-samples/sample-OpenClaw-on-AWS-with-Bedrock) bootstraps Node via [\`nvm install 22\`](https://github.com/nvm-sh/nvm) so the runtime stays in \`~ubuntu/.nvm\` rather than under \`/usr/local\`. The gateway binds to \`ws://127.0.0.1:18789\` only — no public port. Workspace files live in \`~/.openclaw/workspace/\` (default cap [12000 chars per file, 60000 total](https://docs.openclaw.ai/gateway/config-agents); silent truncation past that). Session JSONL on \`~/.openclaw/sessions/\`. The 48-hour session timeout is configurable via \`agents.defaults.timeoutSeconds\`. There's also a [Lightsail OpenClaw blueprint](https://docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-quick-start-guide-openclaw.html) (GA March 2026) — same Claude Sonnet 4.6 default, with bundled Let's Encrypt HTTPS and daily 03:00 UTC token rotation built in. Different tradeoff, same bot.
 
 ### How It Actually Works
 
@@ -501,7 +503,33 @@ AWS Transcribe heard "Lagos" where "Richmond" was said. It misheard a name's spe
 
 Seven files required manual correction. The raw transcripts stayed untouched — they're the immutable record of what Transcribe heard, not what was said. Correction notes were committed beside them. Derived pages were updated. Git history shows both the original error and the correction.
 
-**What this tells you:** Speech-to-text has irreducible error rates, and LLM passes that treat transcripts as ground truth will amplify those errors into downstream records. The governance response: all transcribed content is a draft. Human review happens before anything is promoted to a canonical page. Corrections commit with provenance notes. The raw transcript stays immutable so the error chain is always traceable.`,
+**What this tells you:** Speech-to-text has irreducible error rates, and LLM passes that treat transcripts as ground truth will amplify those errors into downstream records. The governance response: all transcribed content is a draft. Human review happens before anything is promoted to a canonical page. Corrections commit with provenance notes. The raw transcript stays immutable so the error chain is always traceable.
+
+---
+
+### Bug 14: The Cache-Write Storm
+
+The "Observed reality: ~$125/month" line in the cost table came from a 7-day annualized sample. The 30-day reconstruction from CloudWatch told a different story: $200.68 in Bedrock list-price spend, **$184.71 of which was cache writes** — 92% of the bill. Cache reads were $12.50, output tokens $2.93, raw input $0.20. The 1,610 invocations across the month each averaged about $0.115 in cache writes alone.
+
+The mechanic: [Anthropic prompt caching](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching) splits the prompt into a stable prefix (workspace files, tool catalog) and a volatile suffix (per-turn state). The first time a prefix is seen, the provider writes it to a cache and bills you 1.25× the input rate ($3.75/1M for Sonnet 4.6). Subsequent turns within the cache TTL hit the cache and bill you 0.1× ($0.30/1M). Default TTL on Anthropic-via-Bedrock is **5 minutes**. If your sessions are bursty — a Telegram message every 10–20 minutes — almost every turn pays the write cost and almost none reaps the read benefit.
+
+OpenClaw exposes a config knob for this. \`agents.defaults.params.cacheRetention\` accepts \`"none" | "short" | "long"\`. \`"long"\` upgrades the TTL to 1 hour [on direct Anthropic hosts](https://docs.openclaw.ai/reference/prompt-caching) — the docs are silent on whether Bedrock pass-through honors it. On the running instance the field was unset (\`agents.defaults.params: null\` in \`openclaw.json\`), so Anthropic's default 5-minute window applied.
+
+Two other levers in the same doc page: \`agents.defaults.contextInjection: "continuation-skip"\` skips workspace bootstrap re-injection on continuation turns, reducing churn. \`agents.defaults.heartbeat.every: "55m"\` keeps the cache warm across idle gaps so the next user message doesn't pay the write cost. Either is worth more than re-engineering prompts.
+
+**What this tells you:** When prompt caching is in play, the bill is shaped by cache *retention*, not token *count*. A persistent agent with bursty traffic and no \`cacheRetention\` setting pays the write penalty repeatedly across the day. Diagnosis: \`OPENCLAW_CACHE_TRACE=1\` writes per-turn cache events to \`~/.openclaw/logs/cache-trace.jsonl\`; CloudWatch metrics \`CacheWriteInputTokenCount\` and \`CacheReadInputTokenCount\` per model ID confirm the split at the billing layer. If writes dominate reads, the prefix is being invalidated between turns or the TTL is shorter than your conversation rhythm.
+
+---
+
+### Bug 15: SSM RunCommand Is Not a REPL
+
+Adding the Telegram \`botToken\` to \`openclaw.json\` should have been a one-minute change. It took twenty.
+
+The bot was driving the work via [\`aws ssm send-command\`](https://docs.aws.amazon.com/cli/latest/reference/ssm/send-command.html) — fire a command, poll for completion, fetch \`StandardOutputContent\`, repeat. Each round trip is 6–10 seconds. Worse, the parameters are passed as a JSON list of shell-string commands, which means anything with quoting in it has to be escaped twice: once for SSM's JSON parser, once for the remote shell. \`jq\` invocations turn into walls of backslashes that fail at the second-layer shell with \`Unterminated quoted string\`. Errors don't surface until the next polling cycle.
+
+The fix in the moment: stop trying to drive a config edit through SSM RunCommand. \`make ssh\` opens an interactive Session Manager shell. Type the \`jq\` line directly. Restart the gateway. Done in a minute. The escape hatch for scripts that *do* need to run on the box is \`aws ssm send-command --cli-input-json file://params.json\` — the file form bypasses the worst of the shell-quoting problem. Better yet, write the script to a heredoc-emitted file on the instance first, then execute the file as a single command.
+
+**What this tells you:** SSM RunCommand is an excellent fire-and-forget execution channel for scripts that already exist on the host. It is not a replacement for a shell, and treating it like one trades one minute of typing for twenty minutes of escaping. When you need iteration, open the session. When you need automation, ship the script to disk first and invoke it by path.`,
 };
 
 export const blogPosts: BlogPost[] = [main];
