@@ -19,6 +19,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { load } from "cheerio";
 import PptxGenJS from "pptxgenjs";
+import { imageSize } from "image-size";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
@@ -160,6 +161,34 @@ function emitActHeader(pptx, $, $section) {
   addCommonNotes(slide, notesText($, $section));
 }
 
+// Compute a contain-fit: largest box of (imgW, imgH) that fits inside
+// (slotW, slotH) preserving aspect ratio. Returns { x, y, w, h } centered
+// inside the slot. This is what CSS object-fit: contain does — pptxgenjs's
+// own `sizing: "contain"` was distorting some images, so we precompute.
+function fitContain(imgW, imgH, slotX, slotY, slotW, slotH) {
+  if (!imgW || !imgH) {
+    return { x: slotX, y: slotY, w: slotW, h: slotH };
+  }
+  const imgRatio = imgW / imgH;
+  const slotRatio = slotW / slotH;
+  let w, h;
+  if (imgRatio >= slotRatio) {
+    // Image is wider relative to slot — fit by width, letterbox top/bottom.
+    w = slotW;
+    h = slotW / imgRatio;
+  } else {
+    // Image is taller relative to slot — fit by height, letterbox sides.
+    h = slotH;
+    w = slotH * imgRatio;
+  }
+  return {
+    x: slotX + (slotW - w) / 2,
+    y: slotY + (slotH - h) / 2,
+    w,
+    h,
+  };
+}
+
 function emitImageSlide(pptx, $, $section) {
   const slide = pptx.addSlide();
   addBackground(slide);
@@ -170,18 +199,31 @@ function emitImageSlide(pptx, $, $section) {
   if (img && img.src) {
     const path = join(ASSET_DIR, img.src);
     if (existsSync(path)) {
-      // Center the image, leaving room for title at top and caption at bottom.
-      const maxW = SLIDE_W - 1.5;
-      const maxH = SLIDE_H - 2.4;
+      // Slot: leave 1.4" at top for title, 0.7" at bottom for caption.
+      const slotX = 0.5;
+      const slotY = 1.4;
+      const slotW = SLIDE_W - 1.0;
+      const slotH = SLIDE_H - 2.1;
+
+      // Read native dimensions so we can fit by aspect ratio rather than
+      // letting pptxgenjs's "contain" sizing stretch portrait images into
+      // a horizontal slot. Falls back to filling the slot if the read fails.
+      let dims = null;
+      try {
+        const buf = readFileSync(path);
+        dims = imageSize(buf);
+      } catch (err) {
+        console.warn(`Could not read dimensions for ${img.src}: ${err.message}`);
+      }
+
+      const fit = fitContain(dims?.width, dims?.height, slotX, slotY, slotW, slotH);
       slide.addImage({
         path,
-        // Use a clean alt-text label rather than the absolute path on disk.
         altText: img.src,
-        x: (SLIDE_W - maxW) / 2,
-        y: 1.4,
-        w: maxW,
-        h: maxH,
-        sizing: { type: "contain", w: maxW, h: maxH },
+        x: fit.x,
+        y: fit.y,
+        w: fit.w,
+        h: fit.h,
       });
     } else {
       slide.addText(`[missing image: ${img.src}]`, {
