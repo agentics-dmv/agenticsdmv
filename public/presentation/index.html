@@ -151,23 +151,6 @@
   </aside>
 </section>
 
-<!-- 5b: The path I didn't take -->
-<section>
-  <h2>The Path I Didn't Take.</h2>
-  <hr />
-  <table style="width:84%; font-size:0.66em; text-align:left; margin-top:0.4em;">
-    <tbody>
-      <tr><td style="color:#888; padding:0.35em 0.9em; width:30%;">Lightsail OpenClaw blueprint</td><td>One click. Bundled HTTPS with Let's Encrypt. Daily 03:00 UTC token rotation. ~$10/mo.</td></tr>
-      <tr><td style="color:#888; padding:0.35em 0.9em;">Shipped</td><td>March 2026. Before I started this.</td></tr>
-      <tr><td style="color:#888; padding:0.35em 0.9em;">Why CFN instead</td><td>I wanted the IAM role, the systemd service, the GitHub Actions OIDC, and a voice pipeline I could extend. Lightsail is opinionated; CFN is mine to bend.</td></tr>
-    </tbody>
-  </table>
-  <p class="title-meta" style="margin-top:1.2em; font-size:0.7em;">Right answer for "I just want to try it." Wrong answer if you want to extend it.</p>
-  <aside class="notes">
-    AWS shipped a Lightsail OpenClaw blueprint a month before I started this. One click, bundled HTTPS via Let's Encrypt, daily token rotation at three in the morning UTC, ten dollars a month. If anyone in this room is going to spin one up tonight, that's the right answer. I went with CloudFormation because I wanted the parts: my own IAM role, my own systemd service, GitHub Actions with OIDC, a voice pipeline I could shape. Lightsail is opinionated. CFN is mine to bend. Both paths reach the same gateway. The choice is whether you want an appliance or a workshop.
-  </aside>
-</section>
-
 <!-- 6: WhatsApp death spiral -->
 <section>
   <h2>Then WhatsApp Closed the Door.</h2>
@@ -342,6 +325,20 @@
   </aside>
 </section>
 
+<!-- 16b: Setup beat for the three pre-launch problems -->
+<section>
+  <h2>Three Things Stood Between the Pipeline and the First Run.</h2>
+  <hr />
+  <p class="big-quote" style="font-size:1.0em; margin-top:0.8em;">
+    The pipeline was deployed. The bot was running. The first real voice memo went in.<br/><br/>
+    <span class="warn">Three problems showed up before it really worked.</span><br/><br/>
+    Each one taught me something I didn't expect to need.
+  </p>
+  <aside class="notes">
+    Quick map for the next three slides. The pipeline was deployed and the bot was running, but the first real voice memo surfaced three different problems in three different layers. None of them were in the code I'd just written. The first was about how secrets reach a long-running process. The second was about how AWS names models. The third was about what "the same instructions" actually means to two different models. Three problems, three lessons, then we move on.
+  </aside>
+</section>
+
 <!-- 17: Environment variable gap -->
 <section>
   <h2>The Keys That Weren't There.</h2>
@@ -400,14 +397,31 @@
   </aside>
 </section>
 
+<!-- 21b: The path I didn't take (interstitial reflection between Act 2 and Act 3) -->
+<section>
+  <h2>The Path I Didn't Take.</h2>
+  <hr />
+  <table style="width:84%; font-size:0.66em; text-align:left; margin-top:0.4em;">
+    <tbody>
+      <tr><td style="color:#888; padding:0.35em 0.9em; width:30%;">Lightsail OpenClaw blueprint</td><td>One click. Bundled HTTPS with Let's Encrypt. Daily 03:00 UTC token rotation. ~$10/mo.</td></tr>
+      <tr><td style="color:#888; padding:0.35em 0.9em;">Shipped</td><td>March 2026. Before I started this.</td></tr>
+      <tr><td style="color:#888; padding:0.35em 0.9em;">Why CFN instead</td><td>I wanted the IAM role, the systemd service, the GitHub Actions OIDC, and a voice pipeline I could extend. Lightsail is opinionated; CFN is mine to bend.</td></tr>
+    </tbody>
+  </table>
+  <p class="title-meta" style="margin-top:1.2em; font-size:0.7em;">Right answer for "I just want to try it." Wrong answer if you want to extend it.</p>
+  <aside class="notes">
+    Quick aside before we get to what broke. AWS shipped a Lightsail OpenClaw blueprint a month before I started — one click, bundled HTTPS, daily token rotation, ten dollars a month. If anyone in this room is going to spin one up tonight, that's the right answer. I went with CloudFormation because I wanted the parts: my own IAM role, my own systemd service, GitHub Actions with OIDC, a voice pipeline I could shape. Lightsail is the appliance. CFN is the workshop. Both reach the same gateway. The next act is what happens once you commit to the workshop.
+  </aside>
+</section>
+
 <!-- =====================================================================
-     ACT 3 — What Broke
+     ACT 3 — What Held
      ===================================================================== -->
 
 <section class="act-header">
   <h2>Act 3</h2>
-  <h1>What Broke</h1>
-  <aside class="notes">The right model was running. The pipeline was deployed. The first real test produced wrong data, and the bot was about to fix its own code without telling anyone.</aside>
+  <h1>What Held</h1>
+  <aside class="notes">The right model was running. The pipeline was deployed. The first real test produced wrong data, and the bot was about to fix its own code without telling anyone. What held wasn't the absence of breakage. It was the structure that caught it.</aside>
 </section>
 
 <!-- 22: Lagos, Nigeria -->
@@ -513,11 +527,23 @@
 <section>
   <h2>What It Is Now.</h2>
   <img src="openclaw-system-architecture.png" alt="OpenClaw System Architecture" class="diagram" />
-  <p class="caption">One EC2 instance. One gateway process. All access via SSM. Bedrock called on every message — no inference on the instance itself.</p>
+  <p class="caption">This is the picture you'd draw on a whiteboard. The next slides are the part you wouldn't have thought to ask about.</p>
   <aside class="notes">
     One EC2 instance. One Node.js gateway. Port 18789, localhost only. All external access through SSM. On every message: six markdown files assembled into a prompt, session history appended from JSONL on EBS, Bedrock called via IAM role, response returned. The instance has 4GB of RAM and runs no inference. It's a prompt assembler and a caller. The model is in Bedrock.
 
     [Mechanic, if asked about cost] Most of that prompt is the same six files turn after turn. Anthropic prompt caching splits the prompt at a stable boundary — workspace files cached, conversation tail volatile. Cache writes are 1.25× input, cache reads 0.1×. With a 5-minute default TTL on Anthropic-via-Bedrock, bursty Telegram traffic pays the write penalty repeatedly. The OpenClaw config knob is `agents.defaults.params.cacheRetention: "long"` (1-hour TTL on direct Anthropic; Bedrock pass-through behavior is documented as ambiguous). Combined with `contextInjection: "continuation-skip"` and a 55-minute heartbeat to keep the cache warm, that's a 10×+ Bedrock cost lever with no prompt changes. Bug 14 in the writeup goes into the numbers — 92% of our 30-day spend was cache writes.
+  </aside>
+</section>
+
+<!-- 30a: Setup beat for the cost autopsy -->
+<section>
+  <p class="big-quote" style="font-size:1.4em; margin-top:1.6em;">
+    Three days running. Real conversations. Real research.<br/><br/>
+    <span class="accent">Then I looked at the AWS bill.</span><br/><br/>
+    <span style="color:#aaa; font-size:0.7em;">The next three slides are the autopsy.<br/>Why I'm showing them: nothing in this story matters if the bill is a surprise.</span>
+  </p>
+  <aside class="notes">
+    Pivot. The whole story so far has been about whether the thing works. The next three slides are about what it costs, because at this point we can show that it works and a fair next question is whether anyone should actually do this. The answer is yes — but only if you understand which line on the bill is going to dominate, and there's a config knob for it that nobody told me about. Three slides. The autopsy, the why, and the fix. Then we get back to the loop closing.
   </aside>
 </section>
 
@@ -656,31 +682,9 @@
 <section>
   <h2>Three Paths to localhost:18789.</h2>
   <img src="three-paths-control-ui.png" alt="SSM port-forward vs Tailscale Serve vs Lightsail HTTPS — three ways to reach the OpenClaw Control UI" class="diagram" />
-  <p class="caption">Same destination. Different failure modes. Pick the one whose tradeoffs match the use case.</p>
+  <p class="caption">If SSM port-forward dropped your WebSocket too — these are the two things I'd reach for next.</p>
   <aside class="notes">
     SSM port-forward is what we used. It works, but WebSocket drops every few minutes during the QR-flow phase made it the wrong tool for that moment. Tailscale Serve is the documented escape hatch — `tailscale serve --bg http://localhost:18789` puts the Control UI behind a stable tailnet HTTPS URL with identity headers passed through. We didn't switch because Telegram replaced the need, but it's the answer if you're staying on the gateway UI. Lightsail HTTPS is the path AWS shipped in March — bundled Let's Encrypt, daily 03:00 UTC token rotation, MOTD-managed AllowedOrigin, ten dollars a month. Right answer for "I just want to try this." Three paths to the same port. None of them is wrong; one of them is right for any given moment.
-  </aside>
-</section>
-
-<!-- 36b: Mechanics Reference (optional, skip if running long) -->
-<section>
-  <h2>Mechanics Reference.</h2>
-  <hr />
-  <table style="width:88%; font-size:0.58em; text-align:left;">
-    <tbody>
-      <tr><td style="color:#888; padding:0.3em 0.8em;">Gateway</td><td>Node 24 (22.14+ supported) · port 18789 localhost only · systemd <code>--user</code></td></tr>
-      <tr><td style="color:#888; padding:0.3em 0.8em;">Workspace</td><td><code>~/.openclaw/workspace/</code> · 12k chars/file · 60k total · silent truncation past</td></tr>
-      <tr><td style="color:#888; padding:0.3em 0.8em;">Sessions</td><td>JSONL on <code>~/.openclaw/sessions/</code> · 48h timeout · keys append <code>:topic:&lt;id&gt;</code> for Telegram threads</td></tr>
-      <tr><td style="color:#888; padding:0.3em 0.8em;">Model ID</td><td><code>us.anthropic.claude-sonnet-4-6</code> (cross-region inference profile, not raw)</td></tr>
-      <tr><td style="color:#888; padding:0.3em 0.8em;">Cache knob</td><td><code>agents.defaults.params.cacheRetention: "long"</code> · 5min default → 1h on direct Anthropic</td></tr>
-      <tr><td style="color:#888; padding:0.3em 0.8em;">SSM tunnel</td><td><code>aws ssm start-session --target $ID --document-name AWS-StartPortForwardingSession --parameters '{"portNumber":["18789"],"localPortNumber":["18789"]}'</code></td></tr>
-      <tr><td style="color:#888; padding:0.3em 0.8em;">Stable remote</td><td><code>tailscale serve --bg http://localhost:18789</code> (docs.openclaw.ai/gateway/tailscale)</td></tr>
-      <tr><td style="color:#888; padding:0.3em 0.8em;">Easy mode</td><td>Lightsail OpenClaw blueprint · GA Mar 2026 · bundled HTTPS · daily token rotation</td></tr>
-    </tbody>
-  </table>
-  <p class="title-meta" style="margin-top:1.0em;">Numbers and verified config from a running deployment, not a brochure.</p>
-  <aside class="notes">
-    Optional reference slide. Skip if running long. Useful if anyone asks "but specifically how" — the answers are on screen rather than in my head. Lightsail row is the answer to "I just want to try this without the CFN dance."
   </aside>
 </section>
 
