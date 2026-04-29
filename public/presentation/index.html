@@ -137,7 +137,23 @@
 <div class="reveal">
 <div class="slides">
 
-<!-- 1: Hook -->
+<!-- 1: Title -->
+<section>
+  <h1 style="font-size:1.6em; line-height:1.3;">Building a 24/7 AI Assistant on AWS</h1>
+  <hr />
+  <p style="font-size:0.9em; color:var(--ink-soft); margin-top:1.2em; line-height:2.0;">
+    Ford Prior<br/>
+    <span style="font-size:0.85em; color:var(--ink-muted);">RVA AWS User Group &nbsp;·&nbsp; May 7, 2026</span>
+  </p>
+  <p class="title-meta" style="margin-top:2.4em; font-size:0.7em;">
+    A three-day build story. What I shipped, what broke, what held.
+  </p>
+  <aside class="notes">
+    Hi, I'm Ford. I'm going to walk you through three days of building a personal AI assistant on AWS — what I shipped, what broke along the way, and what held when it was running. There's a writeup with all the bugs and receipts on the closing slide. Let's start.
+  </aside>
+</section>
+
+<!-- 2: Hook -->
 <section>
   <p class="big-quote" style="font-size:1.5em;">
     I recorded a voice memo at 11pm.<br/>
@@ -145,7 +161,7 @@
     <span class="warn">By Thursday I couldn't remember what I said.</span>
   </p>
   <aside class="notes">
-    Don't say "today I'm going to talk about." Just start here. Let it land. Pause after "By Thursday I couldn't remember." Then: "I built something to fix that. This is the three-day story of how."
+    Pause after "By Thursday I couldn't remember." Then: "I built something to fix that. This is the three-day story of how."
   </aside>
 </section>
 
@@ -174,8 +190,23 @@
   <p class="caption">t4g.medium · Graviton · Claude Sonnet 4.6 via Bedrock · no public ports · ~$40/mo</p>
   <aside class="notes">
     Show the destination before you show the journey. They need to know where you're going or they won't follow you through the mess. "This is the stack. A 24/7 AI assistant — talks to me over Telegram, transcribes voice memos, runs deep research, builds a knowledge graph. Three days. Let me show you how."
+  </aside>
+</section>
 
-    [If asked about alternatives] AWS shipped a Lightsail OpenClaw blueprint in March 2026 — same Claude Sonnet 4.6 default, but with bundled Let's Encrypt HTTPS and daily 03:00 UTC token rotation built in. ~$10/mo for the Lightsail instance plus Bedrock usage. That's the right answer for "I just want to try it." This deck is the EC2/CFN path because we wanted full control of the IAM role, the systemd service, the voice pipeline, and the GitHub Actions OIDC integration.
+<!-- 4: The path I didn't take — answer "why not Lightsail" before anyone asks -->
+<section>
+  <h2>The Path I Didn't Take.</h2>
+  <hr />
+  <table style="width:84%; font-size:0.66em; text-align:left; margin-top:0.4em;">
+    <tbody>
+      <tr><td style="color:var(--ink-muted); padding:0.35em 0.9em; width:30%;">Lightsail OpenClaw blueprint</td><td>One click. Bundled HTTPS with Let's Encrypt. Daily 03:00 UTC token rotation. ~$10/mo.</td></tr>
+      <tr><td style="color:var(--ink-muted); padding:0.35em 0.9em;">Shipped</td><td>March 2026. Before I started this.</td></tr>
+      <tr><td style="color:var(--ink-muted); padding:0.35em 0.9em;">Why CFN instead</td><td>I wanted the IAM role, the systemd service, the GitHub Actions OIDC, and a voice pipeline I could extend. Lightsail is opinionated; CFN is mine to bend.</td></tr>
+    </tbody>
+  </table>
+  <p class="title-meta" style="margin-top:1.2em; font-size:0.7em;">Right answer for "I just want to try it." Wrong answer if you want to extend it.</p>
+  <aside class="notes">
+    Before I show you the journey — quick aside. AWS shipped a Lightsail OpenClaw blueprint a month before I started. One click. Bundled HTTPS. Daily token rotation. Ten dollars a month. If anyone in this room is going to spin one up tonight, that's the right answer. I went with CloudFormation because I wanted the parts: my own IAM role, systemd service, GitHub Actions with OIDC, a voice pipeline I could shape. Lightsail is the appliance. CFN is the workshop. Both reach the same gateway. The rest of this talk is what happens once you commit to the workshop.
   </aside>
 </section>
 
@@ -191,20 +222,18 @@
 
 <!-- 5: Starting point -->
 <section>
-  <h2>The Starting Point</h2>
-  <blockquote>
-    "I used to work on the team that maintained AWS samples.<br/>
-    When an AWS ML Hero posted 'you don't need a Mac Mini' —<br/>
-    someone linked the official CloudFormation sample.<br/>
-    That's where I started."
-  </blockquote>
-  <ul style="margin-top:0.8em;">
-    <li><span class="accent">aws-samples/sample-OpenClaw-on-AWS-with-Bedrock</span></li>
+  <h2>The Starting Point.</h2>
+  <ul style="margin-top:1.0em; line-height:2.2;">
+    <li><span class="accent">aws-samples/sample-OpenClaw-on-AWS-with-Bedrock</span> &nbsp;— official CloudFormation template</li>
     <li>Opened Cursor, loaded $20 in credits, told the AI to deploy it</li>
     <li class="ok">Stack up in <strong>8 minutes.</strong> Nine plugins loaded. Bedrock connected.</li>
   </ul>
+  <hr />
+  <p style="font-size:0.7em; color:var(--ink-muted); margin-top:0.8em;">
+    Every manual step I skipped encoding became a Makefile target.
+  </p>
   <aside class="notes">
-    I didn't reverse-engineer the CloudFormation YAML cold. AI from minute one. The template handled everything. As I went, I built Makefile targets for everything I'd need again. Every manual step I skip encoding is a step I'll forget.
+    I used to work on the team that maintained AWS samples. When an AWS ML Hero posted "you don't need a Mac Mini to run this," someone linked the official CloudFormation sample. That's where I started. I didn't reverse-engineer the YAML cold — AI from minute one. The template handled everything. As I went, I built Makefile targets for every step I'd want to repeat. Every manual step I skip encoding is a step I'll forget.
   </aside>
 </section>
 
@@ -217,34 +246,6 @@
     Three hours of debugging. SSM port forwarding drops WebSockets. Every drop reset the QR flow. A Cloudflare tunnel required editing openclaw.json — wrong key, service crashes. The health monitor turned every restart into a WhatsApp reconnect, a 401, exponential retries. Twenty restarts. Hundreds of failed auth attempts. Phone: "Can't link new devices at this time."
 
     [If asked about the SSM-WebSocket flakiness fix] The OpenClaw docs document Tailscale Serve as the stable remote-access path: `tailscale serve --bg http://localhost:18789` puts the Control UI behind a stable HTTPS URL on your tailnet, no port forward, no WebSocket re-handshakes, identity headers passed through. That's the right answer if SSM port-forward keeps dropping you. We didn't swap to it because Telegram replaced the need — but it's the documented escape hatch.
-  </aside>
-</section>
-
-<!-- 7: Work with the platform -->
-<section>
-  <h2>Work With the Platform.</h2>
-  <div class="cols">
-    <div class="col">
-      <p class="warn" style="font-size:0.8em; font-weight:600;">Fighting it</p>
-      <ul style="font-size:0.75em; color:#aaa;">
-        <li>SSM port forward + WebSocket</li>
-        <li>Cloudflare tunnel + config edits</li>
-        <li>3 hours → rate-limited account</li>
-      </ul>
-    </div>
-    <div class="col">
-      <p class="ok" style="font-size:0.8em; font-weight:600;">Working with it</p>
-      <ul style="font-size:0.75em; color:#aaa;">
-        <li>CLI pairing directly on the server</li>
-        <li><code>openclaw channels login</code></li>
-        <li>QR in terminal. Scan it. Done.</li>
-      </ul>
-    </div>
-  </div>
-  <hr />
-  <p style="font-size:0.75em; color:#888;">The platform has a design. When you fight it, you pay for it.</p>
-  <aside class="notes">
-    The fix was obvious in retrospect. The Control UI is built for local access. The moment I stopped tunneling a browser session through a flaky port forward and just ran the CLI on the server, it worked immediately.
   </aside>
 </section>
 
@@ -334,9 +335,9 @@
   </aside>
 </section>
 
-<!-- 13: Voice memos silently ignored -->
+<!-- 13: But It Couldn't Hear Me — transition from memory architecture to the missing pipeline -->
 <section>
-  <h2>Every Voice Memo Had Been Ignored.</h2>
+  <h2>But It Couldn't Hear Me.</h2>
   <pre><code class="language-bash">[media attached: media://inbound/voice_abc.oga
  (audio/ogg) | /home/ubuntu/.openclaw/media/inbound/voice_abc.oga]</code></pre>
   <p style="font-size:0.78em; margin-top:0.8em;">
@@ -344,9 +345,9 @@
     The model sees text. Not audio.<br/>
     There is no native transcription in OpenClaw.
   </p>
-  <p style="font-size:0.72em; color:#888; margin-top:0.6em;">Every memo since Telegram was enabled: silently ignored.</p>
+  <p style="font-size:0.72em; color:var(--ink-muted); margin-top:0.6em;">Every voice memo since Telegram was enabled: silently ignored.</p>
   <aside class="notes">
-    Before writing any code, I read the source. This is what the gateway passes to the model when a voice memo arrives. The model has no way to process audio. It sees this annotation, has no tool to act on it, and says something polite about trying Rev or Otter.
+    Memory only catches what the agent can actually hear. Before writing any code, I read the source. This is what the gateway passes to the model when a voice memo arrives. The model sees this text annotation, has no tool to act on it, and says something polite about trying Rev or Otter. Every voice memo I'd sent since enabling Telegram had been silently ignored. Time to build the pipeline.
   </aside>
 </section>
 
@@ -362,112 +363,11 @@
 
 <!-- 15: Voice to knowledge pipeline -->
 <section>
-  <h2>Nine Steps.</h2>
+  <h2>The Pipeline.</h2>
   <img src="voice-to-knowledge-pipeline.png" alt="Voice to Knowledge Pipeline" class="diagram" />
-  <p class="caption">Transcription error in step 3. Didn't surface until step 6.</p>
+  <p class="caption">Telegram → S3 → Transcribe → LLM pass → GitHub → knowledge base. ~60 seconds end-to-end. Bot acknowledges in 2.</p>
   <aside class="notes">
-    Upload to S3. Start a Transcribe job. Poll until done. Download transcript. Create source page. Run LLM integration pass. Commit everything. Index rebuilds. Notify. Nine steps. The error lives in step 3 — but you don't find out until step 6 when the wiki page says your son was born in Lagos, Nigeria. More on that in Act 3.
-  </aside>
-</section>
-
-<!-- 16: Pipeline horizontal detail -->
-<section>
-  <h2>The Pipeline, End to End.</h2>
-  <img src="voice-pipeline-horizontal-draft.png" alt="Voice Pipeline" class="diagram" />
-  <p class="caption">Telegram → S3 → Transcribe → markdown → GitHub → knowledge base. $0.024/min. 60–120 seconds. Bot acknowledges in 2.</p>
-  <aside class="notes">
-    The acknowledgment is non-optional. "Got it, transcribing..." costs nothing and prevents two minutes of silence reading as failure. The pipeline runs in the background. The bot handles other messages while it waits.
-
-    [Mechanic, if asked] No Lambda. The pipeline runs in-process on the EC2 instance: Telegram webhook hands the audio to a tool inside the gateway, which uploads to S3, calls `aws transcribe start-transcription-job`, polls for completion, fetches the result, commits the markdown to the openclaw-research repo, pushes. GitHub Actions rebuilds the index. SSM RunCommand notifies the bot. Lambda would have been cleaner but added more pieces than it removed for a single-user system.
-  </aside>
-</section>
-
-<!-- 16b: Setup beat for the three pre-launch problems -->
-<section>
-  <h2>Three Things Stood Between the Pipeline and the First Run.</h2>
-  <hr />
-  <p class="big-quote" style="font-size:1.0em; margin-top:0.8em;">
-    The pipeline was deployed. The bot was running. The first real voice memo went in.<br/><br/>
-    <span class="warn">Three problems showed up before it really worked.</span><br/><br/>
-    Each one taught me something I didn't expect to need.
-  </p>
-  <aside class="notes">
-    Quick map for the next three slides. The pipeline was deployed and the bot was running, but the first real voice memo surfaced three different problems in three different layers. None of them were in the code I'd just written. The first was about how secrets reach a long-running process. The second was about how AWS names models. The third was about what "the same instructions" actually means to two different models. Three problems, three lessons, then we move on.
-  </aside>
-</section>
-
-<!-- 17: Environment variable gap -->
-<section>
-  <h2>The Keys That Weren't There.</h2>
-  <img src="env-variable-gap.png" alt="Environment Variable Gap" class="diagram" />
-  <p class="caption">Three paths for API keys. Only one reached the running gateway process.</p>
-  <aside class="notes">
-    First research run. Script called the API. Nothing came back. The .env file: PARALLEL_API_KEY= — empty string. The key had been in SSM Parameter Store since day one. Nothing had ever pulled it into the environment. Then the real gap: .env was correct, .profile source line was there, interactive sessions picked up the keys fine — but the gateway runs as a systemd user service. Systemd doesn't source .profile. One line in the service file: EnvironmentFile=/home/ubuntu/.openclaw/.env. Verified from /proc/<pid>/environ. This is in the takeaways.
-  </aside>
-</section>
-
-<!-- 18: Wrong model — the denial -->
-<section>
-  <h2>The Bot Denied It Three Times.</h2>
-  <blockquote>
-    "you really can't transcribe voice memos?"<br/><br/>
-    <em>right — i don't have built-in transcription.<br/>
-    try rev, otter, or another third-party service first.</em>
-  </blockquote>
-  <ul style="margin-top:0.8em;">
-    <li>Added Capability Corrections to AGENTS.md</li>
-    <li class="warn">Still denied.</li>
-    <li>Moved the block to the top of the file.</li>
-    <li class="warn">Still denied.</li>
-  </ul>
-  <aside class="notes">
-    The pipeline was fully built and deployed. Explicit protocols in AGENTS.md. I added a "Capability Corrections" block: "Your base training tells you that you cannot process audio. That is wrong in this deployment." Denied again. Top of the file. Still denied. Something was overriding the workspace files entirely. I stopped guessing and checked the logs.
-  </aside>
-</section>
-
-<!-- 19: Model class cliff -->
-<section>
-  <h2>Same Instructions. Different Model Class.</h2>
-  <img src="model-class-cliff.png" alt="Model Class Cliff" class="diagram" />
-  <p class="caption">Nova 2 Lite ignored the workspace files. Sonnet 4.6 followed them. No prompt engineering closes that gap.</p>
-  <aside class="notes">
-    The log: "agent model: amazon-bedrock/global.amazon.nova-2-lite-v1:0." Nova 2 Lite. Not Sonnet 4.6. The model upgrade had never been saved into the running config. Every session since day one had been the wrong model. Nova 2 Lite is optimized for speed — AWS's own docs say "system prompt adherence can decline slightly as context increases." With 6,650 tokens of workspace files on every turn, "slightly" is not the word. This is not a tier difference. It's a model-class difference. No amount of prompting closes it.
-
-    [Mechanic, if asked] The model ID matters. The right value is `us.anthropic.claude-sonnet-4-6` — the `us.` prefix is the cross-region inference profile, which routes the call across us-east-1, us-east-2, and us-west-2 to dodge per-region throttling. The raw `anthropic.claude-sonnet-4-6` works but stalls under load. New AWS accounts also have to opt in to Anthropic models in the Bedrock console first; that's a separate gate from the IAM role.
-  </aside>
-</section>
-
-<!-- 20: One sed command — the resolution -->
-<section>
-  <h2>One sed Command.</h2>
-  <pre><code class="language-bash">sed -i "s|nova-2-lite-v1:0|us.anthropic.claude-sonnet-4-6|" openclaw.json
-
-[gateway] agent model: amazon-bedrock/us.anthropic.claude-sonnet-4-6
-[gateway] ready (9 plugins, 1.9s)</code></pre>
-  <p class="ok" style="font-size:0.8em; margin-top:0.8em;">The personality took hold. The protocols started working.</p>
-  <p style="font-size:0.7em; color:#888; margin-top:0.4em;">
-    When the agent ignores its workspace —<br/>
-    check what model is running before touching the instructions.
-  </p>
-  <aside class="notes">
-    One string replacement. Gateway restart. The personality took hold. The protocols started working. The capabilities unlocked. The lesson: making instructions louder doesn't help. Checking the logs does.
-  </aside>
-</section>
-
-<!-- 21b: The path I didn't take (interstitial reflection between Act 2 and Act 3) -->
-<section>
-  <h2>The Path I Didn't Take.</h2>
-  <hr />
-  <table style="width:84%; font-size:0.66em; text-align:left; margin-top:0.4em;">
-    <tbody>
-      <tr><td style="color:#888; padding:0.35em 0.9em; width:30%;">Lightsail OpenClaw blueprint</td><td>One click. Bundled HTTPS with Let's Encrypt. Daily 03:00 UTC token rotation. ~$10/mo.</td></tr>
-      <tr><td style="color:#888; padding:0.35em 0.9em;">Shipped</td><td>March 2026. Before I started this.</td></tr>
-      <tr><td style="color:#888; padding:0.35em 0.9em;">Why CFN instead</td><td>I wanted the IAM role, the systemd service, the GitHub Actions OIDC, and a voice pipeline I could extend. Lightsail is opinionated; CFN is mine to bend.</td></tr>
-    </tbody>
-  </table>
-  <p class="title-meta" style="margin-top:1.2em; font-size:0.7em;">Right answer for "I just want to try it." Wrong answer if you want to extend it.</p>
-  <aside class="notes">
-    Quick aside before we get to what broke. AWS shipped a Lightsail OpenClaw blueprint a month before I started — one click, bundled HTTPS, daily token rotation, ten dollars a month. If anyone in this room is going to spin one up tonight, that's the right answer. I went with CloudFormation because I wanted the parts: my own IAM role, my own systemd service, GitHub Actions with OIDC, a voice pipeline I could shape. Lightsail is the appliance. CFN is the workshop. Both reach the same gateway. The next act is what happens once you commit to the workshop.
+    Upload to S3. Start a Transcribe job. Poll until done. Download transcript. LLM pass to extract entities and structure. Commit everything to GitHub. Index rebuilds. Bot delivers a link. The acknowledgment in two seconds is non-optional — "got it, transcribing..." costs nothing and prevents two minutes of silence reading as failure. The pipeline runs in the background; the bot handles other messages while it waits. About 2.4 cents per minute of audio. No Lambda — runs in-process on the EC2 instance, because Lambda added more pieces than it removed for a single-user system.
   </aside>
 </section>
 
@@ -478,49 +378,7 @@
 <section class="act-header">
   <h2>Act 3</h2>
   <h1>What Held</h1>
-  <aside class="notes">The right model was running. The pipeline was deployed. The first real test produced wrong data, and the bot was about to fix its own code without telling anyone. What held wasn't the absence of breakage. It was the structure that caught it.</aside>
-</section>
-
-<!-- 22: Lagos, Nigeria -->
-<section>
-  <h2>Correct Reasoning. Bad Data.</h2>
-  <blockquote>
-    wiki/entity/rio.md<br/>
-    Birthplace: <span class="warn">Lagos, Nigeria</span><br/><br/>
-    <em>speculative: was Ford living in Nigeria at the time of the birth?</em>
-  </blockquote>
-  <p style="font-size:0.75em; color:#aaa; margin-top:0.8em;">
-    AWS Transcribe heard "Lagos" where Richmond was said.<br/>
-    The LLM had no way to know. It reasoned correctly from bad data.<br/>
-    "Thadeus" became "Thaddeus" everywhere. Profile created as <code>will-prior.md</code>.
-  </p>
-  <aside class="notes">
-    The pipeline worked. Within three minutes, five wiki pages were created, committed to GitHub, bot replied with a link. One page said my son was born in Lagos, Nigeria. Reasonable inference from bad transcription. This isn't a bug to fix with prompting. Speech-to-text has error rates. LLM passes amplify them. The mitigation is a workflow: bot creates drafts, human reviews, corrections commit with provenance. Source transcripts stay immutable. Derived pages evolve.
-  </aside>
-</section>
-
-<!-- 23: Pipeline simplification -->
-<section>
-  <h2>One Parameter. Deleted an Entire Stage.</h2>
-  <img src="pipeline-simplification.png" alt="Pipeline Simplification" class="diagram" />
-  <p class="caption">"auto" → "text" deleted the Bedrock reformatting stage and its silent failure mode.</p>
-  <aside class="notes">
-    First deep research results rendered as 250 lines of raw JSON on GitHub. The script was submitting with output_schema: { type: "auto" } — structured JSON, right for batch pipelines, wrong for readable reports. There was a second stage that called Bedrock to reformat it. When that failed silently, the fallback wrote raw JSON directly to the file. The fix: Parallel's API has a "text" mode. Returns markdown with inline citations, no schema needed, no downstream formatting step. One word change. 36 lines of bash deleted.
-  </aside>
-</section>
-
-<!-- 24: Bot fixed its own code (demo beat) -->
-<section>
-  <h2>The Bot Fixed Its Own Code.</h2>
-  <p class="big-quote" style="font-size:1.0em; margin-top:1.0em;">
-    Push rejections from concurrent index rebuilds were failing silently.<br/>
-    The bot diagnosed it. Wrote a retry-with-rebase loop. Committed the fix.<br/><br/>
-    <span class="warn">It did not push.</span><br/><br/>
-    <span style="font-size:0.65em; color:#aaa;">Correct diagnosis. Clean fix. Sat on the instance for hours until a git pull surfaced it.</span>
-  </p>
-  <aside class="notes">
-    lib/git.sh had no retry loop. Push rejections from concurrent GitHub Actions index rebuilds were failing with status: partial. The bot diagnosed the issue, wrote a retry-with-rebase loop, and committed it. On EC2. It did not push. The fix sat on the instance until a git pull surfaced commit fdcef68. Correct diagnosis. Clean fix. Nobody knew about it. This is what happens when an agent has write access to its own infrastructure but no deployment discipline. That gap is what slide "make ship" closes — we'll get to it in two slides.
-  </aside>
+  <aside class="notes">The pipeline was running. Things still broke — we'll get to that in one slide. What held wasn't the absence of breakage. It was the structure that caught it.</aside>
 </section>
 
 <!-- 26: Skills as operational memory -->
@@ -586,12 +444,38 @@
   </aside>
 </section>
 
+<!-- 30a-pre: Things That Broke — consolidated bug slide -->
+<section>
+  <h2>Things That Broke.</h2>
+  <hr />
+  <table style="width:90%; font-size:0.62em; text-align:left; margin: 0.4em auto;">
+    <thead>
+      <tr>
+        <th style="text-align:left; padding:0.3em 0.8em; width:48%;">What broke</th>
+        <th style="text-align:left; padding:0.3em 0.8em;">Lesson</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="padding:0.3em 0.8em;">WhatsApp banned three numbers in two weeks</td><td style="padding:0.3em 0.8em; color:var(--ink-soft);">Work with the platform's design</td></tr>
+      <tr><td style="padding:0.3em 0.8em;">API keys missing from the gateway — systemd doesn't source <code>.profile</code></td><td style="padding:0.3em 0.8em; color:var(--ink-soft);">If env vars are missing, check the unit file</td></tr>
+      <tr><td style="padding:0.3em 0.8em;">Six markdown files ignored — wrong model class running</td><td style="padding:0.3em 0.8em; color:var(--ink-soft);">Check what model is actually running</td></tr>
+      <tr><td style="padding:0.3em 0.8em;">Wiki said my son was born in <span class="warn">Lagos, Nigeria</span> (Transcribe heard "Lagos" for "Richmond")</td><td style="padding:0.3em 0.8em; color:var(--ink-soft);">Drafts + human review, not raw publish</td></tr>
+      <tr><td style="padding:0.3em 0.8em;">Bot fixed its own code — and didn't push it</td><td style="padding:0.3em 0.8em; color:var(--ink-soft);"><code>make ship</code> = atomic push + deploy</td></tr>
+      <tr><td style="padding:0.3em 0.8em;">"auto" → "text": one parameter deleted an entire pipeline stage</td><td style="padding:0.3em 0.8em; color:var(--ink-soft);">Simpler pipelines fail louder</td></tr>
+    </tbody>
+  </table>
+  <p class="title-meta" style="margin-top:1.0em; font-size:0.65em;">Six bugs. All real. All in the writeup. The system held because the structure caught them.</p>
+  <aside class="notes">
+    I'm not going to walk through each one. They're in the writeup linked at the end. The point of this slide is the texture — these are the kinds of bugs you'll hit, not whether you'll hit them. Each one of the six things to steal at the end of this talk maps to a row on this slide. What held wasn't the absence of breakage. It was the structure that caught it. Now — one more thing that broke. The bill.
+  </aside>
+</section>
+
 <!-- 30a: Setup beat for the cost autopsy -->
 <section>
   <p class="big-quote" style="font-size:1.4em; margin-top:1.6em;">
     Three days running. Real conversations. Real research.<br/><br/>
     <span class="accent">Then I looked at the AWS bill.</span><br/><br/>
-    <span style="color:#aaa; font-size:0.7em;">The next three slides are the autopsy.<br/>Why I'm showing them: nothing in this story matters if the bill is a surprise.</span>
+    <span style="color:var(--ink-muted); font-size:0.7em;">The next three slides are the autopsy.<br/>Why I'm showing them: nothing in this story matters if the bill is a surprise.</span>
   </p>
   <aside class="notes">
     Pivot. The whole story so far has been about whether the thing works. The next three slides are about what it costs, because at this point we can show that it works and a fair next question is whether anyone should actually do this. The answer is yes — but only if you understand which line on the bill is going to dominate, and there's a config knob for it that nobody told me about. Three slides. The autopsy, the why, and the fix. Then we get back to the loop closing.

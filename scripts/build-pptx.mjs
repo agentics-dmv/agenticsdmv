@@ -95,6 +95,103 @@ function classify($, $section) {
   return "text";
 }
 
+// --- Rich-text helpers -----------------------------------------------------
+//
+// Earlier versions of this file collapsed each block element into a single
+// `.text()` call, which destroyed two things at once:
+//   1. Line breaks between siblings (so a <ul> with three <li>s rendered as
+//      one run-on line in the .pptx).
+//   2. Inline color cues — <span class="warn">, <span class="ok">,
+//      <span class="accent"> all became plain dark text.
+//
+// Result: slides that *had* content rendered as visually empty in PowerPoint.
+//
+// `htmlToRuns` walks a cheerio node and returns an array of pptxgenjs text
+// objects — each with its own color/bold/break flags — so paragraphs, lists,
+// and inline accents make it through intact.
+
+const COLOR_CLASS = {
+  warn: WARN,
+  ok: OK,
+  accent: ACCENT,
+};
+
+// Map a node + inherited style to one or more pptxgenjs text run objects.
+// Inline elements pass style down to their children. Block elements (p, li,
+// ul, ol, hr, blockquote) emit their own paragraph break via { breakLine: true }.
+function nodeToRuns($, node, inheritedStyle = {}) {
+  const runs = [];
+  const $node = $(node);
+
+  // Text node — emit a run with the inherited style.
+  if (node.type === "text") {
+    const text = node.data.replace(/\s+/g, " ");
+    if (text.trim() === "") return runs;
+    runs.push({ text, options: { ...inheritedStyle } });
+    return runs;
+  }
+
+  if (node.type !== "tag") return runs;
+
+  const tag = node.tagName.toLowerCase();
+  const cls = ($node.attr("class") || "").split(/\s+/).filter(Boolean);
+  const style = { ...inheritedStyle };
+
+  // Apply inline style hints from class names.
+  for (const c of cls) {
+    if (COLOR_CLASS[c]) style.color = COLOR_CLASS[c];
+  }
+  if (tag === "strong" || tag === "b") style.bold = true;
+  if (tag === "em" || tag === "i") style.italic = true;
+  if (tag === "code") {
+    style.fontFace = FONT;
+    if (!style.color) style.color = ACCENT;
+  }
+
+  // <br/> → soft break inside the same paragraph.
+  if (tag === "br") {
+    runs.push({ text: "", options: { ...style, breakLine: true } });
+    return runs;
+  }
+
+  // Walk children.
+  $node.contents().each((_, child) => {
+    runs.push(...nodeToRuns($, child, style));
+  });
+
+  // Block-level tags: append a hard line break after their content so the
+  // next sibling starts on a new line in the PPTX.
+  const blockTags = new Set(["p", "li", "div", "blockquote", "hr"]);
+  if (blockTags.has(tag) && runs.length) {
+    const last = runs[runs.length - 1];
+    last.options = { ...last.options, breakLine: true };
+  }
+
+  return runs;
+}
+
+// Convert a cheerio selection into pptxgenjs text runs, ignoring elements
+// that should never appear on the slide body (notes, captions, footers).
+function elementsToRuns($, $elements, baseStyle = {}) {
+  const runs = [];
+  const skipSelector = "aside.notes, p.caption, p.title-meta";
+  $elements.each((_, el) => {
+    const $el = $(el);
+    if ($el.is(skipSelector) || $el.parents("aside.notes").length) return;
+    runs.push(...nodeToRuns($, el, baseStyle));
+  });
+  // Trim trailing breakLine on the very last run for cleaner layout.
+  if (runs.length) {
+    const last = runs[runs.length - 1];
+    if (last.options.breakLine && !last.text) runs.pop();
+    else if (last.options.breakLine) {
+      last.options = { ...last.options };
+      delete last.options.breakLine;
+    }
+  }
+  return runs;
+}
+
 // --- Slide emitters --------------------------------------------------------
 
 function addCommonNotes(slide, notes) {
@@ -303,7 +400,7 @@ function emitCodeSlide(pptx, $, $section) {
     x: 0.7,
     y: 1.5,
     w: SLIDE_W - 1.4,
-    h: SLIDE_H - 2.6,
+    h: 3.6,
     fontFace: FONT,
     fontSize: 14,
     color: TEXT_COLOR,
@@ -312,25 +409,23 @@ function emitCodeSlide(pptx, $, $section) {
     align: "left",
   });
 
-  // Some code slides have follow-up bullet points or a closing line; capture
-  // the first non-pre paragraph as a caption.
-  const $followups = $section.find("p, li").not("p.caption, p.title-meta, aside *");
+  // Followup prose: every <p> and every <li> in the section that isn't the
+  // <pre>'s code, isn't a caption/footer, and isn't inside <aside.notes>.
+  // Use rich-text runs so inline accent colors survive.
+  const followupSelector = "section > p, section > ul, section > ol";
+  const $followups = $section
+    .children("p, ul, ol, hr")
+    .not("p.caption, p.title-meta");
   if ($followups.length) {
-    const lines = [];
-    $followups.each((_, el) => {
-      const text = clean($(el).text());
-      if (text) lines.push(text);
-    });
-    if (lines.length) {
-      slide.addText(lines.join("\n"), {
+    const runs = elementsToRuns($, $followups, { fontFace: FONT, fontSize: 12, color: TEXT_SOFT });
+    if (runs.length) {
+      slide.addText(runs, {
         x: 0.7,
-        y: SLIDE_H - 1.5,
+        y: 5.3,
         w: SLIDE_W - 1.4,
-        h: 1.1,
-        fontFace: FONT,
-        fontSize: 12,
-        color: MUTED,
+        h: 1.5,
         valign: "top",
+        align: "left",
       });
     }
   }
@@ -348,26 +443,50 @@ function emitColumnsSlide(pptx, $, $section) {
   const colCount = $cols.length || 1;
   const gap = 0.4;
   const colW = (SLIDE_W - 1 - gap * (colCount - 1)) / colCount;
+  // Reserve room at the bottom for any trailing prose outside .cols.
+  const colH = SLIDE_H - 3.0;
 
   $cols.each((i, col) => {
     const $col = $(col);
-    const lines = [];
-    $col.children().each((_, el) => {
-      const $el = $(el);
-      const text = clean($el.text());
-      if (text) lines.push(text);
-    });
-    slide.addText(lines.join("\n\n"), {
-      x: 0.5 + i * (colW + gap),
-      y: 1.5,
-      w: colW,
-      h: SLIDE_H - 2.4,
+    const runs = elementsToRuns($, $col.children(), {
       fontFace: FONT,
       fontSize: 13,
       color: TEXT_COLOR,
-      valign: "top",
     });
+    if (runs.length) {
+      slide.addText(runs, {
+        x: 0.5 + i * (colW + gap),
+        y: 1.5,
+        w: colW,
+        h: colH,
+        valign: "top",
+        align: "left",
+      });
+    }
   });
+
+  // Capture any siblings of <div class="cols"> — typically a closing
+  // <p> tagline beneath the columns. Without this, slides like
+  // "Work With the Platform" lost their punchline entirely.
+  const $tail = $section.children("p, hr").not("p.caption, p.title-meta");
+  if ($tail.length) {
+    const runs = elementsToRuns($, $tail, {
+      fontFace: FONT,
+      fontSize: 12,
+      color: TEXT_SOFT,
+      italic: true,
+    });
+    if (runs.length) {
+      slide.addText(runs, {
+        x: 0.8,
+        y: SLIDE_H - 1.4,
+        w: SLIDE_W - 1.6,
+        h: 1.0,
+        valign: "top",
+        align: "center",
+      });
+    }
+  }
 
   addCommonNotes(slide, notesText($, $section));
   return slide;
@@ -380,40 +499,45 @@ function emitBlockquoteSlide(pptx, $, $section) {
   addTitle(slide, title);
 
   const $bq = $section.find("blockquote").first();
-  $bq.find("br").replaceWith("\n");
-  const quote = clean($bq.text(), { keepNewlines: true });
-
-  slide.addText(quote, {
-    x: 0.8,
-    y: 1.6,
-    w: SLIDE_W - 1.6,
-    h: 3.2,
+  const quoteRuns = elementsToRuns($, $bq.contents(), {
     fontFace: FONT,
     fontSize: 18,
     color: TEXT_COLOR,
     italic: true,
-    valign: "middle",
-    align: "left",
   });
-
-  // Capture any list items that follow the blockquote.
-  const $items = $section.find("ul li, ol li");
-  if ($items.length) {
-    const lines = [];
-    $items.each((_, li) => {
-      const text = clean($(li).text());
-      if (text) lines.push(`• ${text}`);
-    });
-    slide.addText(lines.join("\n"), {
+  if (quoteRuns.length) {
+    slide.addText(quoteRuns, {
       x: 0.8,
-      y: 5.0,
+      y: 1.4,
       w: SLIDE_W - 1.6,
-      h: 1.8,
+      h: 3.2,
+      valign: "top",
+      align: "left",
+    });
+  }
+
+  // Everything that follows the blockquote at section level: <p>, <ul>, <ol>.
+  // The previous version only captured list items, which left the SOUL.md
+  // explanatory paragraph entirely missing in the .pptx.
+  const $tail = $section
+    .children("p, ul, ol, hr")
+    .not("p.caption, p.title-meta");
+  if ($tail.length) {
+    const runs = elementsToRuns($, $tail, {
       fontFace: FONT,
       fontSize: 13,
-      color: TEXT_COLOR,
-      valign: "top",
+      color: TEXT_SOFT,
     });
+    if (runs.length) {
+      slide.addText(runs, {
+        x: 0.8,
+        y: 4.8,
+        w: SLIDE_W - 1.6,
+        h: 2.0,
+        valign: "top",
+        align: "left",
+      });
+    }
   }
   addCommonNotes(slide, notesText($, $section));
   return slide;
@@ -426,58 +550,51 @@ function emitTextSlide(pptx, $, $section) {
   const heading1 = clean($section.find("h1").first().text());
   addTitle(slide, title || heading1);
 
-  // Big quote (used on hook + closer slides)
-  const $bq = $section.find("p.big-quote").first();
+  // Big quote (used on hook + closer slides) — accent spans inside need
+  // their colors preserved, so we use rich runs.
+  const $bq = $section.children("p.big-quote").first();
   if ($bq.length) {
-    $bq.find("br").replaceWith("\n");
-    const text = clean($bq.text(), { keepNewlines: true });
-    slide.addText(text, {
-      x: 0.8,
-      y: 2.0,
-      w: SLIDE_W - 1.6,
-      h: 3.0,
+    const runs = elementsToRuns($, $bq.contents(), {
       fontFace: FONT,
       fontSize: 22,
       color: TEXT_COLOR,
       bold: true,
+    });
+    slide.addText(runs, {
+      x: 0.8,
+      y: 2.0,
+      w: SLIDE_W - 1.6,
+      h: 3.4,
       valign: "middle",
       align: "center",
     });
-  }
-
-  // Generic body paragraphs / lists
-  const blocks = [];
-  $section.find("p, ul, ol").each((_, el) => {
-    const $el = $(el);
-    if ($el.hasClass("big-quote") || $el.hasClass("caption") || $el.hasClass("title-meta")) return;
-    if ($el.parents("aside.notes").length) return;
-    if ($el.is("ul, ol")) {
-      $el.find("li").each((_, li) => {
-        const t = clean($(li).text());
-        if (t) blocks.push(`• ${t}`);
+  } else {
+    // Generic body content: every direct-child p/ul/ol that isn't a
+    // caption/footer/big-quote/note.
+    const $body = $section
+      .children("p, ul, ol, hr")
+      .not("p.big-quote, p.caption, p.title-meta");
+    if ($body.length) {
+      const runs = elementsToRuns($, $body, {
+        fontFace: FONT,
+        fontSize: 14,
+        color: TEXT_COLOR,
       });
-    } else {
-      const t = clean($el.text());
-      if (t) blocks.push(t);
+      if (runs.length) {
+        slide.addText(runs, {
+          x: 0.8,
+          y: 1.6,
+          w: SLIDE_W - 1.6,
+          h: SLIDE_H - 2.8,
+          valign: "top",
+          align: "left",
+        });
+      }
     }
-  });
-
-  if (blocks.length && !$bq.length) {
-    slide.addText(blocks.join("\n\n"), {
-      x: 0.8,
-      y: 1.6,
-      w: SLIDE_W - 1.6,
-      h: SLIDE_H - 2.6,
-      fontFace: FONT,
-      fontSize: 14,
-      color: TEXT_COLOR,
-      valign: "top",
-      align: "left",
-    });
   }
 
   // Title-meta footer (used on closer + Q&A slides)
-  const $meta = $section.find("p.title-meta").first();
+  const $meta = $section.children("p.title-meta").first();
   if ($meta.length) {
     addCaption(slide, clean($meta.text()), { y: SLIDE_H - 0.6 });
   }
