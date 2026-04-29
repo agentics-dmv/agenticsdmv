@@ -11,10 +11,28 @@
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reset.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/night.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/monokai.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/white.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/highlight/github.css" />
 
   <style>
+    /* Light-mode whiteboard palette.
+       BG is warm off-white (#fafaf7) — reads as paper / whiteboard rather
+       than the harsh pure-white of a presentation app default. */
+    :root {
+      --bg: #fafaf7;
+      --ink: #1a1a1a;
+      --ink-soft: #555;
+      --ink-muted: #888;
+      --accent: #1d4ed8;     /* marker blue */
+      --warn: #dc2626;       /* marker red */
+      --ok: #16a34a;         /* marker green */
+      --rule: #d4d4d0;
+      --card: #f3f1ea;       /* slight tan for act headers */
+    }
+
+    html, body, .reveal { background: var(--bg); }
+    .reveal { color: var(--ink); }
+
     .reveal,
     .reveal h1, .reveal h2, .reveal h3, .reveal h4,
     .reveal p, .reveal li, .reveal blockquote,
@@ -23,11 +41,11 @@
       font-family: 'Fira Code', monospace;
     }
 
-    .reveal h1 { font-size: 2.2em; font-weight: 700; line-height: 1.2; }
-    .reveal h2 { font-size: 1.5em; font-weight: 600; }
-    .reveal h3 { font-size: 1.1em; font-weight: 500; color: #aaa; }
-    .reveal p  { font-size: 0.85em; line-height: 1.6; }
-    .reveal li { font-size: 0.82em; line-height: 1.7; }
+    .reveal h1 { font-size: 2.2em; font-weight: 700; line-height: 1.2; color: var(--ink); }
+    .reveal h2 { font-size: 1.5em; font-weight: 600; color: var(--ink); }
+    .reveal h3 { font-size: 1.1em; font-weight: 500; color: var(--ink-soft); }
+    .reveal p  { font-size: 0.85em; line-height: 1.6; color: var(--ink); }
+    .reveal li { font-size: 0.82em; line-height: 1.7; color: var(--ink); }
 
     .reveal img.diagram {
       max-height: 58vh; max-width: 88%;
@@ -35,44 +53,83 @@
       margin: 0.4em auto; display: block;
     }
     .reveal img.screenshot {
+      /* legacy class — no slide uses it after the live-demo conversion,
+         left in for safety in case a future slide adds one. */
       max-height: 64vh; max-width: 78%;
       object-fit: contain; border-radius: 6px;
       display: block; margin: 0.3em auto;
     }
     .reveal .caption {
-      font-size: 0.55em; color: #888;
+      font-size: 0.55em; color: var(--ink-muted);
       margin-top: 0.4em; text-align: center; font-style: italic;
     }
-    .reveal section.act-header { background: #0d1117; }
-    .reveal section.act-header h2 { color: #58a6ff; font-size: 1.8em; }
+
+    /* Act-header card: same off-white substrate, slight tan card to keep
+       the act-break visual rhythm without going to a dark slide. */
+    .reveal section.act-header { background: var(--bg); }
+    .reveal section.act-header h2 { color: var(--accent); font-size: 1.8em; letter-spacing: 0.04em; }
+    .reveal section.act-header h1 { color: var(--ink); border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); padding: 0.4em 0; display: inline-block; }
+
     .reveal blockquote {
-      border-left: 3px solid #58a6ff;
+      border-left: 3px solid var(--accent);
       padding: 0.4em 1em;
-      background: rgba(88, 166, 255, 0.06);
+      background: rgba(29, 78, 216, 0.05);
+      color: var(--ink);
       font-size: 0.78em; line-height: 1.8;
       text-align: left; width: 88%;
     }
     .reveal .cols { display: flex; gap: 2em; align-items: flex-start; justify-content: center; }
     .reveal .cols .col { flex: 1; }
-    .reveal .accent { color: #58a6ff; }
-    .reveal .warn   { color: #f97316; }
-    .reveal .ok     { color: #22c55e; }
+
+    .reveal .accent { color: var(--accent); }
+    .reveal .warn   { color: var(--warn); }
+    .reveal .ok     { color: var(--ok); }
+
     .reveal table {
       font-size: 0.65em; border-collapse: collapse;
       width: 92%; margin: 0 auto;
+      color: var(--ink);
     }
     .reveal table th {
-      background: #1e2430; padding: 0.5em 0.8em;
-      border-bottom: 1px solid #444; color: #58a6ff;
+      background: var(--card); padding: 0.5em 0.8em;
+      border-bottom: 1px solid var(--ink); color: var(--accent);
     }
-    .reveal table td { padding: 0.4em 0.8em; border-bottom: 1px solid #2d3340; }
-    .reveal .title-meta { font-size: 0.6em; color: #888; margin-top: 1.2em; }
-    .reveal hr { border: none; border-top: 1px solid #333; margin: 0.8em auto; width: 40%; }
+    .reveal table td { padding: 0.4em 0.8em; border-bottom: 1px solid var(--rule); }
+
+    .reveal .title-meta { font-size: 0.6em; color: var(--ink-muted); margin-top: 1.2em; }
+    .reveal hr { border: none; border-top: 1px solid var(--ink); margin: 0.8em auto; width: 40%; opacity: 0.4; }
+
     .reveal .big-quote {
       font-size: 1.3em; font-weight: 600; line-height: 1.5;
-      color: #e2e8f0; margin: 0.5em auto; max-width: 80%;
+      color: var(--ink); margin: 0.5em auto; max-width: 80%;
     }
     .reveal ol li, .reveal ul li { margin-bottom: 0.3em; }
+
+    /* Code blocks: dark text on a pale card so they read as code without
+       bringing back the dark-mode tone. */
+    .reveal pre {
+      background: var(--card);
+      box-shadow: none;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+    }
+    .reveal pre code {
+      background: transparent;
+      color: var(--ink);
+    }
+    .reveal code {
+      color: var(--ink);
+    }
+
+    /* Act-position indicator — small pill, top-right of every slide.
+       Non-intrusive but removes "where are we in the arc" disorientation. */
+    .reveal .arc {
+      position: absolute;
+      top: 0.6em; right: 0.8em;
+      font-size: 0.45em;
+      color: var(--ink-muted);
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
 
@@ -452,23 +509,17 @@
   </aside>
 </section>
 
-<!-- 24: Bot fixed its own code -->
+<!-- 24: Bot fixed its own code (demo beat) -->
 <section>
   <h2>The Bot Fixed Its Own Code.</h2>
-  <img src="knowledge-base-telegram.PNG" alt="Bot fixing code in Telegram" class="screenshot" />
-  <p class="caption">Debugging its own git retry logic — then immediately ingesting a voice memo about Dune and The Matrix.</p>
+  <p class="big-quote" style="font-size:1.0em; margin-top:1.0em;">
+    Push rejections from concurrent index rebuilds were failing silently.<br/>
+    The bot diagnosed it. Wrote a retry-with-rebase loop. Committed the fix.<br/><br/>
+    <span class="warn">It did not push.</span><br/><br/>
+    <span style="font-size:0.65em; color:#aaa;">Correct diagnosis. Clean fix. Sat on the instance for hours until a git pull surfaced it.</span>
+  </p>
   <aside class="notes">
-    lib/git.sh had no retry loop. Push rejections from concurrent GitHub Actions index rebuilds were failing with status: partial. The bot diagnosed the issue, wrote a retry-with-rebase loop, and committed it. On EC2. It did not push. The fix sat on the instance until a git pull surfaced commit fdcef68. Correct diagnosis. Clean fix. Nobody knew about it. This is what happens when an agent has write access to its own infrastructure but no deployment discipline.
-  </aside>
-</section>
-
-<!-- 25: Deep research arrives -->
-<section>
-  <h2>Research Arrives in Telegram.</h2>
-  <img src="deep-research-telegram.PNG" alt="Research notification in Telegram" class="screenshot" />
-  <p class="caption">Index rebuilt. Notification delivered. The loop closes in under ten minutes.</p>
-  <aside class="notes">
-    A research task runs, results push to the GitHub repo, Actions rebuilds the index, SSM sends a notification to the bot, bot delivers it to you. Under ten minutes from trigger to delivery. The system confirms itself — no polling, no manual refresh. It tells you.
+    lib/git.sh had no retry loop. Push rejections from concurrent GitHub Actions index rebuilds were failing with status: partial. The bot diagnosed the issue, wrote a retry-with-rebase loop, and committed it. On EC2. It did not push. The fix sat on the instance until a git pull surfaced commit fdcef68. Correct diagnosis. Clean fix. Nobody knew about it. This is what happens when an agent has write access to its own infrastructure but no deployment discipline. That gap is what slide "make ship" closes — we'll get to it in two slides.
   </aside>
 </section>
 
@@ -593,37 +644,20 @@
   </aside>
 </section>
 
-<!-- 31: Knowledge base in action -->
+<!-- 31: Live demo (replaces three screenshot slides) -->
 <section>
-  <h2>The Librarian Protocol.</h2>
-  <img src="screenshot-telegram-knowledge-base.png" alt="Knowledge Base Query" class="screenshot" />
-  <p class="caption">Fetch index.json from GitHub raw URL. Filter by title, tags, summary. Return top matches with links.</p>
-  <aside class="notes">
-    When you ask about past research, the bot follows the Librarian Protocol in AGENTS.md: fetch the index — about 15k tokens for the full corpus — filter by query, tags, and summary, return the top matches. No vector database. No embeddings. Just a model reasoning over a structured list. If nothing matches, it proposes a specific follow-up query based on what's missing.
-  </aside>
-</section>
-
-<!-- 32: Deep research in action -->
-<section>
-  <h2>Deep Research in Action.</h2>
-  <img src="screenshot-telegram-deep-research.png" alt="Deep Research Output" class="screenshot" />
-  <p class="caption">A Parallel AI task runs in the background. Report lands in Telegram with citations, published to the knowledge base.</p>
-  <aside class="notes">
-    Deep research is triggered by a message. The bot acknowledges immediately, fires a Parallel AI task, and sends the result when ready — usually within a few minutes. Markdown with inline citations. Published to the research repo. Linked back in the conversation. The bot doesn't just summarize. It publishes. Future queries can find it.
-  </aside>
-</section>
-
-<!-- 33: Moment of truth -->
-<section>
-  <h2>11:11 PM.</h2>
-  <img src="telegram-desktop.png" alt="Bot working in Telegram" class="screenshot" />
-  <p class="caption">
+  <h2>Let Me Show You.</h2>
+  <hr />
+  <p class="big-quote" style="font-size:1.2em; margin-top:1.4em;">
+    <span class="accent">[ live demo ]</span>
+  </p>
+  <p style="font-size:0.7em; color:#888; margin-top:1.2em; line-height:1.8;">
     Voice memo in. "got it, transcribing..." — 2 seconds.<br/>
     "running deep research now." — 1 minute.<br/>
-    Report published, link delivered, brief on what it covers. — 4 minutes.
+    Report published. Link delivered. Brief on what it covers. — 4 minutes.
   </p>
   <aside class="notes">
-    This is the moment. Everything else was setup. A voice memo arrives. The bot acknowledges in two seconds. It transcribes, files the note, kicks off research, delivers a report — all while you're doing something else. The thought doesn't get lost. It becomes a wiki page, a research report, a node in a graph that's going to know you better than any app you've ever used.
+    This is the moment. Everything else was setup. Switch to Telegram. Send a voice memo — something that would normally just disappear into the phone. Bot acknowledges in two seconds. Watch it transcribe. Watch the wiki page commit. Trigger deep research from the same conversation. Report shows up with citations. The Librarian Protocol — that's the thing in AGENTS.md that fetches index.json from GitHub raw, filters by tags and summary, no vector database, no embeddings, just a model reasoning over a structured list. Show that too if there's time. Total demo budget: 5 minutes. If anything fails, narrate the failure — the audience already knows things break in this story.
   </aside>
 </section>
 
@@ -736,6 +770,38 @@
     margin: 0.04,
     plugins: [ RevealNotes, RevealHighlight ]
   });
+
+  // Stamp every slide with an "Act N — k of N" position indicator.
+  // Walks .slides > section in order, tracks which act we're in based on
+  // section.act-header markers, and inserts a small absolute-positioned
+  // <span class="arc"> at the top-right of each slide. Skips title slides
+  // (slides before Act 1) and the act-header slides themselves.
+  (function stampArcPositions() {
+    const sections = Array.from(document.querySelectorAll('.reveal .slides > section'));
+    const acts = []; // [{ name: 'Act 1', startIdx, endIdx }]
+    let currentAct = null;
+    sections.forEach((sec, i) => {
+      if (sec.classList.contains('act-header')) {
+        if (currentAct) currentAct.endIdx = i - 1;
+        const heading = (sec.querySelector('h2')?.textContent || '').trim();
+        currentAct = { name: heading, startIdx: i + 1, endIdx: sections.length - 1 };
+        acts.push(currentAct);
+      }
+    });
+    // Build per-section labels
+    sections.forEach((sec, i) => {
+      // Skip pre-Act-1 slides (the hook + destination)
+      const act = acts.find(a => i >= a.startIdx && i <= a.endIdx);
+      if (!act) return;
+      if (sec.classList.contains('act-header')) return;
+      const pos = i - act.startIdx + 1;
+      const total = act.endIdx - act.startIdx + 1;
+      const span = document.createElement('span');
+      span.className = 'arc';
+      span.textContent = `${act.name} · ${pos} / ${total}`;
+      sec.appendChild(span);
+    });
+  })();
 </script>
 </body>
 </html>

@@ -31,16 +31,19 @@ const OUT_PATH = join(ROOT, "public/presentation/openclaw-talk.pptx");
 const SLIDE_W = 13.333;
 const SLIDE_H = 7.5;
 
-// Visual constants — pulled from the existing CSS so the .pptx feels related
-// to the HTML deck without trying to perfectly reproduce it.
-const BG_COLOR = "111111";
-const ACT_BG = "0d1117";
-const TEXT_COLOR = "e8e8e8";
+// Visual constants — light-mode whiteboard palette, matches the HTML CSS.
+// BG is warm off-white (paper feel, not pure white).
+const BG_COLOR = "FAFAF7";
+const ACT_BG = "FAFAF7";
+const ACT_CARD = "F3F1EA";    // tan card behind act-header heading
+const TEXT_COLOR = "1A1A1A";
+const TEXT_SOFT = "555555";
 const MUTED = "888888";
-const ACCENT = "58a6ff";
-const WARN = "f97316";
-const OK = "22c55e";
-const FONT = "Fira Code"; // Google Slides will substitute if absent
+const ACCENT = "1D4ED8";       // marker blue
+const WARN = "DC2626";         // marker red
+const OK = "16A34A";           // marker green
+const RULE = "D4D4D0";
+const FONT = "Fira Code";      // Google Slides will substitute if absent
 const FONT_FALLBACK = "Courier New";
 
 // --- Helpers ---------------------------------------------------------------
@@ -159,6 +162,7 @@ function emitActHeader(pptx, $, $section) {
     align: "center",
   });
   addCommonNotes(slide, notesText($, $section));
+  return slide;
 }
 
 // Compute a contain-fit: largest box of (imgW, imgH) that fits inside
@@ -235,6 +239,7 @@ function emitImageSlide(pptx, $, $section) {
 
   addCaption(slide, captionText($section));
   addCommonNotes(slide, notesText($, $section));
+  return slide;
 }
 
 function emitTableSlide(pptx, $, $section) {
@@ -257,7 +262,7 @@ function emitTableSlide(pptx, $, $section) {
           fontSize: 12,
           color: isHeader ? ACCENT : TEXT_COLOR,
           bold: isHeader,
-          fill: { color: isHeader ? "1e2430" : "1a1a1a" },
+          fill: { color: isHeader ? ACT_CARD : BG_COLOR },
           valign: "middle",
         },
       });
@@ -271,7 +276,7 @@ function emitTableSlide(pptx, $, $section) {
       y: 1.5,
       w: SLIDE_W - 1,
       colW: rows[0].map(() => (SLIDE_W - 1) / rows[0].length),
-      border: { type: "solid", pt: 0.5, color: "2d3340" },
+      border: { type: "solid", pt: 0.5, color: RULE },
       autoPage: false,
     });
   }
@@ -282,6 +287,7 @@ function emitTableSlide(pptx, $, $section) {
     addCaption(slide, clean($meta.text()), { y: SLIDE_H - 0.6 });
   }
   addCommonNotes(slide, notesText($, $section));
+  return slide;
 }
 
 function emitCodeSlide(pptx, $, $section) {
@@ -301,7 +307,7 @@ function emitCodeSlide(pptx, $, $section) {
     fontFace: FONT,
     fontSize: 14,
     color: TEXT_COLOR,
-    fill: { color: "1a1a1a" },
+    fill: { color: ACT_CARD },
     valign: "top",
     align: "left",
   });
@@ -329,6 +335,7 @@ function emitCodeSlide(pptx, $, $section) {
     }
   }
   addCommonNotes(slide, notesText($, $section));
+  return slide;
 }
 
 function emitColumnsSlide(pptx, $, $section) {
@@ -363,6 +370,7 @@ function emitColumnsSlide(pptx, $, $section) {
   });
 
   addCommonNotes(slide, notesText($, $section));
+  return slide;
 }
 
 function emitBlockquoteSlide(pptx, $, $section) {
@@ -408,6 +416,7 @@ function emitBlockquoteSlide(pptx, $, $section) {
     });
   }
   addCommonNotes(slide, notesText($, $section));
+  return slide;
 }
 
 function emitTextSlide(pptx, $, $section) {
@@ -473,6 +482,48 @@ function emitTextSlide(pptx, $, $section) {
     addCaption(slide, clean($meta.text()), { y: SLIDE_H - 0.6 });
   }
   addCommonNotes(slide, notesText($, $section));
+  return slide;
+}
+
+// --- Arc position indicator ------------------------------------------------
+
+// Walks sections in order, finds act-header markers, and returns a map
+// { sectionIndex: "Act 1 · 3 / 12" } for every non-header slide inside an act.
+// Slides outside any act (the title + destination, before Act 1) get no label.
+function computeArcLabels($, sections) {
+  const acts = [];
+  let current = null;
+  sections.forEach((sec, i) => {
+    if ($(sec).hasClass("act-header")) {
+      if (current) current.endIdx = i - 1;
+      const heading = ($(sec).find("h2").first().text() || "").trim();
+      current = { name: heading, startIdx: i + 1, endIdx: sections.length - 1 };
+      acts.push(current);
+    }
+  });
+  const labels = {};
+  sections.forEach((sec, i) => {
+    if ($(sec).hasClass("act-header")) return;
+    const act = acts.find((a) => i >= a.startIdx && i <= a.endIdx);
+    if (!act) return;
+    const pos = i - act.startIdx + 1;
+    const total = act.endIdx - act.startIdx + 1;
+    labels[i] = `${act.name} · ${pos} / ${total}`;
+  });
+  return labels;
+}
+
+function addArcIndicator(slide, label) {
+  slide.addText(label, {
+    x: SLIDE_W - 2.6,
+    y: 0.15,
+    w: 2.4,
+    h: 0.3,
+    fontFace: FONT,
+    fontSize: 9,
+    color: MUTED,
+    align: "right",
+  });
 }
 
 // --- Main ------------------------------------------------------------------
@@ -491,6 +542,11 @@ function build() {
   const sections = $(".reveal .slides > section").toArray();
   console.log(`Found ${sections.length} slides`);
 
+  // Build arc-position labels — mirrors the runtime JS in index.html.
+  // Walks sections, tracks act boundaries via class="act-header", then
+  // stamps every non-header slide inside an act with "Act N · k / N".
+  const arcLabels = computeArcLabels($, sections);
+
   let counts = { "act-header": 0, image: 0, table: 0, code: 0, columns: 0, blockquote: 0, text: 0 };
 
   sections.forEach((sec, i) => {
@@ -498,15 +554,18 @@ function build() {
     const kind = classify($, $section);
     counts[kind]++;
     try {
+      let slide;
       switch (kind) {
-        case "act-header": emitActHeader(pptx, $, $section); break;
-        case "image":      emitImageSlide(pptx, $, $section); break;
-        case "table":      emitTableSlide(pptx, $, $section); break;
-        case "code":       emitCodeSlide(pptx, $, $section); break;
-        case "columns":    emitColumnsSlide(pptx, $, $section); break;
-        case "blockquote": emitBlockquoteSlide(pptx, $, $section); break;
-        default:           emitTextSlide(pptx, $, $section); break;
+        case "act-header": slide = emitActHeader(pptx, $, $section); break;
+        case "image":      slide = emitImageSlide(pptx, $, $section); break;
+        case "table":      slide = emitTableSlide(pptx, $, $section); break;
+        case "code":       slide = emitCodeSlide(pptx, $, $section); break;
+        case "columns":    slide = emitColumnsSlide(pptx, $, $section); break;
+        case "blockquote": slide = emitBlockquoteSlide(pptx, $, $section); break;
+        default:           slide = emitTextSlide(pptx, $, $section); break;
       }
+      // Stamp the arc indicator if we have one (slides inside an act, excl. headers).
+      if (slide && arcLabels[i]) addArcIndicator(slide, arcLabels[i]);
     } catch (err) {
       console.error(`Slide ${i + 1} (${kind}) failed:`, err.message);
       throw err;
